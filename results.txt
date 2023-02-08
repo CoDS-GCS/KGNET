@@ -1,0 +1,131 @@
+/home/hussein/anaconda3/envs/KGNET_V2/bin/python /media/hussein/UbuntuData/GithubRepos/KGNET_V2/main.py
+<class 'sparqlEndpoints.openlinkVirtuosoEndpoint.openlinkVirtuosoEndpoint'>
+vos 7.5.2
+Query_time= 0:00:17.243683
+2022-02-22 11:57:22.911772: I tensorflow/core/platform/cpu_feature_guard.cc:142] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2022-02-22 11:57:22.938608: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2599990000 Hz
+2022-02-22 11:57:22.939032: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55ceb258b690 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2022-02-22 11:57:22.939050: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+Average DistMult Loss:   0.220152: 100%|██████████| 50/50 [00:36<00:00,  1.38epoch/s]
+Train_Emb_DistMult_time= 0:00:36.812347
+Emb_To_np_ListDistMult_time= 0:00:00.403192
+Faiss IndexFlatL2 added DistMult for 267 entity to dataset
+FaissIndex_DistMult_time= 0:00:00.002922
+FaissSearchTop100_DistMult_time= 0:00:00.014407
+len df_embs_DistMult= 267
+Average TransE Loss:   0.978708: 100%|██████████| 50/50 [00:34<00:00,  1.45epoch/s]
+Train_Emb_TransE_time= 0:00:34.983981
+Emb_To_np_ListTransE_time= 0:00:00.392371
+Faiss IndexFlatL2 added TransE for 267 entity to dataset
+FaissIndex_TransE_time= 0:00:00.002816
+FaissSearchTop100_TransE_time= 0:00:00.013983
+len df_embs_TransE= 267
+Average HolE Loss:   1.307782: 100%|██████████| 50/50 [01:16<00:00,  1.53s/epoch]
+Train_Emb_HolE_time= 0:01:16.934072
+Emb_To_np_ListHolE_time= 0:00:00.485464
+Faiss IndexFlatL2 added HolE for 267 entity to dataset
+FaissIndex_HolE_time= 0:00:00.003294
+FaissSearchTop100_HolE_time= 0:00:00.016197
+len df_embs_HolE= 267
+len df_citizenship= 35
+/home/hussein/anaconda3/envs/KGNET_V2/lib/python3.7/site-packages/sklearn/model_selection/_split.py:680: UserWarning: The least populated class in y has only 1 members, which is less than n_splits=10.
+  UserWarning,
+RF_Training_novel_emb_DistMult_df_time= 0:00:05.503903
+novel_emb_DistMult_df_RF_CM= (array([[ 0,  1,  0,  0,  0,  0,  0,  0,  0],
+       [ 0, 71,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  6,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  2,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  1,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0,  0,  0,  0,  0]]), 0.8765432098765432)
+/home/hussein/anaconda3/envs/KGNET_V2/lib/python3.7/site-packages/sklearn/model_selection/_split.py:680: UserWarning: The least populated class in y has only 1 members, which is less than n_splits=10.
+  UserWarning,
+RF_Training_novel_emb_TransE_df_time= 0:00:05.444502
+novel_emb_TransE_df_RF_CM= (array([[ 0,  0,  0,  0,  0,  0,  0,  0,  0],
+       [ 0, 68,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  8,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  3,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  1,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  1,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0,  0,  0,  0,  0]]), 0.8395061728395061)
+/home/hussein/anaconda3/envs/KGNET_V2/lib/python3.7/site-packages/sklearn/model_selection/_split.py:680: UserWarning: The least populated class in y has only 1 members, which is less than n_splits=10.
+  UserWarning,
+RF_Training_novel_emb_HolE_df_time= 0:00:05.184498
+novel_emb_HolE_df_RF_CM= (array([[ 0,  1,  0,  0,  0,  0,  0,  0,  0],
+       [ 0, 69,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  6,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  3,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  1,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  1,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0,  0,  0,  0,  0]]), 0.8518518518518519)
+
+Process finished with exit code 0
+---------------------------------------------------
+/home/hussein/anaconda3/envs/KGNET_V2/bin/python /media/hussein/UbuntuData/GithubRepos/KGNET_V2/main.py
+<class 'sparqlEndpoints.openlinkVirtuosoEndpoint.openlinkVirtuosoEndpoint'>
+vos 7.5.2
+Query_time= 0:00:07.866214
+2022-02-22 12:24:04.615739: I tensorflow/core/platform/cpu_feature_guard.cc:142] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2022-02-22 12:24:04.638717: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2599990000 Hz
+2022-02-22 12:24:04.640194: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5561abe339d0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2022-02-22 12:24:04.640232: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+Average DistMult Loss:   0.218532: 100%|██████████| 50/50 [00:16<00:00,  2.96epoch/s]
+Train_Emb_DistMult_time= 0:00:17.316444
+Emb_To_np_ListDistMult_time= 0:00:00.103796
+Faiss IndexFlatL2 added DistMult for 64 entity to dataset
+FaissIndex_DistMult_time= 0:00:00.001171
+FaissSearchTop100_DistMult_time= 0:00:00.014335
+len df_embs_DistMult= 64
+Average TransE Loss:   1.013731: 100%|██████████| 50/50 [00:15<00:00,  3.33epoch/s]
+Train_Emb_TransE_time= 0:00:15.421682
+Emb_To_np_ListTransE_time= 0:00:00.106388
+Faiss IndexFlatL2 added TransE for 64 entity to dataset
+FaissIndex_TransE_time= 0:00:00.001205
+FaissSearchTop100_TransE_time= 0:00:00.014892
+len df_embs_TransE= 64
+Average HolE Loss:   1.449891: 100%|██████████| 50/50 [00:32<00:00,  1.53epoch/s]
+Train_Emb_HolE_time= 0:00:33.334745
+Emb_To_np_ListHolE_time= 0:00:00.109302
+Faiss IndexFlatL2 added HolE for 64 entity to dataset
+FaissIndex_HolE_time= 0:00:00.001147
+FaissSearchTop100_HolE_time= 0:00:00.014786
+len df_embs_HolE= 64
+len df_classification_target= 66
+/home/hussein/anaconda3/envs/KGNET_V2/lib/python3.7/site-packages/sklearn/model_selection/_split.py:680: UserWarning: The least populated class in y has only 1 members, which is less than n_splits=10.
+  UserWarning,
+RF_Training_Space_advocates_emb_DistMult_df_time= 0:00:04.064951
+Space_advocates_emb_DistMult_df_RF_CM= (array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ...,
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0]]), 0.45)
+/home/hussein/anaconda3/envs/KGNET_V2/lib/python3.7/site-packages/sklearn/model_selection/_split.py:680: UserWarning: The least populated class in y has only 1 members, which is less than n_splits=10.
+  UserWarning,
+RF_Training_Space_advocates_emb_TransE_df_time= 0:00:04.113616
+Space_advocates_emb_TransE_df_RF_CM= (array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ...,
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0]]), 0.5)
+/home/hussein/anaconda3/envs/KGNET_V2/lib/python3.7/site-packages/sklearn/model_selection/_split.py:680: UserWarning: The least populated class in y has only 1 members, which is less than n_splits=10.
+  UserWarning,
+RF_Training_Space_advocates_emb_HolE_df_time= 0:00:04.016478
+Space_advocates_emb_HolE_df_RF_CM= (array([[0, 1, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ...,
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0]]), 0.3)
+
+Process finished with exit code 0

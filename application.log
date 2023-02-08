@@ -1,0 +1,3104 @@
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T03:06:34.326958', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 10 word types from a corpus of 10 raw words and 10 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 10 unique words (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:06:35.308214', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 10 word corpus (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:06:35.308345', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 10 items
+INFO - sample=0.001 downsamples 10 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 1.1 word corpus (11.0%% of prior 10)', 'datetime': '2021-12-20T03:06:35.309129', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 10 words and 50 dimensions: 9000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T03:06:35.310512', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 10 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T03:06:35.310660', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 10 raw words (1 effective words) took 0.0s, 155 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 10 raw words (2 effective words) took 0.0s, 2659 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 10 raw words (1 effective words) took 0.0s, 363 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 50 raw words (4 effective words) took 0.0s, 198 effective words/s', 'datetime': '2021-12-20T03:06:35.330964', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T03:07:40.870662', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 10 word types from a corpus of 10 raw words and 10 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 10 unique words (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:07:41.868933', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 10 word corpus (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:07:41.869063', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 10 items
+INFO - sample=0.001 downsamples 10 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 1.1 word corpus (11.0%% of prior 10)', 'datetime': '2021-12-20T03:07:41.869376', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 10 words and 50 dimensions: 9000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T03:07:41.871780', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 10 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T03:07:41.871903', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 10 raw words (1 effective words) took 0.0s, 289 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 10 raw words (2 effective words) took 0.0s, 3843 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 10 raw words (1 effective words) took 0.0s, 559 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 50 raw words (4 effective words) took 0.1s, 78 effective words/s', 'datetime': '2021-12-20T03:07:41.923556', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T03:08:01.909636', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 10 word types from a corpus of 10 raw words and 10 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 10 unique words (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:08:02.834582', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 10 word corpus (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:08:02.834751', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 10 items
+INFO - sample=0.001 downsamples 10 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 1.1 word corpus (11.0%% of prior 10)', 'datetime': '2021-12-20T03:08:02.835579', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 10 words and 50 dimensions: 9000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T03:08:02.836523', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 10 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T03:08:02.836687', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 10 raw words (1 effective words) took 0.0s, 936 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 10 raw words (2 effective words) took 0.0s, 2141 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 10 raw words (1 effective words) took 0.0s, 289 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 50 raw words (4 effective words) took 0.0s, 149 effective words/s', 'datetime': '2021-12-20T03:08:02.863642', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T03:08:59.508394', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 10 word types from a corpus of 10 raw words and 10 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 10 unique words (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:09:00.458132', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 10 word corpus (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:09:00.458262', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 10 items
+INFO - sample=0.001 downsamples 10 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 1.1 word corpus (11.0%% of prior 10)', 'datetime': '2021-12-20T03:09:00.459052', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 10 words and 50 dimensions: 9000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T03:09:00.461486', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 10 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T03:09:00.461624', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 10 raw words (1 effective words) took 0.0s, 1001 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 10 raw words (2 effective words) took 0.0s, 440 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 10 raw words (1 effective words) took 0.0s, 520 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 50 raw words (4 effective words) took 0.1s, 67 effective words/s', 'datetime': '2021-12-20T03:09:00.521319', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=100, alpha=0.025)', 'datetime': '2021-12-20T03:09:17.842426', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 10 word types from a corpus of 10 raw words and 10 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 10 unique words (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:09:18.777514', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 10 word corpus (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:09:18.777659', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 10 items
+INFO - sample=0.001 downsamples 10 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 1.1 word corpus (11.0%% of prior 10)', 'datetime': '2021-12-20T03:09:18.777972', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 10 words and 100 dimensions: 13000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T03:09:18.778824', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 10 vocabulary and 100 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T03:09:18.778942', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 10 raw words (1 effective words) took 0.0s, 1100 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 10 raw words (2 effective words) took 0.0s, 1100 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 10 raw words (1 effective words) took 0.0s, 3550 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 50 raw words (4 effective words) took 0.1s, 79 effective words/s', 'datetime': '2021-12-20T03:09:18.829678', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T03:09:38.664109', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 10 word types from a corpus of 10 raw words and 10 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 10 unique words (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:09:39.760326', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 10 word corpus (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:09:39.760454', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 10 items
+INFO - sample=0.001 downsamples 10 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 1.1 word corpus (11.0%% of prior 10)', 'datetime': '2021-12-20T03:09:39.760756', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 10 words and 50 dimensions: 9000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T03:09:39.761550', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 10 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T03:09:39.761681', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 10 raw words (1 effective words) took 0.0s, 503 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 10 raw words (2 effective words) took 0.0s, 662 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 10 raw words (1 effective words) took 0.0s, 301 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 50 raw words (4 effective words) took 0.0s, 120 effective words/s', 'datetime': '2021-12-20T03:09:39.795061', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T03:21:26.414760', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 10 word types from a corpus of 10 raw words and 10 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 10 unique words (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:21:27.339265', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 10 word corpus (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:21:27.339405', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 10 items
+INFO - sample=0.001 downsamples 10 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 1.1 word corpus (11.0%% of prior 10)', 'datetime': '2021-12-20T03:21:27.340143', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 10 words and 50 dimensions: 9000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T03:21:27.341103', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 10 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T03:21:27.341227', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 10 raw words (1 effective words) took 0.0s, 639 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 10 raw words (2 effective words) took 0.0s, 5871 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 10 raw words (1 effective words) took 0.0s, 264 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 50 raw words (4 effective words) took 0.0s, 81 effective words/s', 'datetime': '2021-12-20T03:21:27.390614', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T03:29:17.186139', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 10 word types from a corpus of 10 raw words and 10 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 10 unique words (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:29:18.153828', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 10 word corpus (100.0%% of original 10, drops 0)', 'datetime': '2021-12-20T03:29:18.153962', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 10 items
+INFO - sample=0.001 downsamples 10 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 1.1 word corpus (11.0%% of prior 10)', 'datetime': '2021-12-20T03:29:18.154708', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 10 words and 50 dimensions: 9000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T03:29:18.155652', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 10 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T03:29:18.155795', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 10 raw words (1 effective words) took 0.0s, 570 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 10 raw words (2 effective words) took 0.0s, 1115 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 10 raw words (0 effective words) took 0.0s, 0 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 10 raw words (1 effective words) took 0.0s, 855 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 50 raw words (4 effective words) took 0.0s, 83 effective words/s', 'datetime': '2021-12-20T03:29:18.203870', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T04:59:50.782775', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:00:52.481438', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:04:59.348853', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:05:18.728046', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:07:23.638081', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:09:04.914587', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:11:47.971546', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 550 word types from a corpus of 550 raw words and 550 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 550 unique words (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:11:51.564953', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 550 word corpus (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:11:51.565084', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 550 items
+INFO - sample=0.001 downsamples 0 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 550 word corpus (100.0%% of prior 550)', 'datetime': '2021-12-20T05:11:51.568674', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 550 words and 50 dimensions: 495000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T05:11:51.575870', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 550 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T05:11:51.576006', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 550 raw words (550 effective words) took 0.0s, 216509 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 550 raw words (550 effective words) took 0.0s, 220120 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 550 raw words (550 effective words) took 0.0s, 243483 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 550 raw words (550 effective words) took 0.0s, 236969 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 550 raw words (550 effective words) took 0.0s, 245936 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 2750 raw words (2750 effective words) took 0.0s, 110505 effective words/s', 'datetime': '2021-12-20T05:11:51.600960', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:16:50.288607', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 550 word types from a corpus of 550 raw words and 550 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 550 unique words (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:16:53.162235', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 550 word corpus (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:16:53.162418', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 550 items
+INFO - sample=0.001 downsamples 0 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 550 word corpus (100.0%% of prior 550)', 'datetime': '2021-12-20T05:16:53.166015', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 550 words and 50 dimensions: 495000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T05:16:53.172604', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 550 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T05:16:53.172741', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 550 raw words (550 effective words) took 0.0s, 246305 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 550 raw words (550 effective words) took 0.0s, 226726 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 550 raw words (550 effective words) took 0.0s, 235723 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 550 raw words (550 effective words) took 0.0s, 245117 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 550 raw words (550 effective words) took 0.0s, 257017 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 2750 raw words (2750 effective words) took 0.0s, 131187 effective words/s', 'datetime': '2021-12-20T05:16:53.193803', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:29:35.545227', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 550 word types from a corpus of 550 raw words and 550 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 550 unique words (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:29:38.289618', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 550 word corpus (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:29:38.289769', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 550 items
+INFO - sample=0.001 downsamples 0 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 550 word corpus (100.0%% of prior 550)', 'datetime': '2021-12-20T05:29:38.293704', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 550 words and 50 dimensions: 495000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T05:29:38.300716', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 550 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T05:29:38.300836', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 550 raw words (550 effective words) took 0.0s, 231053 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 550 raw words (550 effective words) took 0.0s, 230482 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 550 raw words (550 effective words) took 0.0s, 263226 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 550 raw words (550 effective words) took 0.0s, 251137 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 550 raw words (550 effective words) took 0.0s, 169568 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 2750 raw words (2750 effective words) took 0.0s, 128249 effective words/s', 'datetime': '2021-12-20T05:29:38.322359', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:41:12.674317', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 550 word types from a corpus of 550 raw words and 550 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 550 unique words (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:41:15.699091', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 550 word corpus (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:41:15.699590', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 550 items
+INFO - sample=0.001 downsamples 0 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 550 word corpus (100.0%% of prior 550)', 'datetime': '2021-12-20T05:41:15.703333', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 550 words and 50 dimensions: 495000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T05:41:15.710266', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 550 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T05:41:15.710393', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 550 raw words (550 effective words) took 0.0s, 242547 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 550 raw words (550 effective words) took 0.0s, 226686 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 550 raw words (550 effective words) took 0.0s, 241022 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 550 raw words (550 effective words) took 0.0s, 252592 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 550 raw words (550 effective words) took 0.0s, 168572 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 2750 raw words (2750 effective words) took 0.0s, 130504 effective words/s', 'datetime': '2021-12-20T05:41:15.731532', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:44:51.143091', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 550 word types from a corpus of 550 raw words and 550 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 550 unique words (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:44:53.906610', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 550 word corpus (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:44:53.906765', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 550 items
+INFO - sample=0.001 downsamples 0 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 550 word corpus (100.0%% of prior 550)', 'datetime': '2021-12-20T05:44:53.911149', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 550 words and 50 dimensions: 495000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T05:44:53.918654', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 550 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T05:44:53.918784', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 550 raw words (550 effective words) took 0.0s, 236208 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 550 raw words (550 effective words) took 0.0s, 246961 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 550 raw words (550 effective words) took 0.0s, 254137 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 550 raw words (550 effective words) took 0.0s, 245837 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 550 raw words (550 effective words) took 0.0s, 243074 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 2750 raw words (2750 effective words) took 0.0s, 140943 effective words/s', 'datetime': '2021-12-20T05:44:53.938376', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : pairwise
+INFO - eta : 50
+INFO - margin : 1
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.01
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - Word2Vec lifecycle event {'params': 'Word2Vec(vocab=0, vector_size=50, alpha=0.025)', 'datetime': '2021-12-20T05:49:33.617629', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'created'}
+INFO - collecting all words and their counts
+INFO - PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+INFO - collected 550 word types from a corpus of 550 raw words and 550 sentences
+INFO - Creating a fresh vocabulary
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 retains 550 unique words (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:49:36.869829', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'effective_min_count=0 leaves 550 word corpus (100.0%% of original 550, drops 0)', 'datetime': '2021-12-20T05:49:36.869979', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - deleting the raw counts dictionary of 550 items
+INFO - sample=0.001 downsamples 0 most-common words
+INFO - Word2Vec lifecycle event {'msg': 'downsampling leaves estimated 550 word corpus (100.0%% of prior 550)', 'datetime': '2021-12-20T05:49:36.873534', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'prepare_vocab'}
+INFO - estimated required memory for 550 words and 50 dimensions: 495000 bytes
+INFO - resetting layer weights
+INFO - Word2Vec lifecycle event {'update': False, 'trim_rule': 'None', 'datetime': '2021-12-20T05:49:36.880620', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'build_vocab'}
+INFO - Word2Vec lifecycle event {'msg': 'training model with 3 workers on 550 vocabulary and 50 features, using sg=0 hs=0 sample=0.001 negative=20 window=5 shrink_windows=True', 'datetime': '2021-12-20T05:49:36.880752', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 1 : training on 550 raw words (550 effective words) took 0.0s, 234541 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 2 : training on 550 raw words (550 effective words) took 0.0s, 248483 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 3 : training on 550 raw words (550 effective words) took 0.0s, 130127 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 4 : training on 550 raw words (550 effective words) took 0.0s, 237516 effective words/s
+INFO - worker thread finished; awaiting finish of 2 more threads
+INFO - worker thread finished; awaiting finish of 1 more threads
+INFO - worker thread finished; awaiting finish of 0 more threads
+INFO - EPOCH - 5 : training on 550 raw words (550 effective words) took 0.0s, 244240 effective words/s
+INFO - Word2Vec lifecycle event {'msg': 'training on 2750 raw words (2750 effective words) took 0.0s, 123078 effective words/s', 'datetime': '2021-12-20T05:49:36.903195', 'gensim': '4.1.1', 'python': '3.7.11 (default, Jul 27 2021, 14:32:16) \n[GCC 7.5.0]', 'platform': 'Linux-4.15.0-135-generic-x86_64-with-debian-stretch-sid', 'event': 'train'}
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False
+INFO - 
+--------- Loss ---------
+INFO - Name : multiclass_nll
+INFO - eta : 30
+INFO - 
+------ Regularizer -----
+INFO - Name : LP
+INFO - lambda : 0.0015
+INFO - p : 3
+INFO - 
+------ Optimizer -----
+INFO - Name : adam
+INFO - lr : 0.015
+INFO - 
+------ Initializer -----
+INFO - Name : xavier
+INFO - uniform : False

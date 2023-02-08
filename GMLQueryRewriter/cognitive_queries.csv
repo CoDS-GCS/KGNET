@@ -1,0 +1,189 @@
+usecase,query,optimizedQuery,optimizedQueryFaiss
+forbes2013,"prefix ns1: <https://www.forbes.com/>
+                  select ?name  ?Sales ?Profits
+                   (sql:getSimilarEntityScore(?entity,?name,?emb_tech)) As ?Score
+                  where
+                  {
+                    ?s ns1:has_type ns1:Company.
+                    ?s ns1:has_label ?name.
+                    ?s ns1:has_Country ?cont.
+                    ?s ns1:has_Revenue   ?Sales.
+                    ?s ns1:has_Profits ?Profits.
+                  }
+                order by DESC (xsd:float(?Score))
+                limit ?res_count ","prefix ns1: <https://www.forbes.com/>
+            select bif:lower(?name) as ?name ?brief ?Logo ?employees_count ?MV ?Market_Value_class  ?Sales ?Profits
+            xsd:Float(bif:get_keyword(bif:lower(?name),?top_comp,0)) as ?Score
+             where
+            {
+                ?s ns1:has_type ns1:Company.
+                ?s ns1:has_label ?name.
+                ?s ns1:has_Country ?cont.
+                ?s ns1:has_Revenue   ?Sales.
+                ?s ns1:has_Profits ?Profits.
+                ?s ns1:has_Assets ?Assets.
+                ?cont ns1:has_label ?cont_label.
+                ?s ns1:has_Industry ?indst.
+                ?s ns1:has_Market_Value ?MV.
+                ?s ns1:has_Market_Value_class ?Mclass.
+                ?Mclass ns1:has_label ?Market_Value_class.
+                ?s ns1:has_Des ?brief.
+                ?s ns1:has_Logo ?Logo.
+                ?s ns1:has_employees_count ?employees_count.
+                filter( sql:ContainsKey(?top_comp,bif:lower(?name)))
+                {
+                    select   sql:getTopSimilarCompanies(??company,??top,??emb_tech) as ?top_comp     where   {  }
+                }
+            }
+        order by DESC (xsd:float(?Score)) limit ??limit","prefix ns1: <https://www.forbes.com/> 
+                        select * where
+                        {
+                            select bif:lower(?name) as ?name ?brief ?Logo ?employees_count ?MV ?Market_Value_class  ?Sales ?Profits
+                            xsd:Float(bif:get_keyword(bif:lower(?name),?top_comp,0)) as ?Score
+                             where
+                            {
+                                ?s ns1:has_type ns1:Company.
+                                ?s ns1:has_label ?name.
+                                ?s ns1:has_Country ?cont.
+                                ?s ns1:has_Revenue   ?Sales.
+                                ?s ns1:has_Profits ?Profits.
+                                ?s ns1:has_Assets ?Assets.
+                                ?cont ns1:has_label ?cont_label.
+                                ?s ns1:has_Industry ?indst.
+                                ?s ns1:has_Market_Value ?MV.
+                                ?s ns1:has_Market_Value_class ?Mclass.
+                                ?Mclass ns1:has_label ?Market_Value_class.
+                                ?s ns1:has_Des ?brief.
+                                ?s ns1:has_Logo ?Logo.
+                                ?s ns1:has_employees_count ?employees_count.
+                                filter( sql:ContainsKey(?top_comp,bif:lower(?name)))
+                                {
+                                    select   sql:getTopSimilarCompaniesFaiss(??company,??top,??emb_tech) as ?top_comp     where   {  }
+                                }
+                            }
+                        }
+                        order by DESC (xsd:float(?Score)) limit ??limit "
+DOH2020,"prefix ns1:<https://www.DOH2020.com/>
+                select ?attack    ?source_ip ?source_port ?destination_ip ?destination_port ?ts ?duration  ?Attack_type 
+                ((sql:getDOHAttackSimilarityScore(??ip,?source_ip,??emb_tech)) As ?Score)
+                where
+                {
+                ?s ns1:hasID ?attack.
+                ?s ns1:SourceIP  ?s_ip.
+                ?s ns1:DestinationIP  ?destination_ip.
+                ?s ns1:SourcePort ?source_port.
+                ?s ns1:DestinationPort ?destination_port.
+                ?s_ip ns1:has_value ?source_ip.
+                ?s ns1:TimeStamp ?ts.
+                ?s ns1:Duration ?duration.
+                ?s ns1:Label ?label.
+                ?label ns1:has_value ?Attack_type
+                filter(str(?source_ip)!=??1p) 
+                filter(str(?Attack_type)='Malicious')
+                }
+                order by Desc(xsd:float(?Score))
+                limit ??limit ","prefix ns1:<https://www.DOH2020.com/>
+                select ?attack    ?source_ip ?source_port ?destination_ip ?destination_port ?ts ?duration  ?Attack_type 
+                0 As ?Score
+                where
+                {
+                ?s ns1:hasID ?attack.
+                ?s ns1:SourceIP  ?s_ip.
+                ?s ns1:DestinationIP  ?destination_ip.
+                ?s ns1:SourcePort ?source_port.
+                ?s ns1:DestinationPort ?destination_port.
+                ?s_ip ns1:has_value ?source_ip.
+                ?s ns1:TimeStamp ?ts.
+                ?s ns1:Duration ?duration.
+                ?s ns1:Label ?label.
+                ?label ns1:has_value ?Attack_type
+                filter(str(?source_ip)!=??ip) 
+                filter(str(?Attack_type)='Malicious') 
+                filter( sql:ContainsKey(?top_ips,?source_ip))
+                {
+                    select   sql:getTopDOHSimilarAttacks(??ip,??top,??emb_tech) as ?top_ips 
+                    where   {  }
+                }
+                }
+                order by Desc(xsd:float(?Score))","prefix ns1:<https://www.DOH2020.com/>
+                select ?attack    ?source_ip ?source_port ?destination_ip ?destination_port ?ts ?duration  ?Attack_type 
+                xsd:Float(bif:get_keyword(?source_ip,?top_ips,0)) As ?Score
+                where
+                {
+                ?s ns1:hasID ?attack.
+                ?s ns1:SourceIP  ?s_ip.
+                ?s ns1:DestinationIP  ?destination_ip.
+                ?s ns1:SourcePort ?source_port.
+                ?s ns1:DestinationPort ?destination_port.
+                ?s_ip ns1:has_value ?source_ip.
+                ?s ns1:TimeStamp ?ts.
+                ?s ns1:Duration ?duration.
+                ?s ns1:Label ?label.
+                ?label ns1:has_value ?Attack_type
+                filter(str(?source_ip)!=??ip) 
+                filter(str(?Attack_type)='Malicious') 
+                filter( sql:ContainsKey(?top_ips,?source_ip))
+                {
+                    select   sql:getTopDOHSimilarAttacksFaiss(??ip,??top,??emb_tech) as ?top_ips 
+                    where   {  }
+                }
+                }
+                order by Desc(xsd:float(?Score)) "
+dogsbreeds,"prefix ns1:<https://www.dog_breeds.com/>
+                    select ?breed_class CONCAT(substr(?breed_overview,1,300),' ...') as ?breed_overview 
+                    ?recommended_for CONCAT(substr(?breed_facts,1,300),' ...') as ?breed_facts 
+                    ?dog_image  ?min_height ?max_height ?min_weight ?max_weight ?level_of_obey ?min_response_count 
+                    ?max_response_count xsd:Float(sql:getDogBreedSimilarityScore(??img_url, ?breed_class)) as ?Score 
+                    where
+                    {
+                        ?s  ns1:img_folder_name ?breed_class.
+                        ?s  ns1:height_low_inches ?min_height.
+                        ?s  ns1:height_high_inches ?max_height.
+                        ?s  ns1:weight_low_lbs ?min_weight.
+                        ?s  ns1:weight_high_lbs ?max_weight.
+                        ?s  ns1:obey  ?level_of_obey.
+                        ?s  ns1:reps_lower ?min_response_count.
+                        ?s  ns1:reps_upper ?max_response_count.
+                        ?s  ns1:img1 ?dog_image.
+                        optional {?s  ns1:recommended_for ?recommended_for}
+                        optional {?s  ns1:breed_facts ?breed_facts}
+                        optional {?s  ns1:breed_overview ?breed_overview}
+                        filter( CONTAINS(?dog_class,?breed_class) )
+                        {
+                            select  
+                            (sql:getDogBreed(??img_url)) as ?dog_class
+                            where
+                            {
+                            }
+                        }
+                    }                
+                    order by  DESC(xsd:float(?Score))
+                    limit ??limit","prefix ns1:<https://www.dog_breeds.com/>
+            select  ?breed_class CONCAT(substr(?breed_overview,1,300),' ...') as ?breed_overview ?recommended_for 
+            CONCAT(substr(?breed_facts,1,300),' ...') as ?breed_facts ?dog_image  ?min_height ?max_height 
+            ?min_weight ?max_weight ?level_of_obey ?min_response_count 
+            ?max_response_count xsd:Float(bif:get_keyword(?breed_class,?dog_class)) as ?Score 
+            where
+            {
+                ?s  ns1:img_folder_name ?breed_class.
+                ?s  ns1:height_low_inches ?min_height.
+                ?s  ns1:height_high_inches ?max_height.
+                ?s  ns1:weight_low_lbs ?min_weight.
+                ?s  ns1:weight_high_lbs ?max_weight.
+                ?s  ns1:obey  ?level_of_obey.
+                ?s  ns1:reps_lower ?min_response_count.
+                ?s  ns1:reps_upper ?max_response_count.
+                ?s  ns1:img1 ?dog_image.
+                optional {?s  ns1:recommended_for ?recommended_for}
+                optional {?s  ns1:breed_facts ?breed_facts}
+                optional {?s  ns1:breed_overview ?breed_overview}
+                filter( CONTAINS(sql:getJsonVectorKeys(?dog_class),?breed_class) )
+                {
+                    select  
+                    sql:getTopDogBreeds(??img_url,??top) as ?dog_class
+                    where
+                    {
+                    }
+                }
+            }                
+            order by  DESC(xsd:float(?Score)) ",
