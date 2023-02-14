@@ -1,0 +1,824 @@
+y_pred,ent idx,paper,title,venue,match_status
+22,20689,https://dblp.org/rec/conf/amcc/0001LLFS21,Modeling-free inversion-based iterative feedforward control for piezoelectric actuators.,22,mismatch
+33,20690,https://dblp.org/rec/conf/amcc/0001LLYX20,Smooth Actor-Critic Algorithm for End-to-End Autonomous Driving.,33,mismatch
+21,20691,https://dblp.org/rec/conf/amcc/0001LZF21,Reach-avoid Analysis for Stochastic Discrete-time Systems.,21,mismatch
+6,20695,https://dblp.org/rec/conf/amcc/0001RD21,Pursuer Coordination in Multi-Player Reach-Avoid Games through Control Barrier Functions.,6,mismatch
+6,20698,https://dblp.org/rec/conf/amcc/0001S21,Semiglobal Stabilization of Nonlinear Systems by n-Dimensional Sampled-Data Output Feedback.,6,mismatch
+35,20700,https://dblp.org/rec/conf/amcc/0001SSH20,Modular Robot Formation and Routing for Resilient Consensus.,35,mismatch
+6,20702,https://dblp.org/rec/conf/amcc/0001W0P20,Controllability of a Class of Hybrid Systems.,6,mismatch
+6,20705,https://dblp.org/rec/conf/amcc/0001ZL20,Worst-Case Sensitivity of DC Optimal Power Flow Problems.,6,mismatch
+31,20710,https://dblp.org/rec/conf/amcc/0002BD20,Generating Longest Counterexample: On the Cross-roads of Mixed Integer Linear Programming and SMT.,31,mismatch
+6,20719,https://dblp.org/rec/conf/amcc/0002OJ21,Combined Longitudinal and Lateral Control of Autonomous Vehicles based on Reinforcement Learning.,6,mismatch
+28,20728,https://dblp.org/rec/conf/amcc/0002VS20,Real-time Optimal Resource Allocation in an Industrial Symbiotic Network using Transient Measurements.,28,mismatch
+33,20735,https://dblp.org/rec/conf/amcc/0003D0Y20,Towards Scalable Koopman Operator Learning: Convergence Rates and A Distributed Learning Algorithm.,33,mismatch
+6,20738,https://dblp.org/rec/conf/amcc/0004EA21,Proportional-Integral Projected Gradient Method for Model Predictive Control.,6,mismatch
+20,20741,https://dblp.org/rec/conf/amcc/0004VFS20,Introduction to Tokamak Plasma Control.,20,mismatch
+6,20743,https://dblp.org/rec/conf/amcc/0004YX20,Stability Analysis of Impulsive Switched Systems with Time Delays and State-dependent Impulses.,6,mismatch
+6,20748,https://dblp.org/rec/conf/amcc/0005CB0T20,Resilient Distributed Hypothesis Testing with Time-Varying Network Topology.,6,mismatch
+6,20754,https://dblp.org/rec/conf/amcc/0007AR21,Fast data based identification of thermal vehicle models for integrated powertrain control.,6,mismatch
+21,20764,https://dblp.org/rec/conf/amcc/0010CBGJ21,Grid-Interactive Multi-Zone Building Control Using Reinforcement Learning with Global-Local Policy Search.,21,mismatch
+6,20766,https://dblp.org/rec/conf/amcc/0016S20,Multilevel Data Integration with Application in Sensor Networks.,6,mismatch
+6,20767,https://dblp.org/rec/conf/amcc/0016S21,Improved SPSA Using Complex Variables with Applications in Optimal Control Problems.,6,mismatch
+6,20768,https://dblp.org/rec/conf/amcc/0018BT20,Continuous-time Signal Temporal Logic Planning with Control Barrier Functions.,6,mismatch
+6,20770,https://dblp.org/rec/conf/amcc/0020FM21,Online Learning of Parameterized Uncertain Dynamical Environments with Finite-sample Guarantees.,6,mismatch
+6,20778,https://dblp.org/rec/conf/amcc/0047S020,A dynamic optimization model for bus schedule design to mitigate the passenger waiting time by dispatching the bus platoon.,6,mismatch
+6,20783,https://dblp.org/rec/conf/amcc/AarnoudseO21,Model-Free Learning for Massive MIMO Systems: Stochastic Approximation Adjoint Iterative Learning Control.,6,mismatch
+6,20788,https://dblp.org/rec/conf/amcc/Abate021,Improving the Fidelity of Mixed-Monotone Reachable Set Approximations via State Transformations.,6,mismatch
+28,20789,https://dblp.org/rec/conf/amcc/AbateK0F21,Pointwise-in-Time Analysis and Non-Quadratic Lyapunov Functions for Linear Time-Varying Systems.,28,mismatch
+6,20790,https://dblp.org/rec/conf/amcc/AbateKCF20,Lyapunov Differential Equation Hierarchy and Polynomial Lyapunov Functions for Switched Linear Systems.,6,mismatch
+12,20802,https://dblp.org/rec/conf/amcc/AbbasiBZISW20,Power-Preserving Interconnection of Single- and Two-Phase Flow Models for Managed Pressure Drilling.,12,mismatch
+6,20817,https://dblp.org/rec/conf/amcc/AbdelwahabLY21,Covert Channels in Cyber-Physical Systems.,6,mismatch
+21,20836,https://dblp.org/rec/conf/amcc/AbhishekS20,SIS Epidemic Model under Mobility on Multi-layer Networks.,21,mismatch
+6,20838,https://dblp.org/rec/conf/amcc/AbhishekSM21,Towards a heterogeneous cable-connected team of UAVs for aerial manipulation.,6,mismatch
+6,20843,https://dblp.org/rec/conf/amcc/AboudoniaML21,Passivity-based Decentralized Control for Discrete-time Large-scale Systems.,6,mismatch
+6,20869,https://dblp.org/rec/conf/amcc/AcerneseYGV21,Model-free Self-triggered Control Co-design for Probabilistic Boolean Control Networks.,6,mismatch
+6,20879,https://dblp.org/rec/conf/amcc/AcostaF21,Modelling and Control of Test-Scenarios for Validation of Autonomous Driving Functions.,6,mismatch
+6,20898,https://dblp.org/rec/conf/amcc/AdibH21,Hybrid Control of Flowrate in Microextrusion-Based Direct-Write Additive Manufacturing.,6,mismatch
+6,20901,https://dblp.org/rec/conf/amcc/AdinehvandLH21,Barrier-Lyapunov -Function-Based Backstepping Adaptive Hybrid Force/Position Control for Manipulator with Force and Position Constraints.,6,mismatch
+21,20902,https://dblp.org/rec/conf/amcc/AdlakhaZ20,An Optimization-Based Iterative Learning Control Design Method for UAV's Trajectory Tracking.,21,mismatch
+6,20928,https://dblp.org/rec/conf/amcc/AfzaliMIV21,Optimal Lighting Control in Greenhouses Equipped with High-intensity Discharge Lamps Using Reinforcement Learning.,6,mismatch
+21,20936,https://dblp.org/rec/conf/amcc/AghajanT20,On Ergodicity of Time-Varying Distributed Averaging Dynamics.,21,mismatch
+45,20965,https://dblp.org/rec/conf/amcc/AgyemanBSY0S21,Soil moisture map construction by sequential data assimilation using an extended Kalman filter.,45,mismatch
+28,20967,https://dblp.org/rec/conf/amcc/AhmadSH21,APF-PF: Probabilistic Depth Perception for 3D Reactive Obstacle Avoidance.,28,mismatch
+28,20974,https://dblp.org/rec/conf/amcc/AhmadiOIMA20,Risk-Averse Planning Under Uncertainty.,28,mismatch
+6,21013,https://dblp.org/rec/conf/amcc/AjwadMDMC21,Leader-following consensus of second-order multi-agent systems with switching topology and partial aperiodic sampled data.,6,mismatch
+6,21014,https://dblp.org/rec/conf/amcc/AjwadMDMC21a,Collision-free formation tracking of multi-agent systems under communication constraints.,6,mismatch
+6,21026,https://dblp.org/rec/conf/amcc/AkhtarKE21,Learning for Control: An Inverse Optimization Approach.,6,mismatch
+6,21028,https://dblp.org/rec/conf/amcc/AkhtarSW20,Feedback Linearizing Controllers on SO(3) using a Global Parametrization.,6,mismatch
+6,21036,https://dblp.org/rec/conf/amcc/Al-AbriLN021,A Derivative-free Distributed Optimization Algorithm with Applications in Multi-Agent Target Tracking.,6,mismatch
+6,21044,https://dblp.org/rec/conf/amcc/Al-MatouqAN20,Subspace Identification of a Glucose-Insulin model Using Meal Tracer Protocol Measurements.,6,mismatch
+35,21046,https://dblp.org/rec/conf/amcc/Al-NadawiAKPSR20,Design of Robust Path-Following Control System for Self-driving Vehicles Using Extended High-Gain Observer.,35,mismatch
+6,21048,https://dblp.org/rec/conf/amcc/Al-RawashdehAHJ21,Micro-Positioning End-Stage for Precise Multi-Axis Motion Control in Optical Lithography Machines: Preliminary Results.,6,mismatch
+6,21053,https://dblp.org/rec/conf/amcc/Al-TawahaAA21,A Singular Value Thresholding Algorithm for Order Estimation.,6,mismatch
+6,21059,https://dblp.org/rec/conf/amcc/AlamSBH21,A physics-guided reinforcement learning framework for an autonomous manufacturing system with expensive data.,6,mismatch
+6,21073,https://dblp.org/rec/conf/amcc/AlbabaM20,Online Model-Based Beat-by-beat Heart Rate Estimation.,6,mismatch
+28,21089,https://dblp.org/rec/conf/amcc/AldanaTNC21,Task Space Consensus of Heterogeneous Robots with Time-Delays and without Velocity Measurements.,28,mismatch
+6,21144,https://dblp.org/rec/conf/amcc/AljehaniL21,Iterative Learning Based Modulating Functions Method for Distributed Solar Source Estimation.,6,mismatch
+6,21154,https://dblp.org/rec/conf/amcc/AllenK20,Nonlinear Model Predictive Control Using Output Feedback.,6,mismatch
+45,21159,https://dblp.org/rec/conf/amcc/AllikD21,Belief Propagation for Localization Using Inter-Agent Ranging in GPS Denied Environments.,45,mismatch
+32,21174,https://dblp.org/rec/conf/amcc/AlqataminBHLM20,Self-Synchronizing Current Control for Single-Stage Three-Phase Grid-Connected Photovoltaic Systems.,32,mismatch
+21,21179,https://dblp.org/rec/conf/amcc/AlrahmanBDPU21,Synthesis of Run-To-Completion Controllers for Discrete Event Systems.,21,mismatch
+6,21198,https://dblp.org/rec/conf/amcc/AlvesP21,On the Reduction and Localization of Synchronizing Supervisors.,6,mismatch
+45,21210,https://dblp.org/rec/conf/amcc/AmatyaSZ20,Human Learning and Coordination in Lower-limb Physical Interactions.,45,mismatch
+21,21216,https://dblp.org/rec/conf/amcc/AminiA020,Dynamic Event-triggered Formation Control for Multi-agent Systems: A Co-design Optimization Approach.,21,mismatch
+6,21219,https://dblp.org/rec/conf/amcc/AminiSM20,Approximate Optimal Control Design for a Class of Nonlinear Systems by Lifting Hamilton-Jacobi-Bellman Equation.,6,mismatch
+6,21241,https://dblp.org/rec/conf/amcc/AnderssonBI20,Distributed learning for wind farm optimization with Gaussian processes.,6,mismatch
+32,21256,https://dblp.org/rec/conf/amcc/AndroulakakisFS21,Optimal Engagement for an Attacker with Limited Weapon Energy.,32,mismatch
+6,21257,https://dblp.org/rec/conf/amcc/AnevlavisLOT21,An enhanced hierarchy for (robust) controlled invariance.,6,mismatch
+21,21269,https://dblp.org/rec/conf/amcc/AngelicoCPRP21,Source Seeking in Unknown Environments with Convex Obstacles.,21,mismatch
+35,21309,https://dblp.org/rec/conf/amcc/AounSD20,Energy-Optimal Tours for Quadrotors to Scan Moth-Infested Trees in Densely-Packed Forests.,35,mismatch
+6,21311,https://dblp.org/rec/conf/amcc/Apaza-PerezGCZ21,Symbolic observer-based controller for uncertain nonlinear systems.,6,mismatch
+28,21315,https://dblp.org/rec/conf/amcc/ArabHY21,Safe Predictive Control of Four-Wheel Mobile Robot with Independent Steering and Drive.,28,mismatch
+35,21316,https://dblp.org/rec/conf/amcc/ArabM20,Optimal Control of Wheeled Mobile Robots: From Simulation to Real World.,35,mismatch
+45,21370,https://dblp.org/rec/conf/amcc/ArmentaDNHLD21,Computational reduction of optimal hybrid vehicle energy management.,45,mismatch
+6,21372,https://dblp.org/rec/conf/amcc/ArmstrongA20,An Improved Iterative Learning Control for Uncertain Multi-Axis Systems.,6,mismatch
+28,21386,https://dblp.org/rec/conf/amcc/ArthurY21,Robust Compensation of Uncertain Equilibrium in the Control of Dynamic Systems.,28,mismatch
+28,21389,https://dblp.org/rec/conf/amcc/AryaTJ21,Spacecraft Payload Maximization Using Realistic Multi-Mode Models of Electric Propulsion Systems.,28,mismatch
+28,21398,https://dblp.org/rec/conf/amcc/AsadiOYG21,Gaussian Process (GP)-based Learning Control of Selective Laser Melting Process.,28,mismatch
+6,21438,https://dblp.org/rec/conf/amcc/AsukT21,Feedback Optimizing Linear Quadratic Control.,6,mismatch
+21,21445,https://dblp.org/rec/conf/amcc/AtayBB20,Real-Time Power Optimization of a Bi-Modal Rolling-Flying Vehicle via Extremum Seeking Control.,21,mismatch
+6,21463,https://dblp.org/rec/conf/amcc/AuriolAS20,Self-Tuning Torsional Drilling Model for Real-Time Applications.,6,mismatch
+35,21468,https://dblp.org/rec/conf/amcc/AvantM20,Rigid Body Dynamics Estimation by Unscented Filtering Pose Estimation Neural Networks.,35,mismatch
+7,21471,https://dblp.org/rec/conf/amcc/AvilaFHMCGPJ21,Game Balancing using Koopman-based Learning.,7,mismatch
+28,21478,https://dblp.org/rec/conf/amcc/AwasthiL20,Inverse Differential Games With Mixed Inequality Constraints.,28,mismatch
+21,21514,https://dblp.org/rec/conf/amcc/Babazadeh21,Regularization for Optimal Sparse Control Structures: A Primal-Dual Framework.,21,mismatch
+21,21515,https://dblp.org/rec/conf/amcc/BabazadehRSA20,Robust Suboptimal Output Synchronization of Nonlinear Heterogeneous Agents.,21,mismatch
+21,21532,https://dblp.org/rec/conf/amcc/BaeZTM20,Inducing Human Behavior to Alleviate Overstay at PEV Charging Station.,21,mismatch
+6,21544,https://dblp.org/rec/conf/amcc/BahavarniaM20,Resilient Sparse Controller Design with Guaranteed Disturbance Attenuation.,6,mismatch
+6,21545,https://dblp.org/rec/conf/amcc/BahavarniaSM20,Controller Synthesis subject to Logical and Structural Constraints: A Satisfiability Modulo Theories (SMT) Approach.,6,mismatch
+6,21550,https://dblp.org/rec/conf/amcc/BahreinianAT21,Robust Path Planning and Control For Polygonal Environments via Linear Programming.,6,mismatch
+21,21555,https://dblp.org/rec/conf/amcc/BaiBGVB21,Determining the Region of Influence of a Signalized Traffic Intersection by Analysis of Heavy-duty Diesel Vehicle Fuel Consumption.,21,mismatch
+6,21568,https://dblp.org/rec/conf/amcc/BajajTB21,Competitive Perimeter Defense on a Line.,6,mismatch
+6,21581,https://dblp.org/rec/conf/amcc/BakolasL21,Decentralized Game-Theoretic Control for Dynamic Task Allocation Problems for Multi-Agent Systems.,6,mismatch
+28,21584,https://dblp.org/rec/conf/amcc/BakolasT20,Greedy Finite-Horizon Covariance Steering for Discrete-Time Stochastic Nonlinear Systems Based on the Unscented Transform.,28,mismatch
+21,21592,https://dblp.org/rec/conf/amcc/BalakrishnanHBJ20,Prediction of fitness in bacteria with causal jump dynamic mode decomposition.,21,mismatch
+28,21614,https://dblp.org/rec/conf/amcc/BaldiniAM20,Learning Pose Estimation for UAV Autonomous Navigation and Landing Using Visual-Inertial Sensor Data.,28,mismatch
+6,21642,https://dblp.org/rec/conf/amcc/BansalYGM21,Storage Degradation Aware Economic Dispatch.,6,mismatch
+32,21653,https://dblp.org/rec/conf/amcc/BarabanSKK20,Adaptive Parameter Estimation for Aerial Manipulation.,32,mismatch
+21,21681,https://dblp.org/rec/conf/amcc/BardawilDS20,Applying the Similarity Method on Pacejka's Magic Formula to Estimate the Maximum Longitudinal Tire-Road Friction Coefficient.,21,mismatch
+33,21685,https://dblp.org/rec/conf/amcc/BarkerAK20,Resilient Autonomous Wind Farms.,33,mismatch
+28,21698,https://dblp.org/rec/conf/amcc/BarrattB20,Fitting a Kalman Smoother to Data.,28,mismatch
+6,21703,https://dblp.org/rec/conf/amcc/BarrosBT21,On the Use of the Smith-McMillan Form in Decoupling System Dynamics.,6,mismatch
+6,21724,https://dblp.org/rec/conf/amcc/BascoD20,A two-player game representation for a class of infinite horizon control problems under state constraints.,6,mismatch
+6,21756,https://dblp.org/rec/conf/amcc/BassoSPS21,Global Asymptotic Tracking for Marine Surface Vehicles using Hybrid Feedback in the Presence of Parametric Uncertainties.,6,mismatch
+21,21757,https://dblp.org/rec/conf/amcc/Bastani21,Safe Reinforcement Learning with Nonlinear Dynamics via Model Predictive Shielding.,21,mismatch
+28,21766,https://dblp.org/rec/conf/amcc/Batista20,Navigation and source localization based on single pseudo-ranges.,28,mismatch
+21,21774,https://dblp.org/rec/conf/amcc/BattagelloSA21,Trajectory planning with a dynamic obstacle clustering strategy using Mixed-Integer Linear Programming.,21,mismatch
+6,21775,https://dblp.org/rec/conf/amcc/BattilottiCDGS20,LQ non-Gaussian Control with I/O packet losses.,6,mismatch
+6,21817,https://dblp.org/rec/conf/amcc/BeaverDKM21,Energy-Optimal Motion Planning for Agents: Barycentric Motion and Collision Avoidance Constraints.,6,mismatch
+48,21827,https://dblp.org/rec/conf/amcc/BediKRS20,Trading Dynamic Regret for Model Complexity in Nonstationary Nonparametric Optimization.,48,mismatch
+35,21856,https://dblp.org/rec/conf/amcc/BekirogluTASCN20,Hankel-based Unsupervised Anomaly Detection.,35,mismatch
+6,21860,https://dblp.org/rec/conf/amcc/BelfoAL21,Distributed inverse optimal control for discrete-time nonlinear multi-agent systems.,6,mismatch
+6,21917,https://dblp.org/rec/conf/amcc/Berkane21,Navigation in Unknown Environments Using Safety Velocity Cones.,6,mismatch
+6,21929,https://dblp.org/rec/conf/amcc/BernardMM21,On the semi-global stability of an EK-like Filter.,6,mismatch
+28,21937,https://dblp.org/rec/conf/amcc/BerningLGLPK20,Spacecraft Relative Motion Planning Using Chained Chance-Constrained Admissible Sets.,28,mismatch
+21,21953,https://dblp.org/rec/conf/amcc/BerntorpQV21,Joint Tire-Stiffness and Vehicle-Inertial Parameter Estimation for Improved Predictive Control.,21,mismatch
+28,21957,https://dblp.org/rec/conf/amcc/BertinoNK21,Experimental and Analytical Delay-Adaptive Control of a 7-DOF Robot Manipulator.,28,mismatch
+28,21979,https://dblp.org/rec/conf/amcc/BhadrirajuKK21,Dynamic risk-based fault prediction of chemical processes using online sparse model identification.,28,mismatch
+35,22000,https://dblp.org/rec/conf/amcc/BhattacharyyaSB20,Online Parameter Estimation for Human Driver Behavior Prediction.,35,mismatch
+6,22005,https://dblp.org/rec/conf/amcc/BhowmickJ20,Availability-Resilient Control of Uncertain Linear Stochastic Networked Control Systems.,6,mismatch
+29,22006,https://dblp.org/rec/conf/amcc/BhowmickP21,Influence of Opinion Dynamics to Inhibit Epidemic Spreading over Multiplex Network.,29,mismatch
+6,22009,https://dblp.org/rec/conf/amcc/BhusalS21,Generalized Polynomial Chaos-based Ensemble Kalman Filtering for Orbit Estimation.,6,mismatch
+6,22010,https://dblp.org/rec/conf/amcc/BhusalTS20,On the Phase Margin of Networked Dynamical Systems and Fabricated Attacks of an Intruder.,6,mismatch
+6,22011,https://dblp.org/rec/conf/amcc/BiB21,On the Role of Asymptomatic Carriers in Epidemic Spread Processes.,6,mismatch
+45,22013,https://dblp.org/rec/conf/amcc/BiagioniG0ZBK21,Learning-Accelerated ADMM for Distributed DC Optimal Power Flow.,45,mismatch
+6,22042,https://dblp.org/rec/conf/amcc/BiroonAP21,Measurement Unknown Delay Estimation in Cyber-Physical Systems: a PDE approach.,6,mismatch
+28,22058,https://dblp.org/rec/conf/amcc/BizyaevaMFL21,Patterns of Nonlinear Opinion Formation on Networks.,28,mismatch
+28,22142,https://dblp.org/rec/conf/amcc/BonczekB21,Detection of Hidden Attacks on Cyber-Physical Systems from Serial Magnitude and Sign Randomness Inconsistencies.,28,mismatch
+28,22148,https://dblp.org/rec/conf/amcc/Bonzanini0C21,Perception-Aware Chance-Constrained Model Predictive Control for Uncertain Environments.,28,mismatch
+28,22186,https://dblp.org/rec/conf/amcc/BorrelloH20,Oxygen ratio control in critical care ventilation using compressed oxygen and blower gas sources.,28,mismatch
+28,22201,https://dblp.org/rec/conf/amcc/BossAS21,Towards multi-body multi-rotors for long reach manipulation.,28,mismatch
+6,22210,https://dblp.org/rec/conf/amcc/BouhadjraABBZ21,Modeling and Estimation of Amnioserosa Cell Mechanical Behavior Using Moving Horizon Estimation.,6,mismatch
+28,22274,https://dblp.org/rec/conf/amcc/BrewerTLP21,Falsification-based Verification for Multi-Mode Spacecraft Attitude Control Systems.,28,mismatch
+6,22287,https://dblp.org/rec/conf/amcc/BrionesRS21,Generalized Predictive PI Controller: Analysis and Design for Time Delay Systems.,6,mismatch
+28,22288,https://dblp.org/rec/conf/amcc/BrissonneauHTS21,Biologically-Inspired Impedance Control With Hysteretic Damping.,28,mismatch
+6,22304,https://dblp.org/rec/conf/amcc/Brown21,When Altruism is Worse than Anarchy in Nonatomic Congestion Games.,6,mismatch
+21,22323,https://dblp.org/rec/conf/amcc/BrunoMKA21,Analog Solver for Embedded Model Predictive Control with Application to Quadruple Tank System.,21,mismatch
+28,22330,https://dblp.org/rec/conf/amcc/BucchioniI20,Open Loop Safe Trajectory Design for Cislunar NRHO Rendezvous.,28,mismatch
+6,22331,https://dblp.org/rec/conf/amcc/BucciarelliPDV20,On the greedy placement of energy storage systems in distribution grids.,6,mismatch
+6,22333,https://dblp.org/rec/conf/amcc/BuchS20,Finite Horizon Robust Synthesis.,6,mismatch
+6,22346,https://dblp.org/rec/conf/amcc/BujarbaruahRSB21,A Simple Robust MPC for Linear Systems with Parametric and Additive Uncertainty.,6,mismatch
+6,22360,https://dblp.org/rec/conf/amcc/BurkhardtS21,A graph-based path planning algorithm for the control of tower cranes.,6,mismatch
+21,22372,https://dblp.org/rec/conf/amcc/BurnwalV20,Exact Completion of Rectangular Matrices Using Ramanujan Bigraphs.,21,mismatch
+6,22396,https://dblp.org/rec/conf/amcc/CKL21,Dynamics and Control of a Flapping Wing UAV with Abdomen Undulation Inspired by Monarch Butterfly.,6,mismatch
+6,22423,https://dblp.org/rec/conf/amcc/CaiP0GK21,Receding Horizon Control Based Motion Planning with Partially Infeasible LTL Constrains.,6,mismatch
+21,22433,https://dblp.org/rec/conf/amcc/CaiZ20,Predictive Control of Building Thermal Loads for Participation in Energy and Regulation Markets.,21,mismatch
+6,22467,https://dblp.org/rec/conf/amcc/CaluyaH20,Finite Horizon Density Steering for Multi-input State Feedback Linearizable Systems.,6,mismatch
+6,22470,https://dblp.org/rec/conf/amcc/Calvo-FullanaCP21,Towards Safe Continuing Task Reinforcement Learning.,6,mismatch
+28,22471,https://dblp.org/rec/conf/amcc/CalzolariSA21,PD-like Regulation of Mechanical Systems with Prescribed Bounds of Exponential Stability: the Point-to-Point Case.,28,mismatch
+6,22498,https://dblp.org/rec/conf/amcc/CamposV20,Observability Notions for CSVIU and Stability in Connection with Some Norms.,6,mismatch
+6,22541,https://dblp.org/rec/conf/amcc/CaoQ21,Finite-time Controllers for a Class of Planar Nonlinear Systems with Mismatched Disturbances.,6,mismatch
+28,22556,https://dblp.org/rec/conf/amcc/CapitoWOR21,A Modeled Approach for Online Adversarial Test of Operational Vehicle Safety.,28,mismatch
+28,22558,https://dblp.org/rec/conf/amcc/CaponeH20,Anticipating the long-term effect of online learning in control.,28,mismatch
+6,22583,https://dblp.org/rec/conf/amcc/CasauCS20,Improved Maneuverability for Multirotor Aerial Vehicles using Globally Stabilizing Feedbacks.,6,mismatch
+6,22593,https://dblp.org/rec/conf/amcc/CasavolaTV20,Full-Car Multivariable Control Strategies for Energy Harvesting by Regenerative Suspension Systems.,6,mismatch
+28,22606,https://dblp.org/rec/conf/amcc/CastellanoBM21,"Learning to be safe, in finite time.",28,mismatch
+6,22626,https://dblp.org/rec/conf/amcc/CavraroBCZ20,Distributed Minimization of the Power Generation Cost in Prosumer-Based Distribution Networks.,6,mismatch
+6,22679,https://dblp.org/rec/conf/amcc/ChakrabartiGC21,Robustness of Iteratively Pre-Conditioned Gradient-Descent Method: The Case of Distributed Linear Regression Problem.,6,mismatch
+6,22721,https://dblp.org/rec/conf/amcc/Chan-ZhengBS21,Tuning Rules for a Class of Passivity-Based Controllers for Mechanical Systems.,6,mismatch
+6,22730,https://dblp.org/rec/conf/amcc/ChandanPM20,When showing your hand pays off: Announcing strategic intentions in Colonel Blotto games.,6,mismatch
+35,22759,https://dblp.org/rec/conf/amcc/ChangJS20,An Active Perception Approach for Mid-Water Localization of Autonomous Underwater Vehicles.,35,mismatch
+6,22761,https://dblp.org/rec/conf/amcc/ChangNLA21,Comparison of Two Optimization-Based Controllers for Feature Tracking SPM Scanning in Dual-Stage Nanopositioners.,6,mismatch
+6,22765,https://dblp.org/rec/conf/amcc/ChangS21,Distributed Online Linear Quadratic Control for Linear Time-invariant Systems.,6,mismatch
+6,22766,https://dblp.org/rec/conf/amcc/ChangSA20,Stochastic Resource Allocation for Electricity Distribution Network Resilience.,6,mismatch
+28,22767,https://dblp.org/rec/conf/amcc/ChangSZWSH21,Collaborative Target Tracking in Elliptic Coordinates: a Binocular Coordination Approach.,28,mismatch
+28,22831,https://dblp.org/rec/conf/amcc/Chen0Z21,Deep Iterative Learning Control for Quadrotor's Trajectory Tracking.,28,mismatch
+21,22842,https://dblp.org/rec/conf/amcc/ChenB20,Data-Driven Linear Parameter-Varying Modeling and Control of Flexible Loads for Grid Services.,21,mismatch
+32,22844,https://dblp.org/rec/conf/amcc/ChenBDM20,Model-Free Primal-Dual Methods for Network Optimization with Application to Real-Time Optimal Power Flow.,32,mismatch
+6,22849,https://dblp.org/rec/conf/amcc/ChenBT20,Enthalpy-based Output Feedback Control of the Stefan Problem with Hysteresis.,6,mismatch
+6,22850,https://dblp.org/rec/conf/amcc/ChenBT21,Feedback Control of the One-Phase Stefan Problem with Unknown Boundary Input Hysteresis.,6,mismatch
+28,22856,https://dblp.org/rec/conf/amcc/ChenCLXJS20,Diagnosis of Nonlinearity-induced Oscillations in Process Control Loops Based on Adaptive Chirp Mode Decomposition.,28,mismatch
+28,22866,https://dblp.org/rec/conf/amcc/ChenDBM21,Accelerating Optimization and Reinforcement Learning with Quasi Stochastic Approximation.,28,mismatch
+45,22871,https://dblp.org/rec/conf/amcc/ChenF20,A new-designed non-raster scan and precision control for increasing AFM imaging speed.,45,mismatch
+6,22872,https://dblp.org/rec/conf/amcc/ChenF20a,Decentralised Collaborative and Formation Iterative Learning Control for Multi-Agent Systems.,6,mismatch
+35,22900,https://dblp.org/rec/conf/amcc/ChenJWL20,Autonomous Driving using Safe Reinforcement Learning by Incorporating a Regret-based Human Lane-Changing Decision Model.,35,mismatch
+6,22917,https://dblp.org/rec/conf/amcc/ChenL20,Exponential Stability of Primal-Dual Gradient Dynamics with Non-Strong Convexity.,6,mismatch
+28,22926,https://dblp.org/rec/conf/amcc/ChenLT20,Navigation Functions with non-Point Destinations and Moving Obstacles.,28,mismatch
+6,22927,https://dblp.org/rec/conf/amcc/ChenLTWW20,MPC-based Vibration Control and Energy Harvesting Using an Electromagnetic Vibration Absorber With Inertia Nonlinearity.,6,mismatch
+6,22957,https://dblp.org/rec/conf/amcc/ChenSA20,Density Functions for Guaranteed Safety on Robotic Systems.,6,mismatch
+6,22962,https://dblp.org/rec/conf/amcc/ChenSJA21,Online decentralized decision making with inequality constraints: An ADMM approach.,6,mismatch
+28,22965,https://dblp.org/rec/conf/amcc/ChenSZHSSY20,Theoretical Exploration of Irrigation Control for Stem Water Potential through Model Predictive Control.,28,mismatch
+21,22987,https://dblp.org/rec/conf/amcc/ChenWC21,Cyber-Security of Decentralized and Distributed Control Architectures with Machine-Learning Detectors for Nonlinear Processes.,21,mismatch
+6,23002,https://dblp.org/rec/conf/amcc/ChenYK20,Regulator Design for a Congested Continuum Traffic Model with App-Routing Instability.,6,mismatch
+35,23007,https://dblp.org/rec/conf/amcc/ChenZ20,High-speed large-range dynamic-mode atomic force microscope imaging: Adaptive tapping approach via Field Programmable Gate Array.,35,mismatch
+21,23010,https://dblp.org/rec/conf/amcc/ChenZS20,Fast Adaptation of Thermal Dynamics Model for Predictive Control of HVAC and Natural Ventilation Using Transfer Learning with Deep Neural Networks.,21,mismatch
+45,23063,https://dblp.org/rec/conf/amcc/ChhokraHDK20,A Binary Decision Diagram Based Cascade Prognostics Scheme For Power Systems.,45,mismatch
+21,23079,https://dblp.org/rec/conf/amcc/ChinelatoA21,Robust Exponential Control Barrier Functions for Safety-Critical Control.,21,mismatch
+6,23089,https://dblp.org/rec/conf/amcc/Cho21,Nonlinear Optimal Missile Guidance for Stationary Target Interception with Pendulum Motion Perspective.,6,mismatch
+45,23097,https://dblp.org/rec/conf/amcc/Choi20,Evaluation of Backward Differentiation Methods for Computing Controllability Gramians.,45,mismatch
+32,23107,https://dblp.org/rec/conf/amcc/ChoiK20,Multiscale modeling and control of fiber length in pulp digester.,32,mismatch
+6,23112,https://dblp.org/rec/conf/amcc/ChoiSK21,Inferential model predictive control of blow-line fiber morphology in a continuous pulp digester via multiscale modeling.,6,mismatch
+21,23144,https://dblp.org/rec/conf/amcc/ChuLA20,A Novel Strategy for Stabilization Control of a Planar Three-Link Underactuated Manipulator with a Passive First Joint.,21,mismatch
+21,23158,https://dblp.org/rec/conf/amcc/ChuZBYC21,Risk-Aware Path Planning with Uncertain Human Interactions.,21,mismatch
+28,23192,https://dblp.org/rec/conf/amcc/ClassensHWRW21,Real-Time Nonlinear Tracking Control of Photopolymerization for Additive Manufacturing.,28,mismatch
+6,23218,https://dblp.org/rec/conf/amcc/CoffmanBB21,Control-oriented modeling of TCLs.,6,mismatch
+6,23223,https://dblp.org/rec/conf/amcc/ColbertCP20,A Convex Optimization Approach to Improving Suboptimal Hyperparameters of Sliced Normal Distributions.,6,mismatch
+28,23229,https://dblp.org/rec/conf/amcc/ColemanBT21,Observability-aware Target Tracking with Range Only Measurement.,28,mismatch
+6,23230,https://dblp.org/rec/conf/amcc/ColemanT20,Backstepping Control of Gliding Robotic Fish for Trajectory Tracking in 3D Space.,6,mismatch
+6,23233,https://dblp.org/rec/conf/amcc/CollinsB20,Exploiting an Adversary's Intentions in Graphical Coordination Games.,6,mismatch
+13,23263,https://dblp.org/rec/conf/amcc/CookBRWP20,Low-Cost DC Motor System for Teaching Automatic Controls.,13,mismatch
+28,23294,https://dblp.org/rec/conf/amcc/CortezD20,Correct-by-Design Control Barrier Functions for Euler-Lagrange Systems with Input Constraints.,28,mismatch
+32,23296,https://dblp.org/rec/conf/amcc/CortinovisKMP20,Quasi-Optimal Sampling to Learn Basis Updates for Online Adaptive Model Reduction with Adaptive Empirical Interpolation.,32,mismatch
+21,23317,https://dblp.org/rec/conf/amcc/CoutoRHK21,Detection and Isolation of Small Faults in Lithium-Ion Batteries via the Asymptotic Local Approach.,21,mismatch
+21,23358,https://dblp.org/rec/conf/amcc/CuiZB21,Network-Cognizant Time-Coupled Aggregate Flexibility of Distribution Systems Under Uncertainties.,21,mismatch
+6,23371,https://dblp.org/rec/conf/amcc/DSouzaN20,Piecewise-Linear Path Following for a Unicycle using Transverse Feedback Linearization.,6,mismatch
+6,23376,https://dblp.org/rec/conf/amcc/DabiriCM21,Consensus of Incommensurate-order Fractional Multiagent Systems with a Fixed-length Memory.,6,mismatch
+28,23377,https://dblp.org/rec/conf/amcc/DabiriCM21a,Closed-form Solution for The Finite-horizon Linear-quadratic Control Problem of Linear Fractional-order Systems.,28,mismatch
+6,23387,https://dblp.org/rec/conf/amcc/DadaA20,Generalized SVD reduced-order observers for Nonlinear systems.,6,mismatch
+6,23388,https://dblp.org/rec/conf/amcc/DadaA21,GSVD Information Filter for Discrete-Time Linear Dynamic Systems with Gross Errors.,6,mismatch
+6,23415,https://dblp.org/rec/conf/amcc/DaiKPK21,State Constrained Stochastic Optimal Control Using LSTMs.,6,mismatch
+35,23434,https://dblp.org/rec/conf/amcc/DangolRJ20,"Performance satisfaction in Midget, a thruster-assisted bipedal robot.",35,mismatch
+32,23465,https://dblp.org/rec/conf/amcc/DasguptaRB20,Non-singular Trajectory Tracking Control of a Pitch-Constrained Quad-Rotorcraft using Integral Barrier Lyapunov Function.,32,mismatch
+6,23476,https://dblp.org/rec/conf/amcc/DaveM20,Structural Results for Decentralized Stochastic Control with a Word-of-Mouth Communication.,6,mismatch
+6,23515,https://dblp.org/rec/conf/amcc/DegueGLBN21,Differentially Private Outlier Detection in Multivariate Gaussian Signals.,6,mismatch
+6,23517,https://dblp.org/rec/conf/amcc/DegueN20,Differentially Private Interval Observer Design with Bounded Input Perturbation.,6,mismatch
+6,23558,https://dblp.org/rec/conf/amcc/Demetriou21a,Employing mobile sensor density to approximate state feedback kernels in static output feedback control of PDEs.,6,mismatch
+21,23601,https://dblp.org/rec/conf/amcc/DeshpandeB20,Surrogate Modeling of Dynamics From Sparse Data Using Maximum Entropy Basis Functions.,21,mismatch
+6,23602,https://dblp.org/rec/conf/amcc/DeshpandeB21,Sparse Sensing Architectures with Optimal Precision for Tracking Multi-agent Systems in Sensing-denied Environments.,6,mismatch
+6,23616,https://dblp.org/rec/conf/amcc/DeviBDF21,Barrier Function-Based SDRE Control for Nonlinear Systems with State Constraints.,6,mismatch
+32,23617,https://dblp.org/rec/conf/amcc/DevonportA20,Data-Driven Reachable Set Computation using Adaptive Gaussian Process Classification and Monte Carlo Methods.,32,mismatch
+6,23623,https://dblp.org/rec/conf/amcc/DeyS20,Genomic decoy sites enhance the oscillatory regime of a biomolecular clock.,6,mismatch
+6,23626,https://dblp.org/rec/conf/amcc/DeyTS21,Role of intercellular coupling and delay on the synchronization of genetic oscillators.,6,mismatch
+6,23629,https://dblp.org/rec/conf/amcc/DezfuliGF21,A Generalized Sector Condition Approach to Observer-Based Control of Input-Delay LPV Systems under Saturation and Matched Disturbances.,6,mismatch
+28,23639,https://dblp.org/rec/conf/amcc/DhaybiD20,Accurate Real-time Estimation of the Inertia Tensor of Package Delivery Quadrotors.,28,mismatch
+6,23644,https://dblp.org/rec/conf/amcc/DiL21,Confidence Bounds on Identification of Linear Systems with Multiplicative Noise.,6,mismatch
+6,23647,https://dblp.org/rec/conf/amcc/DiagneK21,Boundary Event-Triggered Control of Highly Re-Entrant Manufacturing System Described by a Nonlinear Hyperbolic PDE.,6,mismatch
+21,23673,https://dblp.org/rec/conf/amcc/Ding0CG21,System Parameter and State Estimator over Unknown Linear Systems.,21,mismatch
+21,23676,https://dblp.org/rec/conf/amcc/DingBL21,Analysis of Spurious Local Solutions of Optimal Control Problems: One-Shot Optimization Versus Dynamic Programming.,21,mismatch
+6,23687,https://dblp.org/rec/conf/amcc/DingLA21,Escaping Spurious Local Minimum Trajectories in Online Time-varying Nonconvex Optimization.,6,mismatch
+6,23694,https://dblp.org/rec/conf/amcc/DingW0J21,Byzantine-resilient distributed learning under constraints.,6,mismatch
+28,23699,https://dblp.org/rec/conf/amcc/DingYJ21,Discounted online Newton method for time-varying time series prediction.,28,mismatch
+6,23707,https://dblp.org/rec/conf/amcc/DinhM0R20,On Fixed-Time Interval Estimation of Discrete-Time Nonlinear Time-Varying Systems With Disturbances.,6,mismatch
+21,23729,https://dblp.org/rec/conf/amcc/DjeumouVGPT21,On-The-Fly Control of Unknown Smooth Systems from Limited Data.,21,mismatch
+6,23756,https://dblp.org/rec/conf/amcc/DoeserNAM20,Invariant Sets for Integrators and Quadrotor Obstacle Avoidance.,6,mismatch
+6,23774,https://dblp.org/rec/conf/amcc/DollarSV20,Multi-Agent Control of Lane-Switching Automated Vehicles for Energy Efficiency.,6,mismatch
+6,23788,https://dblp.org/rec/conf/amcc/DongCY20,Novel Classification of Finite Dimensional Filters with Non-maximal Rank Estimation Algebra.,6,mismatch
+6,23802,https://dblp.org/rec/conf/amcc/DongQ20,Dynamic-Inner Canonical Correlation Analysis based Process Monitoring.,6,mismatch
+28,23814,https://dblp.org/rec/conf/amcc/DongZF20,Oriented Pedestrian Social Interaction Modeling and Inference.,28,mismatch
+6,23841,https://dblp.org/rec/conf/amcc/DowerM20a,Verification of stationary action trajectories via optimal control.,6,mismatch
+6,23842,https://dblp.org/rec/conf/amcc/DowlingZ20,Transfer Learning for HVAC System Fault Detection.,6,mismatch
+35,23843,https://dblp.org/rec/conf/amcc/DownesSH20,Lunar Terrain Relative Navigation Using a Convolutional Neural Network for Visual Crater Detection.,35,mismatch
+6,23858,https://dblp.org/rec/conf/amcc/DuEFH21,Online power system parameter estimation and optimal operation.,6,mismatch
+18,23927,https://dblp.org/rec/conf/amcc/DutreixSAC20,Interval-valued Markov Chain Abstraction of Stochastic Systems using Barrier Functions.,18,mismatch
+28,23976,https://dblp.org/rec/conf/amcc/EdmondsYHSY21,Optimal Trajectories for Autonomous Human-Following Carts with Gesture-Based Contactless Positioning Suggestions.,28,mismatch
+6,23988,https://dblp.org/rec/conf/amcc/EfremovKHH20,Driving Envelope Definition and Envelope Protection Using Model Predictive Control.,6,mismatch
+28,24002,https://dblp.org/rec/conf/amcc/El-ArissDE21,To Resume or Not to Resume: A Behavior Tree Extension.,28,mismatch
+6,24011,https://dblp.org/rec/conf/amcc/El-KebirB21,PDE-Based Modeling and Non-collocated Feedback Control of Electrosurgical-Probe/Tissue Interaction.,6,mismatch
+6,24020,https://dblp.org/rec/conf/amcc/EladWMS20,Global Sensitivity Analysis for the Linear Assignment Problem.,6,mismatch
+32,24038,https://dblp.org/rec/conf/amcc/Ellis20,Formulation of Economic Model Predictive Control to Address System Dynamics over Multiple Time Scales.,32,mismatch
+45,24039,https://dblp.org/rec/conf/amcc/Ellis21,Machine Learning Enhanced Grey-Box Modeling for Building Thermal Modeling.,45,mismatch
+21,24068,https://dblp.org/rec/conf/amcc/Ergocmen21,Reconfigurable Dynamic Control Allocation with SDRE As a FTFC for NASA GTM Design.,21,mismatch
+6,24069,https://dblp.org/rec/conf/amcc/ErgocmenY20,Active Hybrid Fault Tolerant Flight Control of an UAV under Control Surface Damage.,6,mismatch
+6,24081,https://dblp.org/rec/conf/amcc/EsfahaniKG21,Reinforcement Learning based on MPC/MHE for Unmodeled and Partially Observable Dynamics.,6,mismatch
+6,24097,https://dblp.org/rec/conf/amcc/EstekiK21,Deterministic Privacy Preservation in Static Average Consensus Problem.,6,mismatch
+28,24109,https://dblp.org/rec/conf/amcc/EugeneGD20,Learning and Optimization with Bayesian Hybrid Models.,28,mismatch
+28,24119,https://dblp.org/rec/conf/amcc/EverettHH21,Robustness Analysis of Neural Networks via Efficient Partitioning with Applications in Control Systems.,28,mismatch
+6,24132,https://dblp.org/rec/conf/amcc/FabianiG21,The optimal transport paradigm enables data compression in data-driven robust control.,6,mismatch
+18,24136,https://dblp.org/rec/conf/amcc/Fadali20,"Hybrid Boolean Systems Models for Cyberattacks, Faults, and Human Operators.",18,mismatch
+28,24153,https://dblp.org/rec/conf/amcc/FahdzyanaSH21,A Decomposed Co-design Strategy for Continuously Variable Transmission Design.,28,mismatch
+6,24202,https://dblp.org/rec/conf/amcc/FangZ21a,Fundamental Limits of Obfuscation for Linear Gaussian Dynamical Systems: An Information-Theoretic Approach.,6,mismatch
+6,24233,https://dblp.org/rec/conf/amcc/FarivarnejadB20,Decentralized Collective Transport along Manifolds Compatible with Holonomic Constraints by Robots with Minimal Global Information.,6,mismatch
+6,24239,https://dblp.org/rec/conf/amcc/FaronovP21,Observer-Based Control of Drilling Mode in Rotary Drilling Systems.,6,mismatch
+6,24265,https://dblp.org/rec/conf/amcc/FauserZ21,Resilience and Detection of Cyber-Physical Systems to Covert Attacks by exploiting Frequency Hopping Spread Spectrum.,6,mismatch
+21,24304,https://dblp.org/rec/conf/amcc/FengGD21,Scalable Deep Reinforcement Learning for Ride-Hailing.,21,mismatch
+6,24313,https://dblp.org/rec/conf/amcc/FengS21,Intrusion Detection System Configuration Under Asymmetric Information.,6,mismatch
+6,24321,https://dblp.org/rec/conf/amcc/FenyesNG20,LPV-based autonomous vehicle control using the results of big data analysis on lateral dynamics.,6,mismatch
+6,24326,https://dblp.org/rec/conf/amcc/FergusonBM20,Carrots or Sticks? The Effectiveness of Subsidies and Tolls in Congestion Games.,6,mismatch
+20,24327,https://dblp.org/rec/conf/amcc/FergusonBM20a,Carrots or Sticks? The Effectiveness of Subsidies and Tolls in Congestion Games.,20,mismatch
+6,24328,https://dblp.org/rec/conf/amcc/FergusonM21,The Impact of Fairness on Performance in Congestion Networks.,6,mismatch
+6,24333,https://dblp.org/rec/conf/amcc/FerranteC20,Observer Design for Systems of Conservation Laws with Lipschitz Nonlinear Boundary Dynamics.,6,mismatch
+28,24352,https://dblp.org/rec/conf/amcc/FerrinDC21,Zero-Error Tracking for Autonomous Vehicles through Epsilon-Trajectory Generation.,28,mismatch
+28,24419,https://dblp.org/rec/conf/amcc/FlorenKH21,An Integrated Control Approach for the Combined Longitudinal and Lateral Vehicle Following Problem.,28,mismatch
+6,24423,https://dblp.org/rec/conf/amcc/FloresL20,Robust Preview-Based Tractor-Trailer Lateral Control for Lane Keeping.,6,mismatch
+6,24425,https://dblp.org/rec/conf/amcc/FloresR21,Output feedback control for a nonlinear optical interferometry system.,6,mismatch
+21,24428,https://dblp.org/rec/conf/amcc/FnadiSBP21,Guaranteed Identification of Viscous Friction for a Nonlinear Inverted Pendulum Through Interval Analysis and Set Inversion.,21,mismatch
+6,24432,https://dblp.org/rec/conf/amcc/FolkestadCAB21,Data-Driven Safety-Critical Control: Synthesizing Control Barrier Functions with Koopman Operators.,6,mismatch
+28,24433,https://dblp.org/rec/conf/amcc/FolkestadPMMFB20,Extended Dynamic Mode Decomposition with Learned Koopman Eigenfunctions for Prediction and Control.,28,mismatch
+6,24472,https://dblp.org/rec/conf/amcc/FranzeF20,A model predictive control strategy for finite-time reference synchronization in multi-agent systems with double-integrator dynamics.,6,mismatch
+6,24476,https://dblp.org/rec/conf/amcc/FranzeLT21,Covert attack detection for constrained cyber-physical systems regulated by robust model predictive controllers.,6,mismatch
+6,24505,https://dblp.org/rec/conf/amcc/FreigounTR21,A Spectral Decomposition Identification Algorithm for Structured State-Space Models: Estimating Semiphysical Models of Social Cognitive Theory.,6,mismatch
+6,24538,https://dblp.org/rec/conf/amcc/Fu21,Probabilistic Planning with Preferences over Temporal Goals.,6,mismatch
+21,24599,https://dblp.org/rec/conf/amcc/GagraniN20,Weakly Coupled Constrained Markov Decision Processes in Borel Spaces.,21,mismatch
+6,24604,https://dblp.org/rec/conf/amcc/Galarza-Jimenez21,Extremum Seeking Under Persistent Gradient Deception: A Switching Systems Approach.,6,mismatch
+28,24613,https://dblp.org/rec/conf/amcc/GallaKRH20,Design and Nonlinear Control of a Haptic Glove for Virtual Palpation.,28,mismatch
+6,24666,https://dblp.org/rec/conf/amcc/GaoMS20,Hybrid Predictive Control for Tracking in a Single-Phase DC/AC Inverter with an Unknown Load.,6,mismatch
+6,24686,https://dblp.org/rec/conf/amcc/GarciaA21,Model-Based Event-Triggered Control over Lossy Networks.,6,mismatch
+6,24695,https://dblp.org/rec/conf/amcc/GarciaCPCD20,A Two-team Linear Quadratic Differential Game of Defending a Target.,6,mismatch
+6,24711,https://dblp.org/rec/conf/amcc/GargP21a,Robust Control Barrier and Control Lyapunov Functions with Fixed-Time Convergence Guarantees.,6,mismatch
+35,24730,https://dblp.org/rec/conf/amcc/GassmannA20,Scalable Zonotope-Ellipsoid Conversions using the Euclidean Zonotope Norm.,35,mismatch
+6,24733,https://dblp.org/rec/conf/amcc/Gatsis21,Adaptive Scheduling for Machine Learning Tasks over Networks.,6,mismatch
+35,24767,https://dblp.org/rec/conf/amcc/GeZXTD20,Development of a swimming robot for pipeline leak detection.,35,mismatch
+28,24778,https://dblp.org/rec/conf/amcc/GehlotBBQB21,Collision Free Dynamic Stability of Formations Using Projection Based Estimators.,28,mismatch
+35,24795,https://dblp.org/rec/conf/amcc/GeorgePYABC20,Multi-Agent Coordination for Distributed Transmit Beamforming.,35,mismatch
+28,24854,https://dblp.org/rec/conf/amcc/GharbiBE21,Proximity Moving Horizon Estimation for Discrete-Time Nonlinear Systems.,28,mismatch
+35,24860,https://dblp.org/rec/conf/amcc/GhasemiHVT20,Identifying Sparse Low-Dimensional Structures in Markov Chains: A Nonnegative Matrix Factorization Approach.,35,mismatch
+21,24861,https://dblp.org/rec/conf/amcc/GhasemiHVT21,Online Learning with Implicit Exploration in Episodic Markov Decision Processes.,21,mismatch
+6,24882,https://dblp.org/rec/conf/amcc/GhouseinW20,Backstepping control for a class of coupled hyperbolic-parabolic PDE systems.,6,mismatch
+21,24936,https://dblp.org/rec/conf/amcc/GoelFM20,Fast Non-singular Terminal Sliding Controller for Magnetic Levitation Systems: A Disturbance-Observer Scheme.,21,mismatch
+28,24938,https://dblp.org/rec/conf/amcc/GoelPDISRB21,Experimental Implementation of an Adaptive Digital Autopilot.,28,mismatch
+6,24939,https://dblp.org/rec/conf/amcc/GoelR21,Closed-loop Reference Model based Distributed Model Reference Adaptive Control for Multi-agent Systems.,6,mismatch
+35,24955,https://dblp.org/rec/conf/amcc/GomaaSMGH20,ROS Based Real-Time Motion Control for Robotic Visual Arts Exhibit Using Decawave Local Positioning System.,35,mismatch
+21,24956,https://dblp.org/rec/conf/amcc/GomboTD21,Communication-free Cohesive Flexible-Object Transport using Decentralized Robot Networks.,21,mismatch
+6,24979,https://dblp.org/rec/conf/amcc/GongPV21,Mean-field of optimal control problems for hybrid model of multilane traffic.,6,mismatch
+6,25027,https://dblp.org/rec/conf/amcc/GoujardBJSM21,"Optimal Siting, Sizing and Bid Scheduling of a Price-Maker Battery on a Nodal Wholesale Market.",6,mismatch
+28,25031,https://dblp.org/rec/conf/amcc/GoyalMS21,Optimal Actuator/Sensor Precision for Covariance Steering with Soft Convex Constraints on State and Control.,28,mismatch
+6,25036,https://dblp.org/rec/conf/amcc/GracyMS20,Actuator Security Index for Structured Systems.,6,mismatch
+6,25054,https://dblp.org/rec/conf/amcc/GreeneBNHD21,Cooperative Model-Based Reinforcement Learning for Approximate Optimal Tracking.,6,mismatch
+28,25055,https://dblp.org/rec/conf/amcc/GreerSK21,A Comparative Study on Multidisciplinary and Multi-objective Optimal Control Design of an Aircraft Wing with Multiple Aileron.,28,mismatch
+6,25064,https://dblp.org/rec/conf/amcc/GreiffSR21,Tuning and Analysis of Geometric Tracking Controllers on SO(3).,6,mismatch
+6,25073,https://dblp.org/rec/conf/amcc/GriffioenRKS21,Resilient Control in the Presence of Man-in-the-Middle Attacks.,6,mismatch
+6,25086,https://dblp.org/rec/conf/amcc/GrimsmanHM20,Stackelberg Equilibria for Two-Player Network Routing Games on Parallel Networks.,6,mismatch
+6,25099,https://dblp.org/rec/conf/amcc/GrosZ21,Reinforcement Learning based on MPC and the Stochastic Policy Gradient Method.,6,mismatch
+6,25100,https://dblp.org/rec/conf/amcc/GrosZ21a,Bias Correction in Reinforcement Learning via the Deterministic Policy Gradient Method for MPC-Based Policies.,6,mismatch
+21,25106,https://dblp.org/rec/conf/amcc/GrotliHJI21,Adaptive sampling for UAV sensor network in oil spill management.,21,mismatch
+12,25121,https://dblp.org/rec/conf/amcc/GruningPBR20,Energy-Aware Path Planning for Skid-Steer Robots Operating on Hilly Terrain.,12,mismatch
+45,25157,https://dblp.org/rec/conf/amcc/GudetaKDR21,Leaderless Swarm Formation Control: From Global Specifications to Local Control Laws.,45,mismatch
+6,25170,https://dblp.org/rec/conf/amcc/GuicherdMTK21,Simultaneous and Sequential Control Design for Discrete-Time Switched Linear Systems Using Semi-Definite Programming.,6,mismatch
+32,25197,https://dblp.org/rec/conf/amcc/GuoM20,Robust output feedback Control for an Euler-Bernoulli Beam Equation.,32,mismatch
+32,25200,https://dblp.org/rec/conf/amcc/GuoPK20,Persistence of Excitation in Uniformly Embedded Reproducing Kernel Hilbert (RKH) Spaces.,32,mismatch
+6,25206,https://dblp.org/rec/conf/amcc/GuoSK21,Adaptive Seasonality Estimation for Campaign Optimization in Online Advertising.,6,mismatch
+21,25238,https://dblp.org/rec/conf/amcc/GuptaR21,Higher-Harmonic Load Control of Wind Turbine Blades with Actuator Saturation.,21,mismatch
+6,25266,https://dblp.org/rec/conf/amcc/HaberfeldGH21,Risk-Sensitive Rendezvous Algorithm for Heterogeneous Agents in Urban Environments.,6,mismatch
+45,25277,https://dblp.org/rec/conf/amcc/HaddadCHS21,Prediction and Optimal Feedback Steering of Probability Density Functions for Safe Automated Driving.,45,mismatch
+6,25290,https://dblp.org/rec/conf/amcc/HaddadL21,"Dissipativity Theory for Discrete-Time Nonlinear Stochastic Dynamical Systems, Part I: Input-Output and State Properties.",6,mismatch
+45,25301,https://dblp.org/rec/conf/amcc/HaddiATPDDO20,Advanced Machine Learning Coupled with Heart-Inter-beat derivatives for Cardiac Arrhythmia Detection.,45,mismatch
+28,25306,https://dblp.org/rec/conf/amcc/HaeriBJ21,Near-optimal Moving Average Estimation at Characteristic Timescales: An Allan Variance Approach.,28,mismatch
+6,25308,https://dblp.org/rec/conf/amcc/HaesaertNS21,Formal Multi-Objective Synthesis of Continuous-State MDPs.,6,mismatch
+21,25352,https://dblp.org/rec/conf/amcc/HallB21,Computationally Tractable Stability Criteria for Exogenously Switched Model Predictive Control.,21,mismatch
+6,25357,https://dblp.org/rec/conf/amcc/HamadaBSFM21,Passivity-Based Lag-Compensators with Input Saturation for Mechanical Port-Hamiltonian Systems Without Velocity Measurements.,6,mismatch
+6,25374,https://dblp.org/rec/conf/amcc/Han21,Gradient Methods with Dynamic Inexact Oracles.,6,mismatch
+33,25381,https://dblp.org/rec/conf/amcc/HanKK20,Closed-form solutions for a real-time energy-optimal and collision-free speed planner with limited information.,33,mismatch
+45,25389,https://dblp.org/rec/conf/amcc/HanSKR21,Leveraging Multiple Connected Traffic Light Signals in an Energy-Efficient Speed Planner.,45,mismatch
+32,25437,https://dblp.org/rec/conf/amcc/HareUKJ20,Non-Bayesian Social Learning with Gaussian Uncertain Models.,32,mismatch
+28,25471,https://dblp.org/rec/conf/amcc/HaseliC20,Fast Identification of Koopman-Invariant Subspaces: Parallel Symmetric Subspace Decomposition.,28,mismatch
+6,25472,https://dblp.org/rec/conf/amcc/HaseliC21,Data-Driven Approximation of Koopman-Invariant Subspaces with Tunable Accuracy.,6,mismatch
+6,25498,https://dblp.org/rec/conf/amcc/Hassaan0Y21,Equalized Recovery State Estimators for Linear Systems with Delayed and Missing Observations.,6,mismatch
+21,25535,https://dblp.org/rec/conf/amcc/HavensH21,On Imitation Learning of Linear Control Policies: Enforcing Stability and Robustness Constraints via LMI Conditions.,21,mismatch
+28,25537,https://dblp.org/rec/conf/amcc/HawkinsJABM20,A Nonlinear Fault Detection Scheme for PV Applications.,28,mismatch
+28,25548,https://dblp.org/rec/conf/amcc/HeAMABZHYO20,Improving fuel economy of heavy-duty vehicles in daily driving.,28,mismatch
+21,25550,https://dblp.org/rec/conf/amcc/HeBHK021,A Predictive Reaction-diffusion Based Model of E. coli Colony Growth Control.,21,mismatch
+48,25559,https://dblp.org/rec/conf/amcc/HeHCG20,CPCA: A Chebyshev Proxy and Consensus based Algorithm for General Distributed Optimization.,48,mismatch
+49,25577,https://dblp.org/rec/conf/amcc/HeZJWTSHML21,TDR-OBCA: A Reliable Planner for Autonomous Driving in Free-Space Environment.,49,mismatch
+7,25580,https://dblp.org/rec/conf/amcc/HeZZS21,Rule-Based Safety-Critical Control Design using Control Barrier Functions with Application to Autonomous Lane Change.,7,mismatch
+28,25586,https://dblp.org/rec/conf/amcc/HedmanM21,FFTSMC with Optimal Reference Trajectory Generated by MPC in Robust Robotino Motion Planning with Saturating Inputs.,28,mismatch
+6,25597,https://dblp.org/rec/conf/amcc/HegedusFNG20,Handling of tire pressure variation in autonomous vehicles: an integrated estimation and control design approach.,6,mismatch
+6,25602,https://dblp.org/rec/conf/amcc/HeinkeSW20,Distributed Controller Design for Systems Interconnected over Chordal Graphs.,6,mismatch
+6,25631,https://dblp.org/rec/conf/amcc/HerediaGM20,Finite-Sample Analysis of Distributed Q-learning for Multi-Agent Networks.,6,mismatch
+6,25655,https://dblp.org/rec/conf/amcc/HerreraMT21,Nonlinear Model Predictive Control of Permanent Magnet Synchronous Generators in DC Microgrids.,6,mismatch
+6,25667,https://dblp.org/rec/conf/amcc/HewawadugeSZ21,Robustness of variance suppression in channel flows with imperfect transverse wall oscillations.,6,mismatch
+28,25676,https://dblp.org/rec/conf/amcc/HibbardTT21,Point-Based Value Iteration and Approximately Optimal Dynamic Sensor Selection for Linear-Gaussian Processes.,28,mismatch
+6,25684,https://dblp.org/rec/conf/amcc/HillGB21,Adaptive Control Strategies based on the Unscented Kalman Filter and Interacting Multiple Models.,6,mismatch
+6,25732,https://dblp.org/rec/conf/amcc/HoekstraBD21,Towards State-of-Charge Estimation for Battery Packs: Reducing Computational Complexity by Optimising Model Sampling Time and Update Frequency of the Extended Kalman Filter.,6,mismatch
+35,25733,https://dblp.org/rec/conf/amcc/HoekstraRBD20,Real-Time Range Maximisation of Electric Vehicles through Active Cell Balancing using Model-Predictive Control.,35,mismatch
+19,25754,https://dblp.org/rec/conf/amcc/HolzingerTOR20,Context Aware Control of ADAS.,19,mismatch
+6,25789,https://dblp.org/rec/conf/amcc/HotaG21,A Generalized SIS Epidemic Model on Temporal Networks with Asymptomatic Carriers and Comments on Decay Ratio.,6,mismatch
+28,25814,https://dblp.org/rec/conf/amcc/HsiaoC20,On-line Path Planning and Visual Tracking of Fast-Moving Objects by Robot Manipulators with High-Speed Camera Arrays.,28,mismatch
+45,25815,https://dblp.org/rec/conf/amcc/HsiaoW21,Decision Making Based on Physical and Neural Network Models for Precision Ball-Batting Robots.,45,mismatch
+21,25862,https://dblp.org/rec/conf/amcc/HuT21,Optimal Networked Control Systems with State-dependent Markov Channels.,21,mismatch
+45,25889,https://dblp.org/rec/conf/amcc/HuangCLF21,Improving 3D Recovery based on Super-Resolution Generative Adversarial Network and Uniform Continuous Trajectory for Atomic Force Microscopy.,45,mismatch
+35,25891,https://dblp.org/rec/conf/amcc/HuangCTHS20,Adaptive Compliance Shaping with Human Impedance Estimation.,35,mismatch
+32,25902,https://dblp.org/rec/conf/amcc/HuangK21,Balanced Reduced-Order Models for Iterative Nonlinear Control of Large-Scale Systems.,32,mismatch
+6,25942,https://dblp.org/rec/conf/amcc/HuangZCYM21,State Estimation for a Zero-Dimensional Electrochemical Model of Lithium-Sulfur Batteries.,6,mismatch
+6,25988,https://dblp.org/rec/conf/amcc/Hustig-SchultzS21,Uniting Nesterov's Accelerated Gradient Descent and the Heavy Ball Method for Strongly Convex Functions with Exponential Convergence Rate.,6,mismatch
+6,26000,https://dblp.org/rec/conf/amcc/IannelliS21,The role of the state in model reduction with subspace and POD-based data-driven methods.,6,mismatch
+45,26018,https://dblp.org/rec/conf/amcc/IfqirIOM20,Vehicle Lateral Velocity and Lateral Tire-road Forces Estimation Based on Switched Interval Observers.,45,mismatch
+6,26030,https://dblp.org/rec/conf/amcc/IkedaN21,Maximum hands-off control with time-space sparsity.,6,mismatch
+28,26039,https://dblp.org/rec/conf/amcc/ImaniG21,Partially-Observed Discrete Dynamical Systems.,28,mismatch
+6,26085,https://dblp.org/rec/conf/amcc/IsalyPSD21,Adaptive Safety with Multiple Barrier Functions Using Integral Concurrent Learning.,6,mismatch
+21,26105,https://dblp.org/rec/conf/amcc/Islam0YS21,Forming 2D3D Operator Control for Ambiguous Image Environments.,21,mismatch
+6,26110,https://dblp.org/rec/conf/amcc/IslamLYS20,An Interactive Control Approach to 3D Shape Reconstruction.,6,mismatch
+14,26115,https://dblp.org/rec/conf/amcc/IsmailL20,Tube-based Robust Model Predictive Control for a Distributed Parameter System Modeled as a Polytopic LPV.,14,mismatch
+32,26126,https://dblp.org/rec/conf/amcc/Ito21,A Strict Smooth Lyapunov Function and Input-to-State Stability of SIR Model.,32,mismatch
+32,26127,https://dblp.org/rec/conf/amcc/ItoF21,On Optimal Control with Polynomial Cost Functions for Linear Systems with Time-Invariant Stochastic Parameters.,32,mismatch
+28,26146,https://dblp.org/rec/conf/amcc/IzadiBG20,Impedance Modulation for Negotiating Control Authority in a Haptic Shared Control Paradigm.,28,mismatch
+22,26149,https://dblp.org/rec/conf/amcc/IzadiG21,Game-Theoretic Intent Negotiation in a Haptic Shared Control Paradigm.,22,mismatch
+6,26163,https://dblp.org/rec/conf/amcc/JacobsonD21,Approximate Filippov-based Switching for Behavior-based Trajectory Tracking.,6,mismatch
+6,26196,https://dblp.org/rec/conf/amcc/JainFBP20,Exponential stability criteria for neural network based control of nonlinear systems.,6,mismatch
+28,26199,https://dblp.org/rec/conf/amcc/JainGSCH21,Transfer-Learnt Models for Predicting Electricity Consumption in Buildings with Limited and Sparse Field Data.,28,mismatch
+35,26201,https://dblp.org/rec/conf/amcc/JainHM20,Term-by-Term Observer Design Method to Estimate NH3 Storage in SCR Catalyst.,35,mismatch
+28,26202,https://dblp.org/rec/conf/amcc/JainKBHCRAV21,Occupancy-Driven Stochastic Decision Framework for Ranking Commercial Building Loads.,28,mismatch
+6,26233,https://dblp.org/rec/conf/amcc/JangOM21,Large-Scale Invariant Sets for Safe Coordination of Thermostatic Loads.,6,mismatch
+28,26243,https://dblp.org/rec/conf/amcc/Janot21,A Separable Instrumental Variable Method for Robot Identification.,28,mismatch
+6,26246,https://dblp.org/rec/conf/amcc/Jansch-PortoHD20,Convergence Guarantees of Policy Optimization Methods for Markovian Jump Linear Systems.,6,mismatch
+6,26255,https://dblp.org/rec/conf/amcc/JaoudeGF21,Computing State Invariants Using Point-Wise Integral Quadratic Constraints and the S-procedure.,6,mismatch
+6,26265,https://dblp.org/rec/conf/amcc/JavedP021,Excitation Conditions for Uniform ExponentiaGBl Stability of the Cooperative Gradient Algorithm over Weakly Connected Digraphs.,6,mismatch
+12,26271,https://dblp.org/rec/conf/amcc/JayaramanRYPT20,Efficient Behavior-aware Control of Automated Vehicles at Crosswalks using Minimal Information Pedestrian Prediction Model.,12,mismatch
+21,26307,https://dblp.org/rec/conf/amcc/JiLMG21,Adaptive Neural Control for a Tilting Quadcopter with Finite-Time Convergence.,21,mismatch
+6,26313,https://dblp.org/rec/conf/amcc/Jia020,Orbital Uncertainty Propagation via Multi-Element Arbitrary Polynomial Chaos.,6,mismatch
+48,26320,https://dblp.org/rec/conf/amcc/JiaFTLHMWCQZYS20,Context-aware Route Recommendation with Weight Learning through Deep Neural Networks.,48,mismatch
+21,26327,https://dblp.org/rec/conf/amcc/Jian0M21,Multi-Objective Optimization Approach to Pure Strategy Equilibria in Games with Imperfect Information.,21,mismatch
+45,26331,https://dblp.org/rec/conf/amcc/JiangC21,Game Theoretic Control of Thermal Loads in Demand Response Aggregators.,45,mismatch
+21,26332,https://dblp.org/rec/conf/amcc/JiangCHZ20,Optimized Control of Phase Change Material-Based Storage Integrated in Building Air-Distribution Systems.,21,mismatch
+31,26374,https://dblp.org/rec/conf/amcc/Jin20,Constrained Crane Load Transferring and Lowering Under Uncalm Sea Conditions Using Adaptive Iterative Learning Control.,31,mismatch
+45,26375,https://dblp.org/rec/conf/amcc/Jin20a,"Iterative Learning Control for Robot Manipulators with Non-Repetitive Reference Trajectory, Iteration Varying Trial Lengths, and Asymmetric Output Constraints.",45,mismatch
+33,26384,https://dblp.org/rec/conf/amcc/JinKL20,"Games on Networks with Community Structure: Existence, Uniqueness and Stability of Equilibria.",33,mismatch
+6,26385,https://dblp.org/rec/conf/amcc/JinKY20,Data-Driven Model Invalidation for Unknown Lipschitz Continuous Systems via Abstraction.,6,mismatch
+28,26388,https://dblp.org/rec/conf/amcc/JinP20,Subgoal Learning via Operator Command Quantification for Human-Machine Shared Control Task Modeling.,28,mismatch
+28,26429,https://dblp.org/rec/conf/amcc/Johnson20,Safe Motion Planning under Partial Observability with an Optimal Deterministic Planner.,28,mismatch
+6,26486,https://dblp.org/rec/conf/amcc/JungT21,Optimal Data Rate Allocation for Dynamic Sensor Fusion over Resource Constrained Communication Networks.,6,mismatch
+28,26491,https://dblp.org/rec/conf/amcc/KaayaWCC21,A Physics-based and Control-oriented Model for Dielectric Elastomer Tubular Actuator.,28,mismatch
+6,26506,https://dblp.org/rec/conf/amcc/Kairuz0A21,Prescribed-Time Stabilization of Controllable Planar Systems Using Switched State Feedback.,6,mismatch
+6,26512,https://dblp.org/rec/conf/amcc/Kalagarla0N21,Optimal Control of Discounted-Reward Markov Decision Processes Under Linear Temporal Logic Specifications.,6,mismatch
+44,26513,https://dblp.org/rec/conf/amcc/KalatF20,A Feedback-Planning Scheme to Synthesize Control Functions.,44,mismatch
+6,26526,https://dblp.org/rec/conf/amcc/KalurNB21,Robust Adaptive Dynamic Mode Decomposition for Reduce Order Modelling of Partial Differential Equations.,6,mismatch
+28,26544,https://dblp.org/rec/conf/amcc/KamidiHGH21,Distributed Controllers for Human-Robot Locomotion: A Scalable Approach Based on Decomposition and Hybrid Zero Dynamics.,28,mismatch
+28,26549,https://dblp.org/rec/conf/amcc/KampezidouRVM21,Online Adaptive Learning in Energy Trading Stackelberg Games with Time-Coupling Constraints.,28,mismatch
+21,26558,https://dblp.org/rec/conf/amcc/KandelPPKCAJM20,Distributionally Robust Surrogate Optimal Control for Large-Scale Dynamical Systems.,21,mismatch
+32,26574,https://dblp.org/rec/conf/amcc/KangSU20,Quaternion Based Nonlinear Trajectory Control of Quadrotors with Guaranteed Stability.,32,mismatch
+28,26575,https://dblp.org/rec/conf/amcc/KangSW21,Constrained Attitude Control of Over-actuated Spacecraft Subject to Instrument Pointing Direction Deviation.,28,mismatch
+6,26596,https://dblp.org/rec/conf/amcc/KapsikarSAKZ21,Controlling Fake News by Collective Tagging: A Branching Process Analysis.,6,mismatch
+6,26612,https://dblp.org/rec/conf/amcc/KarimianT20,Bearing-Only Consensus and Formation Control under Directed Topologies.,6,mismatch
+6,26613,https://dblp.org/rec/conf/amcc/KarimianT21,Bearing-Only Navigation with Field of View Constraints.,6,mismatch
+6,26622,https://dblp.org/rec/conf/amcc/KarlssonS21,Adaptive Bid Shading Optimization of First-Price Ad Inventory.,6,mismatch
+32,26640,https://dblp.org/rec/conf/amcc/KassarianREAC20,Convergent EKF-based control allocation: general formulation and application to a Control Moment Gyro cluster.,32,mismatch
+6,26647,https://dblp.org/rec/conf/amcc/KatewaP21,Optimal Dynamic Load-Altering Attacks Against Power Systems.,6,mismatch
+28,26648,https://dblp.org/rec/conf/amcc/KatirANLG21,Cascaded H-bridge Inverters for UPS Applications: Adaptive Backstepping Control and Formal Stability Analysis.,28,mismatch
+28,26650,https://dblp.org/rec/conf/amcc/KatoM21,1D PDE Model for Thermal Dynamics in Fluid-Cooled Battery Packs: Numerical Methods and Sensor Placement.,28,mismatch
+21,26661,https://dblp.org/rec/conf/amcc/KaushikY21,An Incremental Gradient Method for Large-scale Distributed Nonlinearly Constrained Optimization.,21,mismatch
+21,26685,https://dblp.org/rec/conf/amcc/KeTS20,Down-hole Directional Drilling Dynamics Modeling Based on a Hybrid Modeling Method with Model Order Reduction.,21,mismatch
+35,26696,https://dblp.org/rec/conf/amcc/KeilM0R20,Biased Kernel Density Estimators for Chance Constrained Optimal Control Problems.,35,mismatch
+28,26698,https://dblp.org/rec/conf/amcc/KellerAA21,Time-Optimal Multi-Stage NMPC for In-Cycle Control of Free-Piston Linear Generators.,28,mismatch
+21,26703,https://dblp.org/rec/conf/amcc/Kergus21,Data-driven control of infinite dimensional systems: Application to a continuous crystallizer.,21,mismatch
+6,26726,https://dblp.org/rec/conf/amcc/KhajenejadJY21,Interval Observers for Simultaneous State and Model Estimation of Partially Known Nonlinear Systems.,6,mismatch
+45,26737,https://dblp.org/rec/conf/amcc/KhalilJAK21,Health Monitoring of Mixed Autonomous and Human-driven Vehicle Platoon using Transmissibility Identification.,45,mismatch
+45,26739,https://dblp.org/rec/conf/amcc/KhalilPAJ21,Health Monitoring of Actuators of Motion Systems Using Output-Only Measurements.,45,mismatch
+28,26745,https://dblp.org/rec/conf/amcc/KhanZC20,Barrier Functions in Cascaded Controller: Safe Quadrotor Control.,28,mismatch
+28,26801,https://dblp.org/rec/conf/amcc/KimGK21,Comparing Feedback Linearization and Adaptive Backstepping Control for Airborne Orientation of Agile Ground Robots using Wheel Reaction Torque.,28,mismatch
+28,26822,https://dblp.org/rec/conf/amcc/KimO20,Testing-and-Evaluation Platform for Haptics-based Aerial Manipulation with Drones.,28,mismatch
+33,26826,https://dblp.org/rec/conf/amcc/KimPFBD20,Optimal Operation of a Plug-in Hybrid Vehicle with Battery Thermal and Degradation Model.,33,mismatch
+6,26843,https://dblp.org/rec/conf/amcc/KimWHSV21,Robust Vehicle Lane Keeping Control with Networked Proactive Adaptation.,6,mismatch
+21,26871,https://dblp.org/rec/conf/amcc/KissaiMMT20,Optimization-Based Control Allocation for Driving/Braking Torque Vectoring in a Race Car.,21,mismatch
+6,26883,https://dblp.org/rec/conf/amcc/KlettAYCF20,Bounding the State Covariance Matrix for Switched Linear Systems with Noise.,6,mismatch
+6,26919,https://dblp.org/rec/conf/amcc/KoelewijnT20,Scheduling Dimension Reduction of LPV Models - A Deep Neural Network Approach.,6,mismatch
+21,26925,https://dblp.org/rec/conf/amcc/KoenigKSD21,ARTMS: Enabling Autonomous Distributed Angles-Only Orbit Estimation for Spacecraft Swarms.,21,mismatch
+14,26945,https://dblp.org/rec/conf/amcc/KohlerFZ21,An Approach to Design Distributed Logic Controllers for Large-Scale Manufacturing Systems.,14,mismatch
+6,26949,https://dblp.org/rec/conf/amcc/KokolakisKV20,Bounded Rational Unmanned Aerial Vehicle Coordination for Adversarial Target Tracking.,6,mismatch
+28,26967,https://dblp.org/rec/conf/amcc/Konda021,Modeling and Inverse Compensation of the Quasi-static Voltage-Strain Lonely Stroke and Hysteresis in Supercoiled Polymer Artificial Muscles.,28,mismatch
+21,26983,https://dblp.org/rec/conf/amcc/KontoudisS21,Prediction of Acoustic Communication Performance in Marine Robots Using Model-Based Kriging.,21,mismatch
+28,26985,https://dblp.org/rec/conf/amcc/KontoudisXV20,"Online, Model-Free Motion Planning in Dynamic Environments: An Intermittent, Finite Horizon Approach with Continuous-Time Q-Learning.",28,mismatch
+6,26991,https://dblp.org/rec/conf/amcc/KooiMS21,Self-Triggered Control to Guarantee Forward Pre-Invariance with Uniformly Positive Inter-Event Times.,6,mismatch
+6,27001,https://dblp.org/rec/conf/amcc/KordabadELG21,Reinforcement Learning based on Scenario-tree MPC for ASVs.,6,mismatch
+28,27027,https://dblp.org/rec/conf/amcc/KouraniD21,Leveraging PID Gain Selection Towards Adaptive Backstepping Control for a Class of Second-Order Systems.,28,mismatch
+28,27042,https://dblp.org/rec/conf/amcc/KrellKC20,Autonomous Water Surface Vehicle Metaheuristic Mission Planning using Self-generated Goals and Environmental Forecasts.,28,mismatch
+28,27099,https://dblp.org/rec/conf/amcc/KuangSZGT21,Feedback-based Digital Higher-order Terminal Sliding Mode for 6-DOF Industrial Manipulators.,28,mismatch
+28,27118,https://dblp.org/rec/conf/amcc/KumarBDSC020,Quaternion Feedback Based Autonomous Control of a Quadcopter UAV with Thrust Vectoring Rotors.,28,mismatch
+6,27124,https://dblp.org/rec/conf/amcc/KumarGR21,Multi-Objective Logarithmic Extremum Seeking for Wind Turbine Power Capture with Load Reduction.,6,mismatch
+28,27132,https://dblp.org/rec/conf/amcc/KumarPR20,Navigation of a Quadratic Potential with Star Obstacles.,28,mismatch
+21,27133,https://dblp.org/rec/conf/amcc/KumarR21,Learning to Control Using a Convex Combination of Controllers.,21,mismatch
+6,27139,https://dblp.org/rec/conf/amcc/KumaravelMA21,Decentralized Cooperative Merging of Platoons of Connected and Automated Vehicles at Highway On-Ramps.,6,mismatch
+6,27157,https://dblp.org/rec/conf/amcc/KurthSS20,Optimal Trajectory Tracking for Population Dynamics with Input Constraints in Chemostat Reactor Applications.,6,mismatch
+6,27159,https://dblp.org/rec/conf/amcc/Kurtz021,Trajectory Optimization for High-Dimensional Nonlinear Systems under STL Specifications.,6,mismatch
+28,27160,https://dblp.org/rec/conf/amcc/KurtzW020,Robust Approximate Simulation for Hierarchical Control of Linear Systems under Disturbances.,28,mismatch
+6,27168,https://dblp.org/rec/conf/amcc/Kuwaranancharoen20,On the Set of Possible Minimizers of a Sum of Known and Unknown Functions.,6,mismatch
+6,27169,https://dblp.org/rec/conf/amcc/Kuwaranancharoen20a,Byzantine-Resilient Distributed Optimization of Multi-Dimensional Functions.,6,mismatch
+6,27180,https://dblp.org/rec/conf/amcc/KyriakisPB20,Actuator Placement for Heterogeneous Complex Dynamical Networks with Long-Term Memory.,6,mismatch
+6,27185,https://dblp.org/rec/conf/amcc/LP21,Modeling zebrafish geotaxis as a feedback control process.,6,mismatch
+32,27199,https://dblp.org/rec/conf/amcc/LafmejaniFDB20,A Consensus Strategy for Decentralized Kinematic Control of Multi-Segment Soft Continuum Robots.,32,mismatch
+33,27202,https://dblp.org/rec/conf/amcc/LaftchievRN21,Dynamic Thermal Comfort Optimization for Groups.,33,mismatch
+32,27208,https://dblp.org/rec/conf/amcc/LaiAKJL20,Optimization of Current Excitation for Identification of Battery Electrochemical Parameters based on Analytic Sensitivity Expression.,32,mismatch
+21,27222,https://dblp.org/rec/conf/amcc/LaleAHA21,Adaptive Control and Regret Minimization in Linear Quadratic Gaussian (LQG) Setting.,21,mismatch
+7,27224,https://dblp.org/rec/conf/amcc/LamAJCO21,Offline multiobjective optimization for fast charging and reduced degradation in lithium ion battery cells.,7,mismatch
+6,27270,https://dblp.org/rec/conf/amcc/LasieckaR21,Stabilization of a nonlinear structural acoustic interaction.,6,mismatch
+6,27281,https://dblp.org/rec/conf/amcc/LaurentC21,Coupled Sensor Configuration and Path-Planning in Unknown Static Environments.,6,mismatch
+28,27283,https://dblp.org/rec/conf/amcc/LauroKRS21,Covid-19 and Flattening the Curve: a Feedback Control Perspective.,28,mismatch
+28,27287,https://dblp.org/rec/conf/amcc/LavaeiHDB21,Constraint Enforcement via Tube-Based MPC Exploiting Switching Restrictions.,28,mismatch
+6,27311,https://dblp.org/rec/conf/amcc/LazarP21,Optimal Tolling for Multitype Mixed Autonomous Traffic Networks.,6,mismatch
+28,27318,https://dblp.org/rec/conf/amcc/LeNN21,An Efficient Adaptive Sampling Approach for Mobile Robotic Sensor Networks using Proximal ADMM.,28,mismatch
+6,27322,https://dblp.org/rec/conf/amcc/LeT21,Hybrid Heavy-Ball Systems: Reset Methods for Optimization with Uncertainty.,6,mismatch
+21,27333,https://dblp.org/rec/conf/amcc/LedererHH20,Confidence Regions for Simulations with Learned Probabilistic Models.,21,mismatch
+6,27349,https://dblp.org/rec/conf/amcc/Lee20a,Identifiability of a Series of Discrete Process Cycles Based on Multirate Data.,6,mismatch
+28,27354,https://dblp.org/rec/conf/amcc/LeeB0Z20,Disassembly Sequence Planning Considering Human-Robot Collaboration.,28,mismatch
+21,27362,https://dblp.org/rec/conf/amcc/LeeC20,Joint Decision and Fault Estimation for Formation Control of Interconnected UAVs.,21,mismatch
+22,27390,https://dblp.org/rec/conf/amcc/LeeJK21,A Hybrid Mechanistic Data-Driven Approach for Modeling Uncertain Intracellular Signaling Pathways.,22,mismatch
+6,27441,https://dblp.org/rec/conf/amcc/LeiYHDD21,A decomposition multi-objective optimization method based on dynamic weight adjustment for infrared thermal image defect feature adaptive extraction method.,6,mismatch
+21,27474,https://dblp.org/rec/conf/amcc/LeuZST21,Efficient Robot Motion Planning via Sampling and Optimization.,21,mismatch
+6,27475,https://dblp.org/rec/conf/amcc/LeungLK21,A Computable Plant-Optimizer Region of Attraction Estimate for Time-distributed Linear Model Predictive Control.,6,mismatch
+32,27477,https://dblp.org/rec/conf/amcc/LeungZ20,A Stochastic Control Approach to Futures Trading with Regime Switching.,32,mismatch
+45,27504,https://dblp.org/rec/conf/amcc/LiAD21,"Frontiers in Scalable Distributed Control: SLS, MPC, and Beyond.",45,mismatch
+48,27515,https://dblp.org/rec/conf/amcc/LiC20,Guaranteed-Safe Approximate Reachability via State Dependency-Based Decomposition.,48,mismatch
+28,27521,https://dblp.org/rec/conf/amcc/LiCLD20,Shared Steering Control of Tire Blowout for Ground Vehicles.,28,mismatch
+6,27547,https://dblp.org/rec/conf/amcc/LiFVS20,D-SOP: Distributed Second Order Proximal Method for Convex Composite Optimization.,6,mismatch
+21,27562,https://dblp.org/rec/conf/amcc/LiHLG20,Unpredictable Trajectory Design for Mobile Agents.,21,mismatch
+21,27575,https://dblp.org/rec/conf/amcc/LiJG21,Boundary Feedback Stabilization of a One-dimensional Wave Equation with Velocity Recirculation and Matched Disturbance.,21,mismatch
+6,27578,https://dblp.org/rec/conf/amcc/LiJW021,Consensus and Approximation-based Distribution Statistics in Network Systems.,6,mismatch
+6,27584,https://dblp.org/rec/conf/amcc/LiKG21,A Failure Mode Reconfiguration Strategy Based on Constraint Admissible and Recoverable Sets.,6,mismatch
+21,27639,https://dblp.org/rec/conf/amcc/LiR21,Fractional Order System Identification with Occupation Kernel Regression.,21,mismatch
+6,27659,https://dblp.org/rec/conf/amcc/LiT20,Distributed Algorithms for Solving Modular Congruences over Networks.,6,mismatch
+6,27703,https://dblp.org/rec/conf/amcc/LiZZ20,Distributed Multi-Battery Coordination for Cooperative Energy Management via ADMM-based Iterative Learning.,6,mismatch
+14,27716,https://dblp.org/rec/conf/amcc/LiangCQ21,Early Termination of Convex QP Solvers in Mixed-Integer Programming for Real-Time Decision Making.,14,mismatch
+6,27721,https://dblp.org/rec/conf/amcc/LiangOS20,Achieving output consensus of heterogeneous network of two dimensional agents via static diffusive controller.,6,mismatch
+28,27722,https://dblp.org/rec/conf/amcc/LiangSDLR21,Rough-Terrain Locomotion and Unilateral Contact Force Regulations With a Multi-Modal Legged Robot.,28,mismatch
+6,27753,https://dblp.org/rec/conf/amcc/LimKN21,LPV Controller Design for Diesel Engine SCR Aftertreatment Systems based on Quasi-LPV Models.,6,mismatch
+8,27760,https://dblp.org/rec/conf/amcc/LimogeGHNP20,Inferential Methods for Additive Manufacturing Feedback.,8,mismatch
+21,27768,https://dblp.org/rec/conf/amcc/LinA21,EM-based algorithms for single particle tracking of Ornstein-Uhlenbeck motion from sCMOS camera data.,21,mismatch
+6,27770,https://dblp.org/rec/conf/amcc/LinB20,Decentralized Control of Constrained Linear Systems via Assume-Guarantee Contracts.,6,mismatch
+6,27771,https://dblp.org/rec/conf/amcc/LinB20a,Metric Interval Temporal Logic based Reinforcement Learning with Runtime Monitoring and Self-Correction.,6,mismatch
+28,27791,https://dblp.org/rec/conf/amcc/LinDLG21,Optimal Task-Invariant Energetic Control for a Knee-Ankle Exoskeleton.,28,mismatch
+28,27828,https://dblp.org/rec/conf/amcc/LinWZD20,Measuring Similarity of Interactive Driving Behaviors Using Matrix Profile.,28,mismatch
+28,27836,https://dblp.org/rec/conf/amcc/LindemannD20,Efficient Automata-based Planning and Control under Spatio-Temporal Logic Specifications.,28,mismatch
+6,27865,https://dblp.org/rec/conf/amcc/Liu0Z20,On a Notion of Approximate Opacity for Discrete-Time Stochastic Control Systems.,6,mismatch
+32,27882,https://dblp.org/rec/conf/amcc/LiuCZ20,An Audio-Based Fault Diagnosis Method for Quadrotors Using Convolutional Neural Network and Transfer Learning.,32,mismatch
+6,27890,https://dblp.org/rec/conf/amcc/LiuFW21,Periodic Load Rejection for Floating Offshore Wind Turbines via Constrained Subspace Predictive Repetitive Control.,6,mismatch
+6,27907,https://dblp.org/rec/conf/amcc/LiuH21,Event-Triggered Exponential Practical Tracking for Uncertain Euler-Lagrange Systems.,6,mismatch
+45,27936,https://dblp.org/rec/conf/amcc/LiuL21,Human Motion Prediction Using Adaptable Recurrent Neural Networks and Inverse Kinematics.,45,mismatch
+22,27950,https://dblp.org/rec/conf/amcc/LiuLWZ20,Vehicle-Human Interactive Behaviors in Emergency: Data Extraction from Traffic Accident Videos.,22,mismatch
+28,27955,https://dblp.org/rec/conf/amcc/LiuMB21,Recurrent Neural Network Controllers for Signal Temporal Logic Specifications Subject to Safety Constraints.,28,mismatch
+21,27960,https://dblp.org/rec/conf/amcc/LiuNJJ21,Latency-Robust Control of High-Speed Signal-Free Intersections.,21,mismatch
+6,27965,https://dblp.org/rec/conf/amcc/LiuO21,On the Value of Preview Information For Safety Control.,6,mismatch
+6,27966,https://dblp.org/rec/conf/amcc/LiuOO21,Preview Reference Governors.,6,mismatch
+6,28017,https://dblp.org/rec/conf/amcc/LiuZ21,Verification of Approximate Opacity via Barrier Certificates.,6,mismatch
+21,28031,https://dblp.org/rec/conf/amcc/LoCA20,A Norm-Regulation-Based Limit Cycle Control of Vertical Hoppers.,21,mismatch
+32,28032,https://dblp.org/rec/conf/amcc/LoCiceroB21,Sparsity Promoting $\mathscr{H}_{2}$-Conic Control.,32,mismatch
+35,28101,https://dblp.org/rec/conf/amcc/LuLZ20,Privacy-Preserving Transactive Energy System.,35,mismatch
+21,28158,https://dblp.org/rec/conf/amcc/LuoHZ20,On-board Supercapacitors Cooperative Charging Algorithm: Stability Analysis and Weight Optimization.,21,mismatch
+28,28164,https://dblp.org/rec/conf/amcc/LuoZ021,A Secure High-dimension Consensus Mechanism against Adversaries.,28,mismatch
+6,28173,https://dblp.org/rec/conf/amcc/LutzM21,Optimal Trajectory Planning and Model Predictive Control of Underactuated Marine Surface Vessels using a Flatness-Based Approach.,6,mismatch
+35,28178,https://dblp.org/rec/conf/amcc/LvXLGA20,A Task-Invariant Learning Framework of Lower-Limb Exoskeletons for Assisting Human Locomotion.,35,mismatch
+6,28179,https://dblp.org/rec/conf/amcc/LymperopoulosPI20,Distributed Adaptive Control of Air Handling Units for Interconnected Building Zones.,6,mismatch
+28,28223,https://dblp.org/rec/conf/amcc/MaWCRBABBRC21,Reinforcement Learning-Based Fed-Batch Optimization with Reaction Surrogate Model.,28,mismatch
+6,28295,https://dblp.org/rec/conf/amcc/MaghenemTAS21,Adaptive Safety Using Control Barrier Functions and Hybrid Adaptation.,6,mismatch
+6,28332,https://dblp.org/rec/conf/amcc/MahmudHNBK21,A Safety Aware Model-Based Reinforcement Learning Framework for Systems with Uncertainties.,6,mismatch
+35,28365,https://dblp.org/rec/conf/amcc/MakarowRB20,Single Degree of Freedom Model Predictive Control with Variable Horizon.,35,mismatch
+6,28368,https://dblp.org/rec/conf/amcc/MakkapatiMDT20,C-DOC: Co-State Desensitized Optimal Control.,6,mismatch
+45,28372,https://dblp.org/rec/conf/amcc/MaldonadoKSYM21,Next-Cycle Optimal Fuel Control for Cycle-to-Cycle Variability Reduction in EGR-Diluted Combustion.,45,mismatch
+6,28383,https://dblp.org/rec/conf/amcc/MalisoffK20,Delayed Multivariable Extremum Seeking with Sequential Predictors.,6,mismatch
+6,28392,https://dblp.org/rec/conf/amcc/MallT20a,Entry Trajectory Optimization for Mars Science Laboratory Class Missions Using Indirect Uniform Trigonometrization Method.,6,mismatch
+13,28397,https://dblp.org/rec/conf/amcc/MallikC21,Top-down modeling of distributed neural dynamics for motion control.,13,mismatch
+6,28412,https://dblp.org/rec/conf/amcc/ManciniC21,Adaptive Sliding Mode-based Control System for Flexible Spacecraft.,6,mismatch
+28,28413,https://dblp.org/rec/conf/amcc/MandaliDM20,Robust Controller Design for Automatic Voltage Regulation.,28,mismatch
+6,28473,https://dblp.org/rec/conf/amcc/Markdahl20,Consensus seeking gradient descent flows on boundaries of convex sets.,6,mismatch
+6,28475,https://dblp.org/rec/conf/amcc/MarleyST21,Synergistic control barrier functions with application to obstacle avoidance for nonholonomic vehicles.,6,mismatch
+6,28481,https://dblp.org/rec/conf/amcc/MarsillachCKW21,Fail-Safe Spacecraft Rendezvous on Near-Rectilinear Halo Orbits.,6,mismatch
+6,28486,https://dblp.org/rec/conf/amcc/MartinA21,Dissipativity verification with guarantees for polynomial systems from noisy input-state data.,6,mismatch
+6,28503,https://dblp.org/rec/conf/amcc/MartinsA21,Dynamic Management of Multiple Resources in Camera Surveillance Systems.,6,mismatch
+6,28506,https://dblp.org/rec/conf/amcc/Maruf021,Using Feedback to Block Controllability at Remote Nodes in Network Synchronization Processes.,6,mismatch
+6,28507,https://dblp.org/rec/conf/amcc/Maruf021a,Almost-Surgical Eigenstructure Assignment for Linear Time Invariant Systems Using State Feedback.,6,mismatch
+6,28509,https://dblp.org/rec/conf/amcc/MarufR20,Pole and Residue Estimation from Impulse Response Data: New Error Bounding Techniques.,6,mismatch
+6,28512,https://dblp.org/rec/conf/amcc/MarviK20,Safe Off-policy Reinforcement Learning Using Barrier Functions.,6,mismatch
+6,28528,https://dblp.org/rec/conf/amcc/Masoud21,"A Harmonic Potential, Space-Time Navigation Control with Obstacle Forecast, Avoidance and Guaranteed Time of Arrival.",6,mismatch
+28,28547,https://dblp.org/rec/conf/amcc/MateiMZKR20,Deep Learning for Control: a non-Reinforcement Learning View.,28,mismatch
+6,28549,https://dblp.org/rec/conf/amcc/MateiZKSB20,Learning physical laws: the case of micron size particles in dielectric fluid.,6,mismatch
+32,28567,https://dblp.org/rec/conf/amcc/MatinS20,Nonlinear Optimal Velocity Car Following Dynamics (I): Approximation in Presence of Deterministic and Stochastic Perturbations.,32,mismatch
+32,28568,https://dblp.org/rec/conf/amcc/MatinS20a,Nonlinear Optimal Velocity Car Following Dynamics (II): Rate of Convergence In the Presence of Fast Perturbation.,32,mismatch
+6,28585,https://dblp.org/rec/conf/amcc/MattioniWG21,"Modelling, Control and Stability Analysis of Flexible Rotating Beam's Impacts During Contact Scenario.",6,mismatch
+22,28588,https://dblp.org/rec/conf/amcc/Matusiak21,An optimized MATLAB tool for efficient evaluation of fractional-order differential equations of time-varying orders.,22,mismatch
+6,28590,https://dblp.org/rec/conf/amcc/MavridisB21,Vector Quantization for Adaptive State Aggregation in Reinforcement Learning.,6,mismatch
+6,28623,https://dblp.org/rec/conf/amcc/MazencMN20,Sampled-Data Estimator for Nonlinear Systems with Arbitrarily Fast Rate of Convergence.,6,mismatch
+6,28640,https://dblp.org/rec/conf/amcc/McBrideV20,Trade-offs in Robustness to Perturbations of Bacterial Population Controllers.,6,mismatch
+6,28654,https://dblp.org/rec/conf/amcc/McEneaneyD20,Conversion of a Class of Stochastic Control Problems to Fundamental-Solution Deterministic Control Problems.,6,mismatch
+35,28687,https://dblp.org/rec/conf/amcc/MeeraW20,Free Energy Principle Based State and Input Observer Design for Linear Systems with Colored Noise.,35,mismatch
+28,28698,https://dblp.org/rec/conf/amcc/MehdipourVB21,Specifying User Preferences using Weighted Signal Temporal Logic.,28,mismatch
+6,28746,https://dblp.org/rec/conf/amcc/MengL20,Almost Output Consensus of Nonlinear Multi-Agent Systems in the Presence of External Disturbances.,6,mismatch
+6,28747,https://dblp.org/rec/conf/amcc/MengLL21,Control of Nonlinear Systems with Reach-Avoid-Stay Specifications: A Lyapunov-Barrier Approach with an Application to the Moore-Greizer Model.,6,mismatch
+6,28748,https://dblp.org/rec/conf/amcc/MengLS21,Distributed Cooperative Control of Battery Energy Storage Systems in DC Microgrids.,6,mismatch
+35,28778,https://dblp.org/rec/conf/amcc/MernSK20,Exchangeable Input Representations for Reinforcement Learning.,35,mismatch
+45,28810,https://dblp.org/rec/conf/amcc/Meyer21,A new H∞ Observer for continuous LPV systems affected by Unknown Inputs.,45,mismatch
+45,28811,https://dblp.org/rec/conf/amcc/Meyer21a,Guaranteed Interval State Estimation for Linear Parameter Varying Systems with Unknown Inputs.,45,mismatch
+6,28828,https://dblp.org/rec/conf/amcc/MiaoCL21,On Numerical Examination of Uniform Ensemble Controllability for Linear Ensemble Systems.,6,mismatch
+21,28830,https://dblp.org/rec/conf/amcc/MiaoL20,A Geometric Approach to Linear Ensemble Control Analysis and Design.,21,mismatch
+28,28853,https://dblp.org/rec/conf/amcc/MihalecTY21,Recoverability-Based Optimal Control for a Bipedal Walking Model With Foot Slip.,28,mismatch
+6,28856,https://dblp.org/rec/conf/amcc/MikhaylenkoZ20,Stealthy Local Covert Attacks on Cyber-Physical Systems.,6,mismatch
+6,28862,https://dblp.org/rec/conf/amcc/MillerAS21,Mediating Ribosomal Competition by Splitting Pools.,6,mismatch
+28,28877,https://dblp.org/rec/conf/amcc/MinPM21,Accurate Reduced-Order Models for Heterogeneous Coherent Generators.,28,mismatch
+32,28901,https://dblp.org/rec/conf/amcc/MirzaeiLP20,Validation and Sensitivity Analysis of a Fractional Order Model of a Lithium Ion Battery via Impedance Spectra and Temporal Duty Cycles.,32,mismatch
+21,28916,https://dblp.org/rec/conf/amcc/MishraS21,"Parametric Iterative Learning Control: A Method for Adaptation of Feedforward Control, and Application to Gearshift Control.",21,mismatch
+35,28917,https://dblp.org/rec/conf/amcc/MishraSGLO20,A Geometric Controller for Fully-Actuated Robotic Capture of a Tumbling Target.,35,mismatch
+45,28935,https://dblp.org/rec/conf/amcc/MitraiSD21,A sparse H∞ controller synthesis perspective on the reconfiguration of brain networks.,45,mismatch
+6,28963,https://dblp.org/rec/conf/amcc/MoghadamM21,Robust Control of the Flywheel Inverted Pendulum System Considering Parameter Uncertainty.,6,mismatch
+21,28966,https://dblp.org/rec/conf/amcc/MohajerpoorC20,A Traffic Signal Control Strategy to Avoid Spillback on Short Links.,21,mismatch
+6,28989,https://dblp.org/rec/conf/amcc/MohseniB21,Retrospective Cost Adaptive Harmonic Disturbance Rejection Using Dereverberated Target Models.,6,mismatch
+6,28994,https://dblp.org/rec/conf/amcc/Mojica-NavaYU21,Robust Asynchronous and Network-Independent Cooperative Learning.,6,mismatch
+11,29002,https://dblp.org/rec/conf/amcc/MollFP20,Optimal Evasion Against Dual Pure Pursuit.,11,mismatch
+6,29005,https://dblp.org/rec/conf/amcc/MolloyN21,Smoothing-Averse Control: Covertness and Privacy from Smoothers.,6,mismatch
+6,29006,https://dblp.org/rec/conf/amcc/MolnarSOA21,Safety-Critical Control of Compartmental Epidemiological Models with Measurement Delays.,6,mismatch
+6,29007,https://dblp.org/rec/conf/amcc/MolybogSL21,No Spurious Solutions in Non-convex Matrix Sensing: Structure Compensates for Isometry.,6,mismatch
+6,29014,https://dblp.org/rec/conf/amcc/MonasteriosK21,Decentralised nonlinear MPC for grid-connected microgrids with preview information.,6,mismatch
+28,29063,https://dblp.org/rec/conf/amcc/MorenoST20,Bayesian Method for Fuel Mass Estimation of Short Pilot Injections based on its Misfire Probability.,28,mismatch
+28,29064,https://dblp.org/rec/conf/amcc/MorenoST21,Modular Design and Integration of In-Cycle Closed-Loop Combustion Controllers for a Wide-Range of Operating Conditions.,28,mismatch
+6,29117,https://dblp.org/rec/conf/amcc/MousaviBK21,Output Feedback Controller Design for a Mixed Traffic Flow System Moving in a Loop.,6,mismatch
+6,29124,https://dblp.org/rec/conf/amcc/MoussaFA20,Robust Optimal Scheduling of Combined Chemo- and Immunotherapy: Considerations on Chemotherapy Detrimental Effects.,6,mismatch
+28,29126,https://dblp.org/rec/conf/amcc/MovahediTFR21,Hysteresis Compensation in State-of-Charge Estimation with a Nonlinear Double-Capacitor Li-Ion Battery Model.,28,mismatch
+32,29140,https://dblp.org/rec/conf/amcc/MuYSS21,Improved Interval Reachability Bounds for Nonlinear Discrete-Time Systems using an Efficient One-Dimensional Partitioning Method.,32,mismatch
+6,29141,https://dblp.org/rec/conf/amcc/MubarakBN21,Stochastic vs. Deterministic Modeling for the Spread of COVID-19 in Small Networks.,6,mismatch
+6,29185,https://dblp.org/rec/conf/amcc/MukherjeeV21,On Distributed Model-Free Reinforcement Learning Control with Stability Guarantee.,6,mismatch
+32,29197,https://dblp.org/rec/conf/amcc/MunankarmiJDZ20,Quantification of Load Flexibility in Residential Buildings Using Home Energy Management Systems.,32,mismatch
+6,29210,https://dblp.org/rec/conf/amcc/MuraliHV20,Graceful Transitions between Periodic Walking Gaits of Fully Actuated Bipedal Robots.,6,mismatch
+6,29212,https://dblp.org/rec/conf/amcc/MuraliV21,Periodic behaviors and graceful transitions between them for bimodal systems: Example of a jumper on a trampoline.,6,mismatch
+32,29232,https://dblp.org/rec/conf/amcc/MuthirayanNK20,Improved Attention Models for Memory Augmented Neural Network Adaptive Controllers.,32,mismatch
+32,29242,https://dblp.org/rec/conf/amcc/MynuddinGJ20,Reinforcement Learning for Multi-Agent Systems with an Application to Distributed Predictive Cruise Control.,32,mismatch
+35,29264,https://dblp.org/rec/conf/amcc/NagelL20,Cascading Structure Linear Quadratic Tracking Control for Dual-stage Nanopositioning Systems.,35,mismatch
+21,29285,https://dblp.org/rec/conf/amcc/NajafiKASM21,Ultrasound Bubble Control for Blood Clot Deformation in a Vessel Connected to a Pulmonary Artery.,21,mismatch
+6,29296,https://dblp.org/rec/conf/amcc/Najson21,Spectral and Convex Uniform Exponential Stability Determination in a Class of Switched Linear Systems.,6,mismatch
+35,29304,https://dblp.org/rec/conf/amcc/Nakamura-Zimmerer20,A Causality-Free Neural Network Method for High-Dimensional Hamilton-Jacobi-Bellman Equations.,35,mismatch
+28,29305,https://dblp.org/rec/conf/amcc/Nakamura-Zimmerer21,QRnet: optimal regulator design with LOR-augmented neural networks.,28,mismatch
+6,29315,https://dblp.org/rec/conf/amcc/NamKPS20,Weighted Averaged Behavior of Synchronization among Heterogeneous Agents in a Sampled-data Setting.,6,mismatch
+6,29316,https://dblp.org/rec/conf/amcc/NandanooriSY20,Data-Driven Operator Theoretic Methods for Global Phase Space Learning.,6,mismatch
+33,29331,https://dblp.org/rec/conf/amcc/NaqviKBC20,Optimizing HVAC Operations in Multi-unit Buildings for Grid Demand Response.,33,mismatch
+6,29336,https://dblp.org/rec/conf/amcc/NarasingamK20,Koopman operator-based model identification and control of hydraulic fracture propagation.,6,mismatch
+6,29347,https://dblp.org/rec/conf/amcc/NarendraM20,Mutual Learning: Part II -Reinforcement Learning.,6,mismatch
+21,29356,https://dblp.org/rec/conf/amcc/NashPJ21,Robust Control Co-Design with Receding-Horizon MPC.,21,mismatch
+45,29415,https://dblp.org/rec/conf/amcc/NettoSKZ21,On analytical construction of observable functions in extended dynamic mode decomposition for nonlinear estimation and prediction.,45,mismatch
+22,29417,https://dblp.org/rec/conf/amcc/NevesA21,"A discrete LQR applied to a self-balancing reaction wheel unicycle: Modeling, construction and control.",22,mismatch
+21,29418,https://dblp.org/rec/conf/amcc/NevesTAO21,A new approach for quasi-LPV modeling and state-feedback control of nonlinear systems with application on a 5-DOF pendulum.,21,mismatch
+6,29429,https://dblp.org/rec/conf/amcc/NgoL21,Human-in-the-Loop Task-Space Coordination Control for Heterogeneous Robotic Systems with Delayed Network.,6,mismatch
+6,29447,https://dblp.org/rec/conf/amcc/NguyenKB21,Sampled-Data Output-Feedback Model Predictive Control of Nonlinear Plants Using Online Linear System Identification.,6,mismatch
+6,29491,https://dblp.org/rec/conf/amcc/Niemann21,Input-output implementation of the Youla architecture.,6,mismatch
+6,29506,https://dblp.org/rec/conf/amcc/NikiforovPG20,Adaptive Output Servocontroller for MIMO System with Input Delay.,6,mismatch
+6,29507,https://dblp.org/rec/conf/amcc/NikiforovPGP21,Adaptive Compensation of Unmatched Disturbances in MIMO LTI Plants with Input Delay.,6,mismatch
+6,29521,https://dblp.org/rec/conf/amcc/NilssonA20,Lyapunov-Like Conditions for Tight Exit Probability Bounds through Comparison Theorems for SDEs.,6,mismatch
+6,29523,https://dblp.org/rec/conf/amcc/NilssonC20,On Robustness of the Generalized Proportional Controller for Traffic Signal Control.,6,mismatch
+6,29555,https://dblp.org/rec/conf/amcc/NojavanzadehLSS20,Output and Regulated Output Synchronization of Heterogeneous Multi-agent Systems: A Scale-free Protocol Design using no Information about Communication Network and the Number of Agents.,6,mismatch
+45,29557,https://dblp.org/rec/conf/amcc/NonhoffM21,An online convex optimization algorithm for controlling linear systems with state and input constraints.,45,mismatch
+21,29582,https://dblp.org/rec/conf/amcc/NudehiKV20,Pyrheliometer Control Design for the Solar Energy Research Facility at Valparaiso University.,21,mismatch
+35,29604,https://dblp.org/rec/conf/amcc/NurkanovicMZFF020,Real-Time Nonlinear Model Predictive Control for Microgrid Operation.,35,mismatch
+45,29716,https://dblp.org/rec/conf/amcc/OliveiraBSL21,Regional polyquadratic stabilization of discrete-time LPV systems under magnitude and rate saturating actuators.,45,mismatch
+6,29723,https://dblp.org/rec/conf/amcc/OliveiraRKB21,Nash Equilibrium Seeking with Players Acting Through Heat PDE Dynamics.,6,mismatch
+6,29726,https://dblp.org/rec/conf/amcc/OliveiraSS21,Bilinear Dynamical Networks Under Malicious Attack: An Efficient Edge Protection Method.,6,mismatch
+28,29731,https://dblp.org/rec/conf/amcc/OlmezMMBSWM21,"A Data-Informed Approach for Analysis, Validation, and Identification of COVID-19 Models.",28,mismatch
+6,29796,https://dblp.org/rec/conf/amcc/OthmanNDC20,Variable Speed Limits Control in an Urban Road Network to Reduce Environmental Impact of Traffic.,6,mismatch
+32,29812,https://dblp.org/rec/conf/amcc/OuyangLT20,Fault Detection and Isolation for a Class of Uncertain Nonlinear Systems: A Switching Approach.,32,mismatch
+21,29832,https://dblp.org/rec/conf/amcc/OzkanM20,A Predictive Control Design with Speed Previewing Information for Vehicle Fuel Efficiency Improvement.,21,mismatch
+31,29833,https://dblp.org/rec/conf/amcc/OzkanM21,Personalized Adaptive Cruise Control and Impacts on Mixed Traffic.,31,mismatch
+6,29858,https://dblp.org/rec/conf/amcc/PakniyatT21,Steering the State of Linear Stochastic Systems: A Constrained Minimum Principle Formulation.,6,mismatch
+6,29859,https://dblp.org/rec/conf/amcc/Pakzad21,Delay-Margin Design Approach for Linear Time-Invariant Singular Fractional-Order Systems with Time Delay.,6,mismatch
+28,29883,https://dblp.org/rec/conf/amcc/PalmierDMLM21,Interacting Weighted Ensemble Kalman Filter applied to Underwater Terrain Aided Navigation.,28,mismatch
+6,29916,https://dblp.org/rec/conf/amcc/PandeyA20,On a Converse theorem for Finite-time Lyapunov Functions to Estimate Domains of Attraction.,6,mismatch
+6,29928,https://dblp.org/rec/conf/amcc/PannalaVMSS21,Electrochemical Battery State Estimation Under Parameter Uncertainty Caused by Aging Using Expansion Measurements.,6,mismatch
+6,29935,https://dblp.org/rec/conf/amcc/PantYAS21,Co-design of Control and Planning for Multi-rotor UAVs with Signal Temporal Logic Specifications.,6,mismatch
+28,29948,https://dblp.org/rec/conf/amcc/PapadimitriouAN20,Experimental Evaluation of an Explicit Model Predictive Controller for an Adhesion Vortex Actuated Climbing Robot.,28,mismatch
+28,29958,https://dblp.org/rec/conf/amcc/ParayilBK21,Joint Position and Beamforming Control via Alternating Nonlinear Least-Squares with a Hierarchical Gamma Prior.,28,mismatch
+21,29972,https://dblp.org/rec/conf/amcc/ParkGLS20,Homotopy Method for Finding the Global Solution of Post-contingency Optimal Power Flow.,21,mismatch
+28,29979,https://dblp.org/rec/conf/amcc/ParkM0L21,Diminishing Regret for Online Nonconvex Optimization.,28,mismatch
+6,30000,https://dblp.org/rec/conf/amcc/PashenkoGNS21,Performance Improvement of Adaptive Backstepping Output-Feedback Control for a Class of Nonlinear Plants with Unmatched Parametric Uncertainties.,6,mismatch
+6,30003,https://dblp.org/rec/conf/amcc/PasqualeV21,Tripartite and Sign Consensus for Clustering Balanced Social Networks.,6,mismatch
+28,30030,https://dblp.org/rec/conf/amcc/PathakGMD21,Three-Dimensional Dynamic Path Planning for Drone Delivery System using Enhanced Interfered Fluid Dynamical System Analogy.,28,mismatch
+45,30041,https://dblp.org/rec/conf/amcc/Pauli0BKA21,Training Robust Neural Networks Using Lipschitz Bounds.,45,mismatch
+21,30064,https://dblp.org/rec/conf/amcc/PedramSFT21,Rationally Inattentive Path-Planning via RRT.,21,mismatch
+6,30065,https://dblp.org/rec/conf/amcc/PedramT20,Closed-loop Parameter Identification of Linear Dynamical Systems through the Lens of Feedback Channel Coding Theory.,6,mismatch
+6,30145,https://dblp.org/rec/conf/amcc/PeschkeG21,Sequential Multi-Stage and Tube-based Robust MPC for Constrained Linear Systems with Multiplicative Uncertainty.,6,mismatch
+6,30167,https://dblp.org/rec/conf/amcc/PetrizzeKX021,Distinguishing Aerial Intruders from Trajectory Data: A Model-Based Hypothesis-Testing Approach.,6,mismatch
+6,30183,https://dblp.org/rec/conf/amcc/PhamDN21,Distributed two-time-scale methods over clustered networks.,6,mismatch
+28,30192,https://dblp.org/rec/conf/amcc/PhanNMPLK21,Regression Optimization for System-level Production Control.,28,mismatch
+12,30218,https://dblp.org/rec/conf/amcc/PigotSPSS20,Advantage of new ventilation method for cardiopulmonary resuscitation qualitatively captured by simple respiratory mechanics models.,12,mismatch
+6,30231,https://dblp.org/rec/conf/amcc/PintoAHC21,Optimal Minimax Mobile Sensor Scheduling Over a Network.,6,mismatch
+6,30235,https://dblp.org/rec/conf/amcc/PintoVSA21,Tracking Multiple Diffusing Particles Using Information Optimal Control.,6,mismatch
+32,30254,https://dblp.org/rec/conf/amcc/PlanakisKPK20,Nonlinear Model Predictive Control for the Transient Load Share Management of a Hybrid Diesel-Electric Marine Propulsion Plant.,32,mismatch
+6,30282,https://dblp.org/rec/conf/amcc/Poonawala21,Stability Analysis of Conewise Affine Dynamical Systems Using Conewise Linear Lyapunov Functions.,6,mismatch
+6,30312,https://dblp.org/rec/conf/amcc/PovedaK20,Fixed-Time Gradient-Based Extremum Seeking.,6,mismatch
+6,30314,https://dblp.org/rec/conf/amcc/PovedaT20,The Heavy-Ball ODE with Time-Varying Damping: Persistence of Excitation and Uniform Asymptotic Stability.,6,mismatch
+21,30361,https://dblp.org/rec/conf/amcc/ProchazkaS20,Integral Sliding Mode based Model Reference FTC of an Over-Actuated Hybrid UAV using Online Control Allocation.,21,mismatch
+32,30468,https://dblp.org/rec/conf/amcc/RadmaneshN0F20,Numerical Solver for LQR Problems for Large-Scale Inter-Connected Systems Using Ritz Method and Laguerre Functions.,32,mismatch
+35,30469,https://dblp.org/rec/conf/amcc/RadmaneshWCTP20,LIV-LAM: LiDAR and Visual Localization and Mapping.,35,mismatch
+28,30485,https://dblp.org/rec/conf/amcc/RaghuramanK21,Tube-based robust MPC with adjustable uncertainty sets using zonotopes.,28,mismatch
+45,30505,https://dblp.org/rec/conf/amcc/RahmanJS21,Driver Intent Prediction with Barrier Functions.,45,mismatch
+28,30515,https://dblp.org/rec/conf/amcc/RaischMMHS20,A Model-Based Cascaded Control Concept for the Bionic Motion Robot.,28,mismatch
+6,30519,https://dblp.org/rec/conf/amcc/RajJY20,Distributed Adaptive State Estimation and Tracking Scheme for Nonlinear Systems using Active Passive Sensor Networks.,6,mismatch
+28,30532,https://dblp.org/rec/conf/amcc/RajasekharP21,Deflection-based Attack Detection for Network Systems.,28,mismatch
+6,30555,https://dblp.org/rec/conf/amcc/RamanDBM20,Reinforcement Learning for Control of Building HVAC Systems.,6,mismatch
+35,30577,https://dblp.org/rec/conf/amcc/Ramirez-NeriaML20,Design of ADRC for Second-Order Mechanical Systems without Time-Derivatives in the Tracking Controller.,35,mismatch
+6,30608,https://dblp.org/rec/conf/amcc/RanjanV20,"For Matrix Recovery, Rank Restricted Isometry Property and Robust Uniform Boundedness Property Imply Rank Robust Null Space Property.",6,mismatch
+35,30623,https://dblp.org/rec/conf/amcc/RappPGLL20,Evaluating a hardware-in-the-loop system intended for testing ventricular-assist device control and sensing algorithms.,35,mismatch
+6,30639,https://dblp.org/rec/conf/amcc/RastgoftarG20,Resilient Physics-Based Traffic Congestion Control.,6,mismatch
+28,30684,https://dblp.org/rec/conf/amcc/ReedDSCV20,Optimal Exploration and Charging for an Autonomous Underwater Vehicle with Energy-Harvesting Kite.,28,mismatch
+35,30695,https://dblp.org/rec/conf/amcc/ReherKA20,An Inverse Dynamics Approach to Control Lyapunov Functions.,35,mismatch
+6,30697,https://dblp.org/rec/conf/amcc/RehmanG21,Observer-Based Decentralized Event-Triggered Neuro-Adaptive Controller for Complex Uncertain Affine Nonlinear Systems.,6,mismatch
+28,30727,https://dblp.org/rec/conf/amcc/RenZ021,LQR with Tracking: A Zeroth-order Approach and Its Global Convergence.,28,mismatch
+28,30740,https://dblp.org/rec/conf/amcc/RevayWM21,A Convex Parameterization of Robust Recurrent Neural Networks.,28,mismatch
+6,30744,https://dblp.org/rec/conf/amcc/ReyhaniMFP20,Finite-time stabilization of Chameleon hidden hyperchaotic flows.,6,mismatch
+6,30753,https://dblp.org/rec/conf/amcc/RezaeiS21,Mode-Dependent Switched Distributed Stabilization of Partially Unknown Interconnected Multiagent Systems.,6,mismatch
+6,30768,https://dblp.org/rec/conf/amcc/Richards020,Dynamic anti-windup compensation for multi-agent systems with input saturation.,6,mismatch
+32,30773,https://dblp.org/rec/conf/amcc/RichertL20,Online distributed optimization and stabilization of regularization paths.,32,mismatch
+6,30822,https://dblp.org/rec/conf/amcc/RivaRFS21,Model-reference design of fixed-order controllers for Brake-By-Wire actuators.,6,mismatch
+31,30824,https://dblp.org/rec/conf/amcc/Rivera-OrtizDK20,Multi-Player Pursuer Coordination for Nonlinear Reach-Avoid Games in Arbitrary Dimensions via Coverage Control.,31,mismatch
+28,30835,https://dblp.org/rec/conf/amcc/RobertsNMSPA21,Deep Reinforcement Learning for Mitigating Cyber-Physical DER Voltage Unbalance Attacks.,28,mismatch
+6,30844,https://dblp.org/rec/conf/amcc/RodriguesAH20,Toward Tractable Global Solutions to Bayesian Point Estimation Problems via Sparse Sum-of-Squares Relaxations.,6,mismatch
+19,30958,https://dblp.org/rec/conf/amcc/RoyD20,Secure Traffic Networks in Smart Cities: Analysis and Design of Cyber-Attack Detection Algorithms.,19,mismatch
+28,30963,https://dblp.org/rec/conf/amcc/RoyMGSS021,Distributed Control for Flocking Maneuvers via Acceleration-Weighted Neighborhooding.,28,mismatch
+6,31018,https://dblp.org/rec/conf/amcc/SSSD21,Design and Analysis of a Novel Neural Adaptive Super-Twisting Sliding Mode Controller For Uncertain Systems.,6,mismatch
+6,31027,https://dblp.org/rec/conf/amcc/SabagGLH21,Regret-Optimal Controller for the Full-Information Problem.,6,mismatch
+28,31074,https://dblp.org/rec/conf/amcc/SahinZ21,Feedback-Based Dynamic Feature Selection for Constrained Continuous Data Acquisition.,28,mismatch
+6,31146,https://dblp.org/rec/conf/amcc/SamaniegoMGF21,Signaling-based neural networks for cellular computation.,6,mismatch
+6,31147,https://dblp.org/rec/conf/amcc/SamantaC21,On Stability Analysis of Power Grids with Synchronous Generators and Grid-Forming Converters under DC-side Current Limitation.,6,mismatch
+6,31155,https://dblp.org/rec/conf/amcc/SamuelsonMJ20,Transient growth of accelerated first-order methods.,6,mismatch
+28,31189,https://dblp.org/rec/conf/amcc/SankurA21,Extremum Seeking Over a Discrete Action Space.,28,mismatch
+6,31204,https://dblp.org/rec/conf/amcc/SantosB20,Decentralized Navigation Systems for Bearing-based Position and Velocity Estimation in Tiered Formations.,6,mismatch
+6,31223,https://dblp.org/rec/conf/amcc/SaravanaK21,Optimal Spacecraft Reorientation Trajectories Using Internal Point Masses.,6,mismatch
+45,31224,https://dblp.org/rec/conf/amcc/SardahiK21,Multi-objective and Multidisciplinary Optimal Design of a Flexible Wing with Multiple Ailerons.,45,mismatch
+45,31228,https://dblp.org/rec/conf/amcc/Sargolzaei21,A Secure Control Design for Networked Control System with Nonlinear Dynamics under False-Data-Injection Attacks.,45,mismatch
+6,31231,https://dblp.org/rec/conf/amcc/SaritasDS20,Passive Fault-tolerant Estimation under Strategic Adversarial Bias.,6,mismatch
+6,31268,https://dblp.org/rec/conf/amcc/SatchidanandanD21,A Mechanism for Selling Battery Storage Service in Day-Ahead Electricity Markets.,6,mismatch
+35,31281,https://dblp.org/rec/conf/amcc/SattarzadehDCS20,Addressing the Observability Problem in Batteries: Algorithm Design for Electrode-level Charge and Health Estimation.,35,mismatch
+6,31288,https://dblp.org/rec/conf/amcc/SavaresiFS21,Data-driven Mass Estimation in Continuously Variable Transmission Agricultural Tractors.,6,mismatch
+21,31388,https://dblp.org/rec/conf/amcc/SchwartzLH21,Analysis of a Cascaded MPC Structure for Vehicle Motion Control.,21,mismatch
+6,31424,https://dblp.org/rec/conf/amcc/SeilerC21,Construction of Periodic Counterexamples to the Discrete-Time Kalman Conjecture.,6,mismatch
+35,31433,https://dblp.org/rec/conf/amcc/SelfAK20,Online inverse reinforcement learning for systems with disturbances.,35,mismatch
+21,31465,https://dblp.org/rec/conf/amcc/SerajG20,Coordinated Control of UAVs for Human-Centered Active Sensing of Wildfires.,21,mismatch
+6,31493,https://dblp.org/rec/conf/amcc/ShabbirLAK20,Resilient Vector Consensus in Multi-Agent Networks Using Centerpoints.,6,mismatch
+28,31518,https://dblp.org/rec/conf/amcc/ShahriIG20,Design a High Efficiency and Low Ripple BLDC Motor Based on Multi-Objective Optimization Methods.,28,mismatch
+6,31532,https://dblp.org/rec/conf/amcc/ShakibSPPW21,Model Reduction by Moment Matching for Convergent Lur'e-Type Models.,6,mismatch
+6,31562,https://dblp.org/rec/conf/amcc/SharifHNH21,On the Equivalence of Extended and Oblique Projected Dynamics with Applications to Hybrid Integrator-Gain Systems.,6,mismatch
+45,31629,https://dblp.org/rec/conf/amcc/SheriffKKNN21,Improved Multiscale Multivariate Process Monitoring Methods.,45,mismatch
+6,31653,https://dblp.org/rec/conf/amcc/ShiS21,SQP-based Projection SPSA Algorithm for Stochastic Optimization with Inequality Constraints.,6,mismatch
+6,31662,https://dblp.org/rec/conf/amcc/ShiZLZ20,Distributed control of cooperative multi-target enclosing by ring-coupled unicycles.,6,mismatch
+33,31703,https://dblp.org/rec/conf/amcc/ShkorutaMR20,An experimental study on process modeling for selective laser melting.,33,mismatch
+28,31732,https://dblp.org/rec/conf/amcc/SiddhamshettyBK20,Design of online pumping schedules in naturally fractured shale formations to enhance total fracture surface area.,28,mismatch
+28,31773,https://dblp.org/rec/conf/amcc/SimleyFKS21,Wake Steering Wind Farm Control With Preview Wind Direction Information.,28,mismatch
+6,31786,https://dblp.org/rec/conf/amcc/SinAPPS20,Optimal assignment of collaborating agents in multi-body asset-guarding games.,6,mismatch
+21,31804,https://dblp.org/rec/conf/amcc/SinghS20,A Loewner Matrix Based Convex Optimization Approach to Finding Low Rank Mixed Time/Frequency Domain Interpolants.,21,mismatch
+45,31859,https://dblp.org/rec/conf/amcc/SitapureQSK20,Modeling and size control of CsPbBr3 perovskite quantum dots.,45,mismatch
+21,31867,https://dblp.org/rec/conf/amcc/SkomskiVWTDV21,Constrained Block Nonlinear Neural Dynamical Models.,21,mismatch
+6,31880,https://dblp.org/rec/conf/amcc/SmithS20,Noise suppression by stochastic delays in negatively autoregulated gene expression.,6,mismatch
+14,31982,https://dblp.org/rec/conf/amcc/SouzaLTC21,Emulation-based Dynamic Output-Feedback Control of Saturating Discrete-time LPV Systems.,14,mismatch
+28,31996,https://dblp.org/rec/conf/amcc/SperanzonSG20,On Sensor Network Localization Exploiting Topological Constraints.,28,mismatch
+28,32015,https://dblp.org/rec/conf/amcc/SridharAKD21,A Bifurcated Gain Adaptation Strategy in Sliding Mode Control with Chattering Alleviation for High Fidelity Operations.,28,mismatch
+32,32025,https://dblp.org/rec/conf/amcc/SrinivasanBN20,"State Estimation for Non-linear Fully-implicit, Index-1 Differential Algebraic Equation Systems.",32,mismatch
+32,32040,https://dblp.org/rec/conf/amcc/StacyGSS20,Investigating the Effects of Mechanical Damage on Electrical Response of Li-Ion Pouch Cells.,32,mismatch
+28,32055,https://dblp.org/rec/conf/amcc/StarkeSMGK21,Network based estimation of wind farm power and velocity data under changing wind direction.,28,mismatch
+6,32062,https://dblp.org/rec/conf/amcc/SteevesEKP21,Input Delay Compensation in Prescribed-Time of Boundary-Actuated Reaction-Diffusion PDEs.,6,mismatch
+28,32081,https://dblp.org/rec/conf/amcc/StockAAL21,Design and Implementation of a Wind Farm Controller using Aerodynamics Estimated from LIDAR Scans of Wind Turbine Blades.,28,mismatch
+32,32124,https://dblp.org/rec/conf/amcc/StumfollYB20,Neural Network Based Discrete Time Modified State Observer: Stability Analysis and Case Study.,32,mismatch
+28,32151,https://dblp.org/rec/conf/amcc/SuSYJ21,Online State of Charge Estimation of Lithium-ion Battery Cells: A Multiple Model Adaptive Estimation Approach.,28,mismatch
+6,32162,https://dblp.org/rec/conf/amcc/SubramaniamJY21,Robust adaptive fault estimation of damper faults in variable air volume boxes of a multizone building.,6,mismatch
+6,32242,https://dblp.org/rec/conf/amcc/SunRC21,Data-Driven Probabilistic Anomaly Detection for Electricity Market under Cyber Attacks.,6,mismatch
+6,32276,https://dblp.org/rec/conf/amcc/SundarrajanH21,Towards a Fair Comparison between the Nested and Simultaneous Control Co-Design Methods using an Active Suspension Case Study.,6,mismatch
+21,32277,https://dblp.org/rec/conf/amcc/SundstromKLPP20,A Computational Model for Decision-Making and Assembly Optimization in Manufacturing.,21,mismatch
+28,32290,https://dblp.org/rec/conf/amcc/SutharWJH20,Using Channel State Information for Estimating Moisture Content in Woodchips via 5 GHz Wi-Fi.,28,mismatch
+21,32308,https://dblp.org/rec/conf/amcc/SwansonFS21,Singular Solutions of the Optimal Pursuer Response to Fixed Control Strategies of a Dual-Evader Defensive Team.,21,mismatch
+6,32336,https://dblp.org/rec/conf/amcc/TadiparthiB20,Robust LQR for Uncertain Discrete-Time Systems using Polynomial Chaos.,6,mismatch
+21,32393,https://dblp.org/rec/conf/amcc/TambaHN21,On A Notion of Stochastic Zeroing Barrier Function.,21,mismatch
+6,32421,https://dblp.org/rec/conf/amcc/TanXM0Y21,Optimal Input Design for Active Fault Estimation of LPV Systems under Set-Theoretic Framework.,6,mismatch
+21,32449,https://dblp.org/rec/conf/amcc/TangLKZ21,A Continuous Optimization Approach to Drift Counteraction Optimal Control.,21,mismatch
+32,32486,https://dblp.org/rec/conf/amcc/TasoujianDGF20,Real-Time Cubature Kalman Filter Parameter Estimation of Blood Pressure Response Characteristics Under Vasoactive Drugs Administration.,32,mismatch
+6,32487,https://dblp.org/rec/conf/amcc/TasoujianDGF21,Scaled Small-Gain Approach to Robust Control of LPV Systems with Uncertain Varying Delay.,6,mismatch
+45,32492,https://dblp.org/rec/conf/amcc/TauBRPG20,Increasing Efficiency of Grid Free Path Planning by Bounding the Search Region.,45,mismatch
+6,32625,https://dblp.org/rec/conf/amcc/TjellW21,Private Aggregation with Application to Distributed Optimization.,6,mismatch
+21,32732,https://dblp.org/rec/conf/amcc/TrumicSJF21,Adaptive Control of Soft Robots Based on an Enhanced 3D Augmented Rigid Robot Matching.,21,mismatch
+28,32733,https://dblp.org/rec/conf/amcc/Truong0K21,Selective Labeling in Learning with Expert Advice.,28,mismatch
+6,32743,https://dblp.org/rec/conf/amcc/Tseng21,"Realization, Internal Stability, and Controller Synthesis.",6,mismatch
+6,32744,https://dblp.org/rec/conf/amcc/TsengA20,Deployment Architectures for Cyber-Physical Control Systems.,6,mismatch
+45,32763,https://dblp.org/rec/conf/amcc/TuanPH21,Robust TS-Fuzzy output feedback controller synthesis for saturated vehicle System.,45,mismatch
+21,32779,https://dblp.org/rec/conf/amcc/TuranUWA21,On Robustness of the Normalized Subgradient Method with Randomly Corrupted Subgradients.,21,mismatch
+6,32795,https://dblp.org/rec/conf/amcc/TurnerR21,Constrained rigid body attitude stabilization: an anti-windup approach.,6,mismatch
+6,32840,https://dblp.org/rec/conf/amcc/UmsonstRS21,Sample-based anomaly detector tuning with finite sample guarantees.,6,mismatch
+6,32872,https://dblp.org/rec/conf/amcc/VaidyaH21,A Convex Approach to Stochastic Optimal Control Using Linear Operators.,6,mismatch
+6,32919,https://dblp.org/rec/conf/amcc/VarnaiD20,On Robustness Metrics for Learning STL Tasks.,6,mismatch
+21,32931,https://dblp.org/rec/conf/amcc/VasishtBHSAV21,Co-Design of Commercial Building HVAC using Bayesian Optimization.,21,mismatch
+28,32940,https://dblp.org/rec/conf/amcc/VazO20,Expanding Humanoid's Material-Handling Capabilities using Capture Point Walking.,28,mismatch
+28,32984,https://dblp.org/rec/conf/amcc/VerginisCD20,Adaptive Cooperative Manipulation with Rolling Contacts.,28,mismatch
+28,33019,https://dblp.org/rec/conf/amcc/VijayshankarSKS21,Deep Reinforcement Learning for Automatic Generation Control of Wind Farms.,28,mismatch
+45,33022,https://dblp.org/rec/conf/amcc/Villa-TamayoAR21,Tumor reduction using oncolytic viruses under an impulsive nonlinear estimation and predictive control scheme.,45,mismatch
+45,33023,https://dblp.org/rec/conf/amcc/Villa-TamayoLGR21,Glycemic Control Strategy based on an Impulsive MPC with Safety Layer Coupling for IOB Limitation.,45,mismatch
+28,33025,https://dblp.org/rec/conf/amcc/VillaniJLJ20,Analysis of free recall dynamics of an abstract working memory model.,28,mismatch
+6,33037,https://dblp.org/rec/conf/amcc/VisalakshiKMB21,Design of Positive Position Feedback Controllers for Collocated Systems.,6,mismatch
+32,33038,https://dblp.org/rec/conf/amcc/VishnoiNTCB20,"Asymmetric Cell Transmission Model-Based, Ramp-Connected Robust Traffic Density Estimation under Bounded Disturbances.",32,mismatch
+6,33072,https://dblp.org/rec/conf/amcc/VuZ21,Iterative optimal control synthesis for nonlinear switching systems.,6,mismatch
+6,33206,https://dblp.org/rec/conf/amcc/WangHCGM21,Optimal Control of a Soft CyberOctopus Arm.,6,mismatch
+6,33233,https://dblp.org/rec/conf/amcc/WangK20,Boundary Control of Coupled Hyperbolic PDEs for Two-dimensional Vibration Suppression of a Deep-sea Construction Vessel.,6,mismatch
+6,33236,https://dblp.org/rec/conf/amcc/WangKK21,Adaptive Regulation- Triggered Control of Hyperbolic PDEs by Batch Least-Squares.,6,mismatch
+28,33263,https://dblp.org/rec/conf/amcc/WangLC21,Optimal Parking Management of Connected Autonomous Vehicles.,28,mismatch
+6,33280,https://dblp.org/rec/conf/amcc/WangM20,Continuous-time Dynamic Realization for Nonlinear Stabilization via Control Contraction Metrics.,6,mismatch
+6,33287,https://dblp.org/rec/conf/amcc/WangMM21,SparseJSR: A Fast Algorithm to Compute Joint Spectral Radius via Sparse SOS Decompositions.,6,mismatch
+28,33292,https://dblp.org/rec/conf/amcc/WangNA21,Singularity-Free Decentralized Formation Tracking Control for Heterogeneous Underactuated Surface Vessels.,28,mismatch
+21,33296,https://dblp.org/rec/conf/amcc/WangOK21,Data-based simultaneous design of plant model and robust filter in disturbance observer.,21,mismatch
+35,33385,https://dblp.org/rec/conf/amcc/WangWTC20,Directional Compliance in Obstacle-Aided Navigation for Snake Robots.,35,mismatch
+6,33420,https://dblp.org/rec/conf/amcc/WangYPM21,Path Following by Formations of Agents with Collision Avoidance Guarantees using Distributed Model Predictive Control.,6,mismatch
+28,33468,https://dblp.org/rec/conf/amcc/Watson021,"Advancing Trajectory Optimization with Approximate Inference: Exploration, Covariance Control and Adaptive Risk.",28,mismatch
+6,33492,https://dblp.org/rec/conf/amcc/WeiN021,Scheduling of Urban Air Mobility Services with Limited Landing Capacity and Uncertain Travel Times.,6,mismatch
+6,33497,https://dblp.org/rec/conf/amcc/WeiS21a,Probabilistic Bounds for a Class of Filtering Algorithms in the Scalar Case.,6,mismatch
+6,33518,https://dblp.org/rec/conf/amcc/WelikalaC20,Distributed Non-convex Optimization of Multi-agent Systems Using Boosting Functions to Escape Local Optima.,6,mismatch
+6,33519,https://dblp.org/rec/conf/amcc/WelikalaC21,Event-Driven Receding Horizon Control for Distributed Estimation in Network Systems.,6,mismatch
+35,33561,https://dblp.org/rec/conf/amcc/WhitePU20,A Voltage Control Paradigm for Economic Brushless DC Motor Control.,35,mismatch
+28,33581,https://dblp.org/rec/conf/amcc/WiggertTCLSCT21,Identification of Cancer Cell Population Dynamics Leveraging the Effect of Pre-Treatment for Drug Schedule Design.,28,mismatch
+6,33601,https://dblp.org/rec/conf/amcc/WilsonSKD20,Investigating the Underlying Dynamical Structure of Supersonic Flows Using Effective Model Reduction.,6,mismatch
+28,33634,https://dblp.org/rec/conf/amcc/WongpiromsarnSF21,Minimum-Violation Planning for Autonomous Systems: Theoretical and Practical Considerations.,28,mismatch
+32,33656,https://dblp.org/rec/conf/amcc/WuB20,"Dual, Iterative H2-Conic Controller Synthesis.",32,mismatch
+6,33677,https://dblp.org/rec/conf/amcc/WuHYC20,Cooperative Transportation of Drones without Inter-Agent Communication.,6,mismatch
+21,33699,https://dblp.org/rec/conf/amcc/WuRLC21a,Improving Machine Learning Modeling of Nonlinear Processes Under Noisy Data Via Co-teaching Method.,21,mismatch
+35,33718,https://dblp.org/rec/conf/amcc/WuWM20,An Influence Model Approach to Failure Cascade Prediction in Large Scale Power Systems.,35,mismatch
+6,33758,https://dblp.org/rec/conf/amcc/XiaoBC21,High Order Control Lyapunov-Barrier Functions for Temporal Logic Specifications.,6,mismatch
+6,33760,https://dblp.org/rec/conf/amcc/XiaoC20,Decentralized Optimal Merging Control for Connected and Automated Vehicles with Optimal Dynamic Resequencing.,6,mismatch
+6,33768,https://dblp.org/rec/conf/amcc/XiaoKD21,Stability and Control of Biomolecular Circuits through Structure.,6,mismatch
+21,33784,https://dblp.org/rec/conf/amcc/XieJ20,Resilience of Dynamic Routing in the Face of Recurrent and Random Sensing Faults.,21,mismatch
+32,33822,https://dblp.org/rec/conf/amcc/XiongQLZ20,A Rule-Based Damping Control of MMR-Based Energy-Harvesting Vehicle Suspension.,32,mismatch
+6,33850,https://dblp.org/rec/conf/amcc/XuGS20,Noise analysis in biochemical complex formation from stochastically produced components.,6,mismatch
+6,34009,https://dblp.org/rec/conf/amcc/YangD021,A Framework for Predictive Control of Sampled-Data Systems Using Sporadic Model Approximation.,6,mismatch
+32,34029,https://dblp.org/rec/conf/amcc/YangJZW20,Learning from Having Learned: An Environment-adaptive Parking Space Detection Method.,32,mismatch
+35,34030,https://dblp.org/rec/conf/amcc/YangKFGW20,Uncertainty Quantification Using Generalized Polynomial Chaos for Online Simulations of Automotive Propulsion Systems.,35,mismatch
+28,34069,https://dblp.org/rec/conf/amcc/YangTZGZZF21,A Fault Detection Method based on the Deep Extended PCA - SVM in Industrial Processes.,28,mismatch
+6,34075,https://dblp.org/rec/conf/amcc/YangWMP21,Real-time Distributed MPC for Multiple Underwater Vehicles with Limited Communication Data-rates.,6,mismatch
+6,34102,https://dblp.org/rec/conf/amcc/Yao020,Optimal Real-time Scheduling of Human Attention for a Human and Multi-robot Collaboration System.,6,mismatch
+6,34187,https://dblp.org/rec/conf/amcc/YiWM21,Reduced-order observers for nonlinear systems via contraction analysis and convex optimization.,6,mismatch
+21,34255,https://dblp.org/rec/conf/amcc/YouM21,Saddle Flow Dynamics: Observable Certificates and Separable Regularization.,21,mismatch
+6,34274,https://dblp.org/rec/conf/amcc/Yousefian21,Bilevel Distributed Optimization in Directed Networks.,6,mismatch
+6,34296,https://dblp.org/rec/conf/amcc/YuD20,A fully distributed motion coordination strategy for multi-robot systems with local information.,6,mismatch
+6,34297,https://dblp.org/rec/conf/amcc/YuD20a,A fully distributed motion coordination strategy for multi-robot systems with local information.,6,mismatch
+6,34298,https://dblp.org/rec/conf/amcc/YuDC21,A generalized algorithm for continuous-time distributed optimization.,6,mismatch
+28,34319,https://dblp.org/rec/conf/amcc/YuNCL20,Learning to Control Neurons using Aggregated Measurements.,28,mismatch
+28,34323,https://dblp.org/rec/conf/amcc/YuP20,Two-Stage Stochastic Planning for Control of Building Thermal Energy Storage Portfolios with Transactive Controls.,28,mismatch
+28,34338,https://dblp.org/rec/conf/amcc/YuYX21,New Necessary and Sufficient Conditions for Decentralized H∞ Control of Discrete-time Interconnected Systems.,28,mismatch
+6,34397,https://dblp.org/rec/conf/amcc/ZahraBNW21,Predictive Maintenance with Neural Network Approach for UAV Propulsion Systems Monitoring.,6,mismatch
+6,34443,https://dblp.org/rec/conf/amcc/ZedanE20,An Event-Based Approach for Model-Based Control and Parameter Identification in Networked Distributed Processes.,6,mismatch
+6,34445,https://dblp.org/rec/conf/amcc/ZedanHE21,Enhancing Model-Based Networked Control of Uncertain Process Systems Through Error-Triggered Parameter Re-Identification.,6,mismatch
+6,34447,https://dblp.org/rec/conf/amcc/ZegersHSD20,Reputation-Based Event-Triggered Formation Control and Leader Tracking with Resilience to Byzantine Adversaries.,6,mismatch
+28,34494,https://dblp.org/rec/conf/amcc/ZengZS21,Safety-Critical Model Predictive Control with Discrete-Time Control Barrier Function.,28,mismatch
+6,34512,https://dblp.org/rec/conf/amcc/ZhangAHZ21,Unknown Input Observers for Discretized Systems with Application to Networked Systems Corrupted by Sparse Malicious Packet Drops.,6,mismatch
+6,34559,https://dblp.org/rec/conf/amcc/ZhangF20,On the Optimal Interdiction of Transportation Networks.,6,mismatch
+28,34561,https://dblp.org/rec/conf/amcc/ZhangFG20,VEst: An Efficient Solution to the Camera Velocity Estimation from Minimal Feature Points.,28,mismatch
+6,34596,https://dblp.org/rec/conf/amcc/ZhangL021,On the Regret Analysis of Online LQR Control with Predictions.,6,mismatch
+21,34606,https://dblp.org/rec/conf/amcc/ZhangL20a,Distributed Consensus-Based Boundary Observers for Freeway Traffic Estimation with Sensor Networks.,21,mismatch
+6,34639,https://dblp.org/rec/conf/amcc/ZhangO21,Stochastic Model Predictive Control Using Simplified Affine Disturbance Feedback for Chance-Constrained Systems.,6,mismatch
+6,34673,https://dblp.org/rec/conf/amcc/ZhangSS20,Semi-global state synchronization for multi-agent systems subject to actuator saturation and unknown nonuniform input delay.,6,mismatch
+28,34698,https://dblp.org/rec/conf/amcc/ZhangW20,Bidirectional Dynamic Reconfiguration of Discrete-Event Systems.,28,mismatch
+6,34699,https://dblp.org/rec/conf/amcc/ZhangW21,Reduced-order filter based output-feedback adaptive control for perturbed nonlinear systems.,6,mismatch
+6,34718,https://dblp.org/rec/conf/amcc/ZhangY0SW21,Fault Detection of A Class of Nonlinear Uncertain Parabolic PDE Systems.,6,mismatch
+35,34721,https://dblp.org/rec/conf/amcc/ZhangYS20,Similar Fault Isolation of Discrete-Time Nonlinear Uncertain Systems Using Smallest Residual Principle.,35,mismatch
+6,34724,https://dblp.org/rec/conf/amcc/ZhangYXLZ21,Secure perception-driven control of mobile robots using chaotic encryption.,6,mismatch
+6,34814,https://dblp.org/rec/conf/amcc/ZhaoZCG21,Continuous Finite-Time Active Disturbance Rejection Control With Application to DC Motor.,6,mismatch
+6,34819,https://dblp.org/rec/conf/amcc/Zheng021,Distributed Density Filtering for Large-Scale Systems Using Mean-Filed Models.,6,mismatch
+6,34820,https://dblp.org/rec/conf/amcc/Zheng021a,Field Estimation using Robotic Swarms through Bayesian Regression and Mean-Field Feedback.,6,mismatch
+28,34833,https://dblp.org/rec/conf/amcc/ZhengL21,Point-based Value Iteration for VAR-POMDPs.,28,mismatch
+28,34854,https://dblp.org/rec/conf/amcc/ZhengYPC21,Safe Learning-based Tracking Control for Quadrotors under Wind Disturbances.,28,mismatch
+32,34920,https://dblp.org/rec/conf/amcc/ZhouZBZ21,Substation-Level Grid Topology Optimization Using Bus Splitting.,32,mismatch
+6,34924,https://dblp.org/rec/conf/amcc/Zhu021,A Distributed Algorithm for Multi-Armed Bandit with Homogeneous Rewards over Directed Graphs.,6,mismatch
+6,34988,https://dblp.org/rec/conf/amcc/ZiemannS20,Parameter Privacy versus Control Performance: Fisher Information Regularized Control.,6,mismatch
+21,35012,https://dblp.org/rec/conf/amcc/ZorzenonMR21,Low Complexity Method for Simulation of Epidemics Based on Dijkstra's Algorithm.,21,mismatch
