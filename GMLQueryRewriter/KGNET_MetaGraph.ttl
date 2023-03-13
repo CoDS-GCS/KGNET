@@ -1,0 +1,23 @@
+@prefix kgnet: <http://www.kgnet.ai/> .
+@prefix dblp:  <https://dblp.org/rdf/schema/> .
+
+<kgnet:GML/GM_Model/DBLP_PV>
+        a                      <kgnet:types/GM_Model> ;
+        <kgnet:GMLMethod>      <kgnet:ML/Method/G-SIANT> ;
+        <kgnet:InfernceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+
+<kgnet:GML/Method/G-SIANT>
+        a       <kgnet:types/Method> .
+
+<dblp:publication>  <kgnet:GML/HasGMLTask>
+                <kgnet:NodeClassificationTask/DBLP_PV> .
+
+<kgnet:NodeClassificationTask/DBLP_PV>
+        a                       <kgnet:types/NodeClassifier> ;
+        <kgnet:GML/NodeLabel>   <dblp:venue> ;
+        <kgnet:GML/TargetNode>  <dblp:Publication> ;
+        <kgnet:term/uses>       <kgnet:GML/GM_Model/DBLP_PV> .
