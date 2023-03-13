@@ -3,12 +3,13 @@ import rdflib
 import gzip
 from rdflib.plugins.sparql.parser import parseQuery
 from rdflib.plugins.sparql import parser
-g = Graph()
+import GMLQueryRewriter.KG_Meta as KG_Meta
+# g = Graph()
 # with open (r"C:\Users\walee\Desktop\RDF\dblp.rdf.gz" , 'rb') as f:
 #   gzip_fd = gzip.GzipFile(fileobj=f)
 #   g.parse(gzip_fd.read())
 
-g.parse("sampleFile.rdf")
+# g.parse("sampleFile.rdf")
 # g.parse('D:/dataset/RDF/sparql.rdf')
 
 # for item in g.query(query):
@@ -54,8 +55,8 @@ The flow of of this module is as following:
     -> gen_queries ()
     -> filter_triples ()
     -> prep_gml_vars ()
-    -> const_gml_q ()
-    -> const_data_q ()
+    -> construct_gml_q ()
+    -> construct_data_q ()
 """
 
 
@@ -111,49 +112,47 @@ def extract (query):
         triples ['object'] =object_
         triples_list.append(triples)
     result['triples'] = triples_list
+    result ['limit'] = where_part['limitoffset']['limit'] if 'limitoffset' in where_part.keys() else None
     return result
      
 
 
-query_1 = "SELECT ?x WHERE { ?x a <http://example.org/Person> }"
+# query_1 = "SELECT ?x WHERE { ?x a <http://example.org/Person> }"
 
            
-query_2 = """select ?s ?p ?o
-where  {
- ?s ?p ?o.
-}
-"""
+# query_2 = """select ?s ?p ?o
+# where  {
+#  ?s ?p ?o.
+# }
+# """
 
-query_3 = """
-prefix dblp: <https://www.dblp.org/>
-prefix kgnet: <https://www.kgnet.com/>
-select ?title ?venue 
-where {
-?paper a dblp:Publication.
-?paper dblp:title ?title.
-?paper ?NodeClassifier ?venue.
-?NodeClassifier a kgnet:NodeClassifier.
-?NodeClassifier kgnet:classifierTarget dblp:paper.
-?NodeClassifier kgnet:classifierLabel dblp:venue.}
-"""      
-
-
-
-query_4 = """
-prefix dblp: <https://www.dblp.org/>
-prefix kgnet: <https://www.kgnet.com/>
-select ?title ?cite 
-where {
-?paper a dblp:Publication.
-?paper dblp:title ?title.
-?paper ?LinkPrediction  ?cite.
-?LinkPrediction a kgnet:LinkPrediction.
-?LinkPrediction kgnet:classifierTarget dblp:cite.
-?LinkPrediction kgnet:classifierLabel dblp:paper.}
-"""   
+# query_3 = """
+# prefix dblp: <https://www.dblp.org/>
+# prefix kgnet: <https://www.kgnet.com/>
+# select ?title ?venue 
+# where {
+# ?paper a dblp:Publication.
+# ?paper dblp:title ?title.
+# ?paper ?NodeClassifier ?venue.
+# ?NodeClassifier a kgnet:NodeClassifier.
+# ?NodeClassifier kgnet:classifierTarget dblp:paper.
+# ?NodeClassifier kgnet:classifierLabel dblp:venue.}
+# """      
 
 
-output = extract(query_3)
+
+# query_4 = """
+# prefix dblp: <https://www.dblp.org/>
+# prefix kgnet: <https://www.kgnet.com/>
+# select ?title ?cite 
+# where {
+# ?paper a dblp:Publication.
+# ?paper dblp:title ?title.
+# ?paper ?LinkPrediction  ?cite.
+# ?LinkPrediction a kgnet:LinkPrediction.
+# ?LinkPrediction kgnet:classifierTarget dblp:cite.
+# ?LinkPrediction kgnet:classifierLabel dblp:paper.}
+# """   
 
 # output =parseQuery(query_3)
 # print(output)
@@ -162,29 +161,11 @@ output = extract(query_3)
     to its nature in the SPARQL query. This function is used in rebuilding the query according to the 
     syntax of the query."""
 def set_syntax (var):
-    if isinstance(var,str) and var[:4].lower()=="http": # return with angular brackets <> if the var is a URI 
+    # if isinstance(var,str) and var[:4].lower()=="http": # return with angular brackets <> if the var is a URI 
+    if isinstance (var,str) and ('http' in var or ':' in var):
         return f'<{var}>'
-    return '?'+var if not isinstance(var,tuple) else f'<{var[0]}:{var[1]}>' # return with '?' apended to it if its a single term else return with prefix:postfix notation
+    return '?'+var if not isinstance(var,tuple) else f'{var[0]}:{var[1]}' # return with '?' apended to it if its a single term else return with prefix:postfix notation
 
-
-""" The const_gml_q () function takes dictionary of variables and returns the gml based query """
-def const_gml_q (dict_vars):
-    string_Q = f"""
-    SELECT {set_syntax(dict_vars['classifier']['subject'])}
-    WHERE
-    """
-    try :
-        string_Q+="{"
-        string_Q+=f"""
-        {set_syntax(dict_vars['classifier']['subject'])} {set_syntax(dict_vars['classifier']['predicate'])} {set_syntax(dict_vars['classifier']['object'])} .
-        {set_syntax(dict_vars['target']['subject'])} {set_syntax(dict_vars['target']['predicate'])} {set_syntax(dict_vars['target']['object'])} .
-        {set_syntax(dict_vars['label']['subject'])} {set_syntax(dict_vars['label']['predicate'])} {set_syntax(dict_vars['label']['object'])} .
-        """
-        string_Q +="}"
-    except:
-        print("GML specifications not complete")
-    
-    return string_Q
 
 """ The get_rdfType () function takes inputs a list of triples and a subject variable 
     and traverses through the triples to identiy the rdf type of the subject """
@@ -195,39 +176,81 @@ def get_rdfType (list_data_T,var):
             return set_syntax(t['object'])
 
 
+""" The construct_gml_q () function takes dictionary of variables required for the generation of GML query and returns the gml based query """
+def construct_gml_q (dict_vars,data_vars):
+    string_Q = f"""
+    #SELECT {set_syntax(dict_vars['classifier']['subject'])}
+    SELECT ?apiUrl
+    WHERE
+    """
+    try :
+        target_type = dict_vars['target']['object'] 
+        target_type = set_syntax(get_rdfType(data_vars, target_type.split(':')[1]))
+
+        string_Q+="{"
+        string_Q+=f"""
+        {set_syntax(dict_vars['classifier']['subject'])} {set_syntax(dict_vars['classifier']['predicate'])} {set_syntax(dict_vars['classifier']['object'])} .
+        {set_syntax(dict_vars['target']['subject'])} {set_syntax(dict_vars['target']['predicate'])} {target_type} .
+        {set_syntax(dict_vars['label']['subject'])} {set_syntax(dict_vars['label']['predicate'])} {set_syntax(dict_vars['label']['object'])} .
+        """
+        string_Q+=f"{set_syntax(dict_vars['label']['subject'])}"
+        string_Q+="""
+        <kgnet:term/uses> ?gmlModel .
+        ?gmlModel <kgnet:API_URL> ?apiUrl .
+        """
+        string_Q +="}"
+    except:
+        print("GML specifications are  incomplete in the query")
+    
+    return string_Q
+
+
 """The  prep_gml_vars () function takes input the gml dictionary and identifies the classification type,
     targets and labels from the query and returns a dictionary containing the aforementioned information 
     of the triples. """
 def prep_gml_vars(gml_dict):
-    lis_classTypes = ['nodeclassifier','linkprediction',]
-    lis_targetTypes = ['classifiertarget']
-    lis_labelTypes = ['classifierlabel']
+    lis_classTypes = ['nodeclassifier','linkprediction','kgnet:types/nodeclassifier']
+    lis_targetTypes = ['classifiertarget','kgnet:gml/targetnode']
+    lis_labelTypes = ['classifierlabel','kgnet:gml/nodelabel']
     dict_vars = {}
     for triple in gml_dict: # traverse the list and identify the label types
-        if isinstance(triple['object'],tuple) and triple['object'][1].lower() in lis_classTypes:
+
+        # if isinstance(triple['object'],tuple) and triple['object'][1].lower() in lis_classTypes:
+        if isinstance(triple['object'],rdflib.term.URIRef) and triple['object'].lower() in lis_classTypes:
             dict_vars['classifier']= triple#['object']      # if the triple is the classifier type
             continue
         
-        if isinstance(triple['predicate'],tuple) and triple ['predicate'][1].lower() in lis_targetTypes:
+        if isinstance(triple['predicate'],str) and triple['predicate'].lower() in lis_targetTypes:
             dict_vars['target'] = triple#['object']         # if the triple is the target type
             continue
         
-        if isinstance(triple['predicate'],tuple) and triple ['predicate'][1].lower() in lis_labelTypes:
+        if isinstance(triple['predicate'],str) and triple ['predicate'].lower() in lis_labelTypes:
             dict_vars['label'] = triple#['object']          # if the triple is the label 
             continue  
     return dict_vars
 
-def const_data_q(query,dict_gml_var,list_data_T):
+def construct_data_q(query,dict_gml_var,list_data_T):
     string_q = ""
     string_gml = ""
     target_label = dict_gml_var['label']['object'] if not isinstance(dict_gml_var['label']['object'], tuple) else dict_gml_var['label']['object'][1]
+    target_label = target_label.split(':')[1] if ':' in target_label else target_label
     target_label_mod = '_dic'
+    
     target_node =  dict_gml_var['target']['object'] if not isinstance(dict_gml_var['target']['object'], tuple) else dict_gml_var['target']['object'][1]
-    target_classifier =  dict_gml_var['classifier']['object'] if not isinstance(dict_gml_var['classifier']['object'], tuple) else dict_gml_var['classifier']['object'][1]
-    clf_fxn = {'nodeclassifier':'getNodeClass',
+    target_node = target_node.split(':')[1] if ':' in target_node else target_node
+    
+    target_classifier =  dict_gml_var['classifier']['object'] if not isinstance(dict_gml_var['classifier']['object'], (tuple,list)) else dict_gml_var['classifier']['object'][1]
+    target_classifier = target_classifier.split(':')[1] if ':' in target_classifier else target_classifier
+    # print('HERE')
+    # print(target_label.split(':')[1])
+    # print(target_node.split(':')[1])
+    # print(target_classifier.split(':')[1])
+    clf_fxn = {#'nodeclassifier':'getNodeClass',
+               'nodeclassifier':'getNodeClass_v2',
+               'types/nodeclassifier':'getNodeClass_v2',
+               'kgnet:types/NodeClassifier':'getNodeClass_v2'
                     }
-    
-    
+       
     bool_var_label = False
     if len(query['prefixes']) >0:
         for prefix,uri in query['prefixes'].items():
@@ -238,9 +261,9 @@ def const_data_q(query,dict_gml_var,list_data_T):
     if len(query['select'])>0:
         string_q+='SELECT'
         for item in query['select']:
-            if item.lower() == target_label:
+            if item.lower() in target_label:
                 target_label += target_label_mod
-                string_q+= f'\n sql:UDFS.getKeyValue({set_syntax(target_label)} , {set_syntax(target_node)}) as {set_syntax(item)} \n'
+                string_q+= f',\n sql:getKeyValue_v2({set_syntax(target_node)},{set_syntax(target_label)}) as {set_syntax(item)} \n'
                 continue
             s = f" ?{item}"
             string_q+=s
@@ -249,43 +272,47 @@ def const_data_q(query,dict_gml_var,list_data_T):
     for triple in list_data_T:
         string_t = ""
 
-        s = ""
-        p = ""
-        o = ""
-        subject = triple['subject']
-        predicate = triple['predicate']
-        object_ = triple['object']
+
+        s = triple['subject'] #if not isinstance(triple['subject'], tuple) else triple['subject'][1]
+        p = triple['predicate'] #if not isinstance(triple['predicate'], tuple) else triple['predicate'][1]
+        o = triple['object'] #if not isinstance(triple['object'], tuple) else triple['object'][1]
                    
-        s+= set_syntax(subject)
+        s = set_syntax(s)
+        p = set_syntax(p)
+        o = set_syntax(o)
 
-        p+= set_syntax(predicate)
-
-        if p.lower() == set_syntax(target_classifier.lower()):
+        if p.replace('?','').lower() in set_syntax(target_classifier).lower():
             target_type = get_rdfType(list_data_T, target_node)
             sub_query='{'
-            sub_query+=f'SELECT sql:UDFS.{clf_fxn[target_classifier.lower()]}($m,{target_type}) \n as {set_syntax(target_label)}'
+            sub_query+=f"SELECT sql:{clf_fxn[target_classifier.lower()]}('{dict_gml_var['$m']}','{target_type}') \n as {set_syntax(target_label)}"
             sub_query+=' WHERE {} '
             string_q+=sub_query
             continue                   
-        
-        o+=set_syntax(object_)
+        # s=set_syntax(s)
+        # p=set_syntax(p)
         string_t += f"{s} {p} {o} .\n"
         string_q +=string_t
     
-    string_q+="}"
-    
+    string_q+="}" # for SELECT 
+    string_q+="}" # for WHERE
+    string_q+= f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
     return string_q
     
 def filter_triples (query):
+    KGNET_LOOKUP = ['kgnet','<kgnet']
     data_triples = []
     gml_triples = []
     for t in query['triples']:
         values = t.values()
         # if bool_gml:
         flagT_gml= False
+        # print(t,'\n')
+        
         for v in values:
-            if isinstance(v,tuple) and v[0].lower()=="kgnet":
-                # print(v)
+
+            # if isinstance(v,tuple) and v[0].lower() in KGNET_LOOKUP:
+            if isinstance(v, str) and v.split(':')[0] in KGNET_LOOKUP:
+
                 gml_triples.append(t)
                 flagT_gml = True
                 break
@@ -317,18 +344,45 @@ def gen_queries(query,KEYWORD_KG = "kgnet"):
     data_triples,gml_triples = filter_triples(query)
 
     dict_gml_var = prep_gml_vars(gml_triples)
-    string_gml = const_gml_q(dict_gml_var)
     
-    string_q = const_data_q(query, dict_gml_var,data_triples)
+    string_gml += construct_gml_q(dict_gml_var,data_triples)
+    
+    dict_gml_var['$m'] = KG_Meta.kgnet_getModelURI(string_gml)
+        
+    string_q = construct_data_q(query, dict_gml_var,data_triples)
+    
     return (string_q,string_gml)
 
 
 
-        
-# print(gen_queries(output))
-output_2 = gen_queries(output)
-print("*"*20,"DATA QUERY","*"*20)
-print(output_2[0])
-print("*"*20,"GML QUERY","*"*20)
-print(output_2[1])
+def execute (query):
+    query_dict = extract(query)
+    data_query,gml_query = gen_queries (query_dict)
+    return data_query,gml_query
+# test_query = """ 
+# prefix dblp:<https://dblp.org/rdf/schema#>
+# prefix kgnet: <https://www.kgnet.ai/>
+# select ?title ?venue 
+# where {
+# ?paper a dblp:Publication.
+# ?paper dblp:title ?title.
+# ?paper <https://dblp.org/rdf/schema#publishedIn> ?o.
+
+
+# ?paper ?NodeClassifier ?venue.
+
+# ?NodeClassifier a <kgnet:types/NodeClassifier>.
+# ?NodeClassifier <kgnet:GML/TargetNode> <dblp:paper>.
+# ?NodeClassifier <kgnet:GML/NodeLabel> <dblp:venue>.}
+# limit 10
+#  """
+# print("*"*20,"INPUT QUERY","*"*20)
+# print(test_query)
+# query_dict = extract(test_query)        
+# # print(gen_queries(output))
+# output_2 = gen_queries(query_dict)
+# print("*"*20,"DATA QUERY","*"*20)
+# print(output_2[0])
+# print("*"*20,"GML QUERY","*"*20)
+# print(output_2[1])
 # output_3 = prep_gml_vars (output_2)

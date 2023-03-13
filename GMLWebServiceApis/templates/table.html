@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Query Results</title>
+    <style>
+         #container {
+        width: 800px;
+        margin: 50px auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+        body {
+            font-family: sans-serif;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            color: #444444;
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 0 auto;
+            width: 80%;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #dddddd;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Query Results</h1>
+            <table>
+                {{ html_table|safe }}
+            </table>
+    </div>
+</body>
+</html>
