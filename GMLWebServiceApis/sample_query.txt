@@ -1,0 +1,15 @@
+prefix dblp:<https://dblp.org/rdf/schema#>
+prefix kgnet: <https://www.kgnet.ai/>
+select ?title ?venue 
+where {
+?paper a dblp:Publication.
+?paper dblp:title ?title.
+?paper <https://dblp.org/rdf/schema#publishedIn> ?o.
+
+
+?paper ?NodeClassifier ?venue.
+
+?NodeClassifier a <kgnet:types/NodeClassifier>.
+?NodeClassifier <kgnet:GML/TargetNode> <dblp:paper>.
+?NodeClassifier <kgnet:GML/NodeLabel> <dblp:venue>.}
+limit 10
