@@ -15,24 +15,16 @@ class sparqlEndpoint:
         sparql.setReturnFormat(JSON)
         results = sparql.query().convert()
         # print(results)
-        lst_values=[]
-        df=pd.DataFrame()
+        res_val=[]
+        lst_columns=[]
         if len(results["results"]["bindings"])>0:
-            lst_columns=results["head"]["vars"]
-        #     print(lst_columns)
-            df=pd.DataFrame(columns=lst_columns)
-
+            lst_columns=results["results"]["bindings"][0].keys()
+            # print(lst_columns)
+            # df=pd.DataFrame(columns=lst_columns)
+            # print("df=",df)
             for result in results["results"]["bindings"]:
-                for col in lst_columns:
-                    if col not in result:
-                        lst_values.append(None)
-                    else:
-                        lst_values.append(result[col]["value"])    
-                zipped = zip(lst_columns, lst_values)
-                a_dictionary = dict(zipped)
                 lst_values=[]
-        #         print(a_dictionary)
-                df=df.append(a_dictionary,ignore_index=True)
-                # df = pd.concat([df,pd.Series(a_dictionary)],ignore_index=True,)
-
-        return df 
+                for col in lst_columns:
+                    lst_values.append(result[col]["value"])  
+                res_val.append(lst_values)
+        return pd.DataFrame(res_val, columns = lst_columns) 
