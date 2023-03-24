@@ -1,3 +1,5 @@
+NodeClassification :
+
 prefix dblp:<https://dblp.org/rdf/schema#>
 prefix kgnet: <https://www.kgnet.ai/>
 select ?title ?venue 
@@ -5,11 +7,27 @@ where {
 ?paper a dblp:Publication.
 ?paper dblp:title ?title.
 ?paper <https://dblp.org/rdf/schema#publishedIn> ?o.
-
+?paper <https://dblp.org/has_gnn_model> 1.
 
 ?paper ?NodeClassifier ?venue.
 
 ?NodeClassifier a <kgnet:types/NodeClassifier>.
 ?NodeClassifier <kgnet:GML/TargetNode> <dblp:paper>.
 ?NodeClassifier <kgnet:GML/NodeLabel> <dblp:venue>.}
+limit 10
+
+
+LinkPrediction :
+prefix dblp:<https://dblp.org/rdf/schema#>
+prefix kgnet: <https://www.kgnet.ai/>
+select ?author ?affiliation
+where {
+?author a dblp:Person.
+
+?author ?LinkPredictor ?affiliation.
+
+?LinkPredictor  a <kgnet:types/LinkPredictor>.
+?LinkPredictor  <kgnet:GML/SourceNode> <dblp:author>.
+?LinkPredictor  <kgnet:GML/DestinationNode> <dblp:affiliation>.
+?LinkPredictor <kgnet:GML/TopK-Links> 10}
 limit 10

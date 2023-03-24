@@ -1,4 +1,4 @@
-# from rdflib import Graph
+ # from rdflib import Graph
 import rdflib
 # import gzip
 from rdflib.plugins.sparql.parser import parseQuery
@@ -68,13 +68,20 @@ LINKPREDICTOR = 'linkpredictor'
 GRAPHCLASSIFIER = 'graphclassifier'
 MISC = 'MISC'
 
-lis_classTypes = ['nodeclassifier','linkprediction','kgnet:types/nodeclassifier',]
+lis_classTypes = ['nodeclassifier','linkprediction','kgnet:types/nodeclassifier','kgnet:types/linkpredictor']
 dict_classifTypes = {NODECLASSIFIER:['nodeclassifier','kgnet:types/nodeclassifier',],
                    LINKPREDICTOR:['linkprediction','linkpredictor','kgnet:types/linkpredictor'],
                    GRAPHCLASSIFIER:['graphclassifier']}
 
-lis_targetTypes = ['classifiertarget','kgnet:gml/targetnode']
-lis_labelTypes = ['classifierlabel','kgnet:gml/nodelabel']
+lis_targetTypes = ['classifiertarget','kgnet:gml/targetnode','sourcenode','kgnet:gml/sourcenode']
+lis_labelTypes = ['classifierlabel','kgnet:gml/nodelabel','targetnode','kgnet:gml/targetnode','sourcenode','kgnet:gml/destinationnode']
+
+clf_fxn = {#'nodeclassifier':'getNodeClass',
+            'nodeclassifier':'getNodeClass_v2',
+            'types/nodeclassifier':'getNodeClass_v2',
+            'kgnet:types/NodeClassifier':'getNodeClass_v2'
+                }
+
 
 """ The extract() function takes the raw SPARQL query and prases it using the function provided by rdf
     and returns a dictionary containing different modules of the SPAEQL query"""
@@ -144,6 +151,8 @@ def set_syntax (var):
     # if isinstance(var,str) and var[:4].lower()=="http": # return with angular brackets <> if the var is a URI 
     if isinstance (var,str) and ('http' in var or ':' in var):
         return f'<{var}>'
+    elif isinstance(var,rdflib.term.Literal):
+        return str(var)
     return '?'+var if not isinstance(var,tuple) else f'{var[0]}:{var[1]}' # return with '?' apended to it if its a single term else return with prefix:postfix notation
 
 
@@ -164,20 +173,31 @@ def construct_gml_q (dict_vars,data_vars):
     WHERE
     """
     try :
-        target_type = dict_vars['target']['object'] 
-        target_type = set_syntax(get_rdfType(data_vars, target_type.split(':')[1]))
+        target_type = dict_vars['target']['object']
+        target_type = set_syntax(get_rdfType(data_vars, target_type.split(':')[1]) if get_rdfType(data_vars, target_type.split(':')[1]) is not None else target_type)
+
 
         string_Q+="{"
-        string_Q+=f"""
-        {set_syntax(dict_vars['classifier']['subject'])} {set_syntax(dict_vars['classifier']['predicate'])} {set_syntax(dict_vars['classifier']['object'])} .
-        {set_syntax(dict_vars['target']['subject'])} {set_syntax(dict_vars['target']['predicate'])} {target_type} .
-        {set_syntax(dict_vars['label']['subject'])} {set_syntax(dict_vars['label']['predicate'])} {set_syntax(dict_vars['label']['object'])} .
-        """
-        string_Q+=f"{set_syntax(dict_vars['label']['subject'])}"
-        string_Q+="""
-        <kgnet:term/uses> ?gmlModel .
-        ?gmlModel <kgnet:API_URL> ?apiUrl .
-        """
+        for key in dict_vars.keys():
+            if len (dict_vars[key]) ==0:
+                continue
+            elif key=='target':
+                string_temp = f"{set_syntax(dict_vars[key]['subject'])} {set_syntax(dict_vars[key]['predicate'])} {target_type} .\n"
+                string_Q+=string_temp
+                continue
+
+            elif isinstance(dict_vars[key],list):
+                for list_triple in dict_vars[key]:
+                    string_temp=f"{set_syntax(list_triple['subject'])} {set_syntax(list_triple['predicate'])} {set_syntax(list_triple['object'])} .\n"
+                    string_Q+=string_temp
+                continue
+            
+            else:
+                string_temp = f"{set_syntax(dict_vars[key]['subject'])} {set_syntax(dict_vars[key]['predicate'])} {set_syntax(dict_vars[key]['object'])} .\n"
+                string_Q+=string_temp
+     
+        string_Q+=f"{set_syntax(dict_vars['classifier']['subject'])} <kgnet:term/uses> ?gmlModel .\n"
+        string_Q+="?gmlModel <kgnet:API_URL> ?apiUrl ."
         string_Q +="}"
     except:
         raise Exception("GML specifications are incomplete in the query")
@@ -189,20 +209,9 @@ def construct_gml_q (dict_vars,data_vars):
     targets and labels from the query and returns a dictionary containing the aforementioned information 
     of the triples. """
 def prep_gml_vars(gml_dict):
-    NODECLASSIFIER = 'nodeclassifier'
-    LINKPREDICTOR = 'linkpredictor'
-    GRAPHCLASSIFIER = 'graphclassifier'
-    MISC = 'MISC'
 
-    lis_classTypes = ['nodeclassifier','linkprediction','kgnet:types/nodeclassifier',]
-    dict_classifTypes = {NODECLASSIFIER:['nodeclassifier','kgnet:types/nodeclassifier',],
-                       LINKPREDICTOR:['linkprediction','linkpredictor','kgnet:types/linkpredictor'],
-                       GRAPHCLASSIFIER:['graphclassifier']}
-    
-    lis_targetTypes = ['classifiertarget','kgnet:gml/targetnode']
-    lis_labelTypes = ['classifierlabel','kgnet:gml/nodelabel']
     dict_vars = {}
-    dict_vars[MISC]=[]
+    # dict_vars[MISC]=[]
     """ Identify Classification Type """
     classification_type = None
     
@@ -210,19 +219,16 @@ def prep_gml_vars(gml_dict):
         classification_type = [key for key in dict_classifTypes if isinstance(triple['object'],rdflib.term.URIRef) \
                                and triple['object'].lower()  in dict_classifTypes.get(key, [])][0]
         if classification_type is not None:
+            dict_vars['classifier']= triple
             break
         
     if classification_type==NODECLASSIFIER:
-        for i,triple in enumerate(gml_dict):   
+        for triple in gml_dict:   
             if isinstance(triple['object'],rdflib.term.URIRef) and triple['object'].lower() in lis_classTypes:
-                dict_vars['classifier']= triple#['object'] 
+                # dict_vars['classifier']= triple#['object'] 
                 continue
-        
-            elif isinstance(triple['object'],rdflib.term.URIRef) and triple['object'].lower() in lis_classTypes:
-                dict_vars['classifier']= triple#['object']      # if the triple is the classifier type
-                continue
-            
-            elif isinstance(triple['predicate'],str) and triple['predicate'].lower() in lis_targetTypes:
+                    
+            if isinstance(triple['predicate'],str) and triple['predicate'].lower() in lis_targetTypes:
                 dict_vars['target'] = triple#['object']         # if the triple is the target type
                 continue
             
@@ -230,38 +236,59 @@ def prep_gml_vars(gml_dict):
                 dict_vars['label'] = triple#['object']          # if the triple is the label 
                 continue 
             else:
-                dict_vars[MISC].append({i:triple})
+                if MISC not in dict_vars.keys():
+                    dict_vars[MISC] = []
+                dict_vars[MISC].append(triple)
                 
     
     elif classification_type == LINKPREDICTOR:
-        raise NotImplementedError("Classification not yet supported")
+        for triple in gml_dict:
+            # print(triple)
+            if isinstance(triple['object'],rdflib.term.URIRef) and triple['object'].lower() in lis_classTypes:
+                # dict_vars['classifier']= triple#['object'] 
+                continue
+            
+            if isinstance(triple['predicate'],str) and triple['predicate'].lower() in lis_targetTypes:
+                dict_vars['target'] = triple#['object']         # if the triple is the target type
+                continue
+
+            elif isinstance(triple['predicate'],str) and triple ['predicate'].lower() in lis_labelTypes:
+                dict_vars['label'] = triple#['object']          # if the triple is the label 
+                continue 
+
+            else:
+                if MISC not in dict_vars.keys():
+                    dict_vars[MISC] = []
+                dict_vars[MISC].append(triple)
 
     elif classification_type == GRAPHCLASSIFIER:
         raise NotImplementedError("Classification not yet supported")
         
     return dict_vars
     
-
-def construct_data_q(query,dict_gml_var,list_data_T):
+def format_data_query(query,target_classifier,target_label,target_node,list_data_T,model_uri):
     string_q = ""
     string_gml = ""
-    target_label = dict_gml_var['label']['object'] if not isinstance(dict_gml_var['label']['object'], tuple) else dict_gml_var['label']['object'][1]
-    target_label = target_label.split(':')[1] if ':' in target_label else target_label
+    # target_label = dict_gml_var['label']['object'] if not isinstance(dict_gml_var['label']['object'], tuple) else dict_gml_var['label']['object'][1]
+    # target_label = target_label.split(':')[1] if ':' in target_label else target_label
     target_label_mod = '_dic'
+
     
-    target_node =  dict_gml_var['target']['object'] if not isinstance(dict_gml_var['target']['object'], tuple) else dict_gml_var['target']['object'][1]
+    # target_node =  dict_gml_var['target']['object'] if not isinstance(dict_gml_var['target']['object'], tuple) else dict_gml_var['target']['object'][1]
     target_node = target_node.split(':')[1] if ':' in target_node else target_node
     
-    target_classifier =  dict_gml_var['classifier']['object'] if not isinstance(dict_gml_var['classifier']['object'], (tuple,list)) else dict_gml_var['classifier']['object'][1]
-    target_classifier = target_classifier.split(':')[1] if ':' in target_classifier else target_classifier
+    # target_classifier =  dict_gml_var['classifier']['object'] if not isinstance(dict_gml_var['classifier']['object'], (tuple,list)) else dict_gml_var['classifier']['object'][1]
+    # target_classifier = target_classifier.split(':')[1] if ':' in target_classifier else target_classifier
 
     clf_fxn = {#'nodeclassifier':'getNodeClass',
                'nodeclassifier':'getNodeClass_v2',
                'types/nodeclassifier':'getNodeClass_v2',
-               'kgnet:types/NodeClassifier':'getNodeClass_v2'
+               'kgnet:types/NodeClassifier':'getNodeClass_v2',
+               'kgnet:types/LinkPredictor':'getLinkPred',
+               'kgnet:types/linkpredictor':'getLinkPred',
+               'linkpredictor':'getLinkPred'
                     }
        
-    bool_var_label = False
     if len(query['prefixes']) >0:
         for prefix,uri in query['prefixes'].items():
             s = f"PREFIX {prefix}: <{uri}>\n"
@@ -271,13 +298,13 @@ def construct_data_q(query,dict_gml_var,list_data_T):
     if len(query['select'])>0:
         string_q+='SELECT'
         for item in query['select']:
-            if item.lower() in target_label:
+            if item.lower() in target_label.lower():
                 target_label += target_label_mod
                 string_q+= f'\n sql:getKeyValue_v2({set_syntax(target_node)},{set_syntax(target_label)}) as {set_syntax(item)} \n'
                 continue
             s = f" ?{item},"
             string_q+=s
-    
+
     string_q+= "\n WHERE { \n"
     for triple in list_data_T:
         string_t = ""
@@ -292,9 +319,10 @@ def construct_data_q(query,dict_gml_var,list_data_T):
         o = set_syntax(o)
 
         if p.replace('?','').lower() in set_syntax(target_classifier).lower():
-            target_type = get_rdfType(list_data_T, target_node)
+            # target_type = get_rdfType(list_data_T, target_node)
+            target_type = get_rdfType(list_data_T, target_node) if get_rdfType(list_data_T, target_node) is not None else target_node
             sub_query='{'
-            sub_query+=f"SELECT sql:{clf_fxn[target_classifier.lower()]}('{dict_gml_var['$m']}','{target_type}') \n as {set_syntax(target_label)}"
+            sub_query+=f"SELECT sql:{clf_fxn[target_classifier.lower()]}('{model_uri}','{target_type}') \n as {set_syntax(target_label)}"
             sub_query+=' WHERE {} '
             string_q+=sub_query
             continue                   
@@ -308,13 +336,37 @@ def construct_data_q(query,dict_gml_var,list_data_T):
     string_q+= f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
     return string_q
     
+    
+def construct_data_q(query,dict_gml_var,list_data_T):
+    # string_q = ""
+    # string_gml = ""
+    target_label = dict_gml_var['label']['object'] if not isinstance(dict_gml_var['label']['object'], tuple) else dict_gml_var['label']['object'][1]
+    target_label = target_label.split(':')[1] if ':' in target_label else target_label
+    # target_label_mod = '_dic'
+    
+    target_node =  dict_gml_var['target']['object'] if not isinstance(dict_gml_var['target']['object'], tuple) else dict_gml_var['target']['object'][1]
+    #target_node = target_node.split(':')[1] if ':' in target_node else target_node
+    
+    target_classifier =  dict_gml_var['classifier']['object'] if not isinstance(dict_gml_var['classifier']['object'], (tuple,list)) else dict_gml_var['classifier']['object'][1]
+    target_classifier = target_classifier.split(':')[1] if ':' in target_classifier else target_classifier
+    target_classifier = target_classifier.split('/')[1] if '/' in target_classifier else target_classifier
+    
+    if target_classifier.lower() == NODECLASSIFIER.lower():
+        data_query = format_data_query(query, target_classifier, target_label, target_node, list_data_T, dict_gml_var['$m'])
+        return data_query
+    
+    elif target_classifier.lower() == LINKPREDICTOR.lower():
+        data_query = format_data_query(query, target_classifier, target_label, target_node, list_data_T, dict_gml_var['$m'])
+        return data_query
+    
+
+    
 def filter_triples (query):
     KGNET_LOOKUP = ['kgnet','<kgnet']
     data_triples = []
     gml_triples = []
     for t in query['triples']:
         values = t.values()
-        # if bool_gml:
         flagT_gml= False
         # print(t,'\n')
         
@@ -357,8 +409,13 @@ def gen_queries(query,KEYWORD_KG = "kgnet"):
     
     string_gml += construct_gml_q(dict_gml_var,data_triples)
     
-    dict_gml_var['$m'] = KG_Meta.kgnet_getModelURI(string_gml)
-        
+    modelURI = KG_Meta.kgnet_getModelURI(string_gml)
+    
+    """DEBUG"""
+    dict_gml_var['$m'] = modelURI if modelURI is not None else 'http://127.0.0.1:64646/all'
+    """ """    
+    
+    
     string_q = construct_data_q(query, dict_gml_var,data_triples)
     
     return (string_q,string_gml)
@@ -406,17 +463,17 @@ def execute (query):
 # limit 10
 #   """
 
-linkP_query="""
+LinkP_query="""
 prefix dblp:<https://dblp.org/rdf/schema#>
 prefix kgnet: <https://www.kgnet.ai/>
 select ?author ?affiliation
 where {
-?author a dblp:person.
+?author a dblp:Person.
 
 ?author ?LinkPredictor ?affiliation.
 
 ?LinkPredictor  a <kgnet:types/LinkPredictor>.
-?LinkPredictor  <kgnet:GML/SourceNode> <dblp:person>.
+?LinkPredictor  <kgnet:GML/SourceNode> <dblp:author>.
 ?LinkPredictor  <kgnet:GML/DestinationNode> <dblp:affiliation>.
 ?LinkPredictor <kgnet:GML/TopK-Links> 10}
 limit 10
@@ -425,7 +482,7 @@ limit 10
 NodeC_query = """
 prefix dblp:<https://dblp.org/rdf/schema#>
 prefix kgnet: <https://www.kgnet.ai/>
-select ?paper ?title ?venue 
+select ?title ?venue 
 where {
 ?paper a dblp:Publication.
 ?paper dblp:title ?title.
@@ -436,14 +493,14 @@ where {
 
 ?NodeClassifier a <kgnet:types/NodeClassifier>.
 ?NodeClassifier <kgnet:GML/TargetNode> <dblp:paper>.
-?NodeClassifier <kgnet:GML/NodeLabel> <dblp:venue>.}
+?NodeClassifier <kgnet:GML/NodeLabel> <dblp:venue>.
+
+}
 limit 10
 """
 # print("*"*20,"INPUT QUERY","*"*20)
 query_dict = extract(NodeC_query) 
-# for triple in query_dict['triples']:
-#     print(triple['subject'] , triple['predicate'], triple['object'],'\n')     
-# print(gen_queries(output))
+
 output_2 = gen_queries(query_dict)
 # print("*"*20,"DATA QUERY","*"*20)
 # print(output_2[0])
