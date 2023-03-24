@@ -12,6 +12,13 @@ import pandas as pd
 
 import os
 
+def mapVenues(filename,labels_path=r'./data/labelidx2labelname.csv'):
+    label_info = pd.read_csv(labels_path)
+    predictions = pd.read_csv(filename)#.iloc[:,:]
+    intersection = pd.merge(label_info,predictions,left_on='label idx',right_on = 'venue')
+    predictions['venue'] = intersection['label name']
+    predictions.to_csv(filename,index=False)
+
 def sparqlToCSV(query,filename):
     s_endpoint = se.sparqlEndpoint()
     df = s_endpoint.executeSparqlQuery(query)
@@ -21,6 +28,7 @@ def sparqlToCSV(query,filename):
 def csvToHTML(filename):
     df = pd.read_csv(filename)
     df = df.to_html()
+    df = df.replace('NaN','-')
     return df
 # filename = os.path.join('.','test_results.csv')
 # sparqlToCSV(query, filename)

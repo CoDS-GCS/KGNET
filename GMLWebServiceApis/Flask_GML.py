@@ -38,6 +38,12 @@ def get_query_results(query,filename):
     
     data_query = qr.execute(query)[0]
     gcsv.sparqlToCSV(data_query, filename)
+    try:
+        gcsv.mapVenues(filename)
+    except Exception as e:
+        print('*'*20,'ERROR','*'*20,'\n',e)
+        return
+
 
 app = Flask(__name__)
 
