@@ -4,10 +4,10 @@ import rdflib
 from rdflib.plugins.sparql.parser import parseQuery
 # from rdflib.plugins.sparql import parser
 """ Production """
-import GMLQueryRewriter.KG_Meta as KG_Meta
+# import GMLQueryRewriter.KG_Meta as KG_Meta
 
 """ DEBUG """
-# import KG_Meta as KG_Meta
+import KG_Meta as KG_Meta
 
 # g = Graph()
 # with open (r"C:\Users\walee\Desktop\RDF\dblp.rdf.gz" , 'rb') as f:
@@ -161,7 +161,7 @@ def set_syntax (var):
 def get_rdfType (list_data_T,var):
     rdf_type = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'.lower()
     for t in list_data_T:
-        if t['subject'].lower() == var.lower() and t['predicate'].lower() == rdf_type:
+        if str(t['subject']).lower() == var.lower() and str(t['predicate']).lower() == rdf_type:
             return set_syntax(t['object'])
 
 
@@ -174,8 +174,7 @@ def construct_gml_q (dict_vars,data_vars):
     """
     try :
         target_type = dict_vars['target']['object']
-        target_type = set_syntax(get_rdfType(data_vars, target_type.split(':')[1]) if get_rdfType(data_vars, target_type.split(':')[1]) is not None else target_type)
-
+        target_type = set_syntax(get_rdfType(data_vars, target_type.split(':')[1]) if (isinstance(target_type,str) and get_rdfType(data_vars, target_type.split(':')[1]) is not None) else target_type)
 
         string_Q+="{"
         for key in dict_vars.keys():
@@ -197,7 +196,8 @@ def construct_gml_q (dict_vars,data_vars):
                 string_Q+=string_temp
      
         string_Q+=f"{set_syntax(dict_vars['classifier']['subject'])} <kgnet:term/uses> ?gmlModel .\n"
-        string_Q+="?gmlModel <kgnet:API_URL> ?apiUrl ."
+        string_Q+="""?gmlModel <kgnet:GML_ID> ?mID .
+                     ?mID <kgnet:API_URL> ?apiUrl .   """
         string_Q +="}"
     except:
         raise Exception("GML specifications are incomplete in the query")
@@ -412,7 +412,7 @@ def gen_queries(query,KEYWORD_KG = "kgnet"):
     modelURI = KG_Meta.kgnet_getModelURI(string_gml)
     
     """DEBUG"""
-    dict_gml_var['$m'] = modelURI if modelURI is not None else 'http://127.0.0.1:64646/all'
+    dict_gml_var['$m'] = modelURI #if modelURI is not None else 'http://127.0.0.1:64646/all'
     """ """    
     
     
@@ -463,7 +463,7 @@ def execute (query):
 # limit 10
 #   """
 
-LinkP_query="""
+dblp_LP="""
 prefix dblp:<https://dblp.org/rdf/schema#>
 prefix kgnet: <https://www.kgnet.ai/>
 select ?author ?affiliation
@@ -474,12 +474,12 @@ where {
 
 ?LinkPredictor  a <kgnet:types/LinkPredictor>.
 ?LinkPredictor  <kgnet:GML/SourceNode> <dblp:author>.
-?LinkPredictor  <kgnet:GML/DestinationNode> <dblp:affiliation>.
-?LinkPredictor <kgnet:GML/TopK-Links> 10}
+?LinkPredictor  <kgnet:GML/DestinationNode> <dblp:Affiliation>.
+}
 limit 10
 """
 
-NodeC_query = """
+dblp_NC= """
 prefix dblp:<https://dblp.org/rdf/schema#>
 prefix kgnet: <https://www.kgnet.ai/>
 select ?title ?venue 
@@ -498,9 +498,35 @@ where {
 }
 limit 10
 """
-# print("*"*20,"INPUT QUERY","*"*20)
-query_dict = extract(NodeC_query) 
 
+ieeecis_NC = """
+prefix ieeecis:<https://ieee-cis-fraud-detection>
+select  ?trans ?is_fraud
+where
+{
+?trans <ieeecis:ProductCD> ?prod.
+?prod ?NodeClassifier ?is_fraud.
+?NodeClassifier a <kgnet:types/NodeClassifier>.
+?NodeClassifier <kgnet:GML/TargetNode> <ieeecis:Transaction>.
+?NodeClassifier <kgnet:GML/NodeLabel>  <ieeecis:fraud>.
+}
+"""
+mag_NC = """
+prefix mag:<http://mag.graph/>
+select  ?paper ?venue
+
+where
+{
+?paper mag:has_venue ?o.
+?paper ?NodeClassifier ?venue.
+?NodeClassifier a <kgnet:types/NodeClassifier>.
+?NodeClassifier <kgnet:GML/TargetNode> <mag:paper>.
+?NodeClassifier <kgnet:GML/NodeLabel> <mag:venue> .
+}
+"""
+
+# print("*"*20,"INPUT QUERY","*"*20)
+query_dict = extract(mag_NC) 
 output_2 = gen_queries(query_dict)
 # print("*"*20,"DATA QUERY","*"*20)
 # print(output_2[0])
