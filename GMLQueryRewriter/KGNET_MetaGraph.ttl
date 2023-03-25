@@ -1,7 +1,7 @@
 @prefix kgnet: <http://www.kgnet.ai/> .
 @prefix dblp:  <https://dblp.org/rdf/schema/> .
 @prefix mag: <http://ogb-mag.graph.org> .
-@prefix ieee_cis_fd: <https://ieee-cis-fraud-detection> .
+@prefix ieeecis: <https://ieee-cis-fraud-detection> .
 @prefix yago: <> .
 
 <kgnet:GML/GML_Task/DBLP_PV>
@@ -171,7 +171,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/DBLP_AF> .
 
         <kgnet:GML/GML_Model/ID/1111216>
         a     <kgnet:types/GML_Model> ; 
@@ -180,7 +180,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/DBLP_AF> .
        
 
 <kgnet:GML/Method/G-SAINT>
@@ -206,31 +206,46 @@
         a                       <kgnet:types/NodeClassifier> ;
         <kgnet:GML/NodeLabel>   <dblp:venue> ;
         <kgnet:GML/TargetNode>  <dblp:Publication> ;
-        <kgnet:term/uses>       <kgnet:GML/GML_Model/DBLP_PV> .
+        <kgnet:term/uses>       <kgnet:GML/GML_Task/DBLP_PV> ;
+        <kgnet:name>            'DBLP Paper Venue Classification';
+        <kgnet:description>     'This is a Node-Classification task that is used
+                                to predict the Venue of a given DBLP Paper.' .
         
 <kgnet:NodeClassificationTask/MAG_PV>
 	a			<kgnet:types/NodeClassifier> ;
 	<kgnet:GML/NodeLabel>	<mag:venue> ;
-	<kgnet:GML/TargetNode>	<mag:Publication> ;
-	<kgnet:term/uses>	<kgnet:GML/GML_Model/MAG_PV> .
-
+	<kgnet:GML/TargetNode>	<mag:paper> ;
+	<kgnet:term/uses>	<kgnet:GML/GML_Task/MAG_PV> ;
+        <kgnet:name>            'MAG Paper Venue Classification';
+        <kgnet:description>     'This is a Node-Classification task that is used
+                                to predict the Venue of a given MAG Paper.' .
 
 <kgnet:NodeClassificationTask/IEEE-CIS-FraudDetection>
 	a			<kgnet:types/NodeClassifier> ;
-	<kgnet:GML/NodeLabel>	<ieee_cis_fd:fraud> ;
-	<kgnet:GML/TargetNode>	<ieee_cis_fd:Transaction> ;
-	<kgnet:term/uses>	<kgnet:GML/GML_Model/CIS_FD> .
+	<kgnet:GML/NodeLabel>	<ieeecis:fraud> ;
+	<kgnet:GML/TargetNode>	<ieeecis:Transaction> ;
+	<kgnet:term/uses>	<kgnet:GML/GML_Task/CIS_FD> ;
+        <kgnet:name>            'IEEE-CIS-Fraud Detection';
+        <kgnet:description>     'This is a Node-Classification task that is used
+                                to predict fraudulent transactions.' .
+        
 
 <kgnet:LinkPredictor/YAGO-Connected-Airports>
 	a			        <kgnet:types/LinkPredictor> ;
 	<kgnet:GML/SourceNode>	        <yago:Flight> ;
 	<kgnet:GML/DestinationNode>	<yago:Airport> ;
-	<kgnet:term/uses>	        <kgnet:GML/GML_Model/YAGO_CA> .
+	<kgnet:term/uses>	        <kgnet:GML/GML_Task/YAGO_CA> ;
+        <kgnet:name>            'YAGO Connected Airports';
+        <kgnet:description>     'This is a Link-Prediction task that is used
+                                to predict connection between two Airports.' .
 
 <kgnet:LinkPredictor/DBLP_AF>
 	a			<kgnet:types/LinkPredictor> ;
-	<kgnet:GML/SourceNode>	<dblp:Author> ;
-	<kgnet:GML/TargetNode>	<dblp:Affiliation> ;
-	<kgnet:term/uses>	<kgnet:GML/GML_Model/DBLP_AF> .
+	<kgnet:GML/SourceNode>	<dblp:Person> ;
+	<kgnet:GML/DestinationNode>	<dblp:Affiliation> ;
+	<kgnet:term/uses>	<kgnet:GML/GML_Task/DBLP_AF> ;
+        <kgnet:name>            'DBLP Author Affiliation';
+        <kgnet:description>     'This is a Link Prediction task that is used
+                                to predict the link between an Author and a University.' .
 
 
