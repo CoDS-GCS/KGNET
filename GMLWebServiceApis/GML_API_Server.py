@@ -55,22 +55,22 @@ def DBLP_AF (page=PAGE,size=PAGE_SIZE):
     #TODO Page implementation
     PATH_CSV = os.path.join('.','data','DBLP_AF.csv')
     data = pd.read_csv(PATH_CSV)
-    dblp_pv_pred = data[['author','affiliation']]
-    return gen_keyVal(y_pred=dblp_pv_pred,key='author',value='affiliation')
+    dblp_af_pred = data[['author','affiliation']]
+    return gen_keyVal(y_pred=dblp_af_pred,key='author',value='affiliation')
 
 def MAG_PV (page=PAGE,size=PAGE_SIZE):
     """ For MAG Paper Venue prediction """
     PATH_CSV = os.path.join('.','data','mag_papers.csv')
     data = pd.read_csv(PATH_CSV)
-    dblp_pv_pred = data[['paper','y_pred']]
-    return gen_keyVal(y_pred=dblp_pv_pred,key='paper',value='y_pred')
+    mag_pv_pred = data[['paper','y_pred']]
+    return gen_keyVal(y_pred=mag_pv_pred,key='paper',value='y_pred')
 
 def IEEECIS (page=PAGE,size=PAGE_SIZE):
     """ For IEEE Fraud Transaction prediction """
-    PATH_CSV = os.path.join('.','data','CIS_Transactions.csv')
+    PATH_CSV = os.path.join('.','data','CIS_Transactions2.csv')
     data = pd.read_csv(PATH_CSV)
-    dblp_pv_pred = data[['Transaction','ypred']]
-    return gen_keyVal(y_pred=dblp_pv_pred,key='Transaction',value='ypred')
+    ieeecis_pred = data[['Transaction','ypred']]
+    return gen_keyVal(y_pred=ieeecis_pred,key='Transaction',value='ypred')
 
 def YAGO (page=PAGE,size=PAGE_SIZE):
     """ For IEEE Fraud Transaction prediction """
