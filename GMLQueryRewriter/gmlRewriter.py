@@ -4,10 +4,10 @@ import rdflib
 from rdflib.plugins.sparql.parser import parseQuery
 # from rdflib.plugins.sparql import parser
 """ Production """
-# import GMLQueryRewriter.KG_Meta as KG_Meta
+import GMLQueryRewriter.KG_Meta as KG_Meta
 
 """ DEBUG """
-import KG_Meta as KG_Meta
+# import KG_Meta as KG_Meta
 
 # g = Graph()
 # with open (r"C:\Users\walee\Desktop\RDF\dblp.rdf.gz" , 'rb') as f:
@@ -496,20 +496,21 @@ where {
 ?NodeClassifier <kgnet:GML/NodeLabel> <dblp:venue>.
 
 }
-limit 10
+limit 100
 """
 
 ieeecis_NC = """
-prefix ieeecis:<https://ieee-cis-fraud-detection>
-select  ?trans ?is_fraud
+prefix ieeecis:<https://ieee-cis-fraud-detection/>
+select  ?Transaction ?is_fraud
 where
 {
-?trans <ieeecis:ProductCD> ?prod.
+?Transaction ieeecis:ProductCD ?prod.
 ?prod ?NodeClassifier ?is_fraud.
 ?NodeClassifier a <kgnet:types/NodeClassifier>.
 ?NodeClassifier <kgnet:GML/TargetNode> <ieeecis:Transaction>.
-?NodeClassifier <kgnet:GML/NodeLabel>  <ieeecis:fraud>.
+?NodeClassifier <kgnet:GML/NodeLabel>  <ieeecis:is_fraud>.
 }
+limit 100
 """
 mag_NC = """
 prefix mag:<http://mag.graph/>
@@ -526,8 +527,8 @@ where
 """
 
 # print("*"*20,"INPUT QUERY","*"*20)
-query_dict = extract(mag_NC) 
-output_2 = gen_queries(query_dict)
+# query_dict = extract(mag_NC) 
+# output_2 = gen_queries(query_dict)
 # print("*"*20,"DATA QUERY","*"*20)
 # print(output_2[0])
 # print("*"*20,"GML QUERY","*"*20)

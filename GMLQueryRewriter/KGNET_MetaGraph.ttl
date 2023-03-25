@@ -61,7 +61,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/MAG_PV> .
 
         <kgnet:GML/GML_Model/ID/1111116>
         a     <kgnet:types/GML_Model> ;
@@ -70,7 +70,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/MAG_PV> .
 
 
         <kgnet:GML/GML_Model/ID/1111117>
@@ -80,7 +80,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/MAG_PV> .
 
         <kgnet:GML/GML_Model/ID/1111118>
         a     <kgnet:types/GML_Model> ;  
@@ -89,7 +89,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/MAG_PV> .
 
 
 
@@ -107,7 +107,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/IEEECIS> .
 
         <kgnet:GML/GML_Model/ID/1111210>
         a     <kgnet:types/GML_Model> ; 
@@ -116,7 +116,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/IEEECIS> .
 
         <kgnet:GML/GML_Model/ID/1111211>
         a     <kgnet:types/GML_Model> ; 
@@ -125,7 +125,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/IEEECIS> .
 
         <kgnet:GML/GML_Model/ID/1111212>
         a     <kgnet:types/GML_Model> ; 
@@ -134,7 +134,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/IEEECIS> .
 
 <kgnet:GML/GML_Task/YAGO_CA>
         a                      <kgnet:types/GML_Task>  ;
@@ -207,27 +207,24 @@
         <kgnet:GML/NodeLabel>   <dblp:venue> ;
         <kgnet:GML/TargetNode>  <dblp:Publication> ;
         <kgnet:term/uses>       <kgnet:GML/GML_Task/DBLP_PV> ;
-        <kgnet:name>            'DBLP Paper Venue Classification';
-        <kgnet:description>     'This is a Node-Classification task that is used
-                                to predict the Venue of a given DBLP Paper.' .
+        <kgnet:name>            "DBLP Paper Venue Classification";
+        <kgnet:description>     "This is a Node-Classification task that is used to predict the Venue of a given DBLP Paper." .
         
 <kgnet:NodeClassificationTask/MAG_PV>
 	a			<kgnet:types/NodeClassifier> ;
 	<kgnet:GML/NodeLabel>	<mag:venue> ;
 	<kgnet:GML/TargetNode>	<mag:paper> ;
 	<kgnet:term/uses>	<kgnet:GML/GML_Task/MAG_PV> ;
-        <kgnet:name>            'MAG Paper Venue Classification';
-        <kgnet:description>     'This is a Node-Classification task that is used
-                                to predict the Venue of a given MAG Paper.' .
+        <kgnet:name>            "MAG Paper Venue Classification";
+        <kgnet:description>     "This is a Node-Classification task that is used to predict the Venue of a given MAG Paper." .
 
 <kgnet:NodeClassificationTask/IEEE-CIS-FraudDetection>
 	a			<kgnet:types/NodeClassifier> ;
-	<kgnet:GML/NodeLabel>	<ieeecis:fraud> ;
+	<kgnet:GML/NodeLabel>	<ieeecis:is_fraud> ;
 	<kgnet:GML/TargetNode>	<ieeecis:Transaction> ;
 	<kgnet:term/uses>	<kgnet:GML/GML_Task/CIS_FD> ;
-        <kgnet:name>            'IEEE-CIS-Fraud Detection';
-        <kgnet:description>     'This is a Node-Classification task that is used
-                                to predict fraudulent transactions.' .
+        <kgnet:name>            "IEEE-CIS-Fraud Detection";
+        <kgnet:description>     "This is a Node-Classification task that is used to predict fraudulent transactions." .
         
 
 <kgnet:LinkPredictor/YAGO-Connected-Airports>
@@ -235,17 +232,15 @@
 	<kgnet:GML/SourceNode>	        <yago:Flight> ;
 	<kgnet:GML/DestinationNode>	<yago:Airport> ;
 	<kgnet:term/uses>	        <kgnet:GML/GML_Task/YAGO_CA> ;
-        <kgnet:name>            'YAGO Connected Airports';
-        <kgnet:description>     'This is a Link-Prediction task that is used
-                                to predict connection between two Airports.' .
+        <kgnet:name>            "YAGO Connected Airports";
+        <kgnet:description>     "This is a Link-Prediction task that is used to predict connection between two Airports." .
 
 <kgnet:LinkPredictor/DBLP_AF>
 	a			<kgnet:types/LinkPredictor> ;
 	<kgnet:GML/SourceNode>	<dblp:Person> ;
 	<kgnet:GML/DestinationNode>	<dblp:Affiliation> ;
 	<kgnet:term/uses>	<kgnet:GML/GML_Task/DBLP_AF> ;
-        <kgnet:name>            'DBLP Author Affiliation';
-        <kgnet:description>     'This is a Link Prediction task that is used
-                                to predict the link between an Author and a University.' .
+        <kgnet:name>            "DBLP Author Affiliation";
+        <kgnet:description>     "This is a Link Prediction task that is used to predict the link between an Author and a University." .
 
 
