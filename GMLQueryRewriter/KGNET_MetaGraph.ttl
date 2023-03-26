@@ -2,7 +2,7 @@
 @prefix dblp:  <https://dblp.org/rdf/schema/> .
 @prefix mag: <http://ogb-mag.graph.org> .
 @prefix ieeecis: <https://ieee-cis-fraud-detection> .
-@prefix yago: <> .
+@prefix yago3: <http://www.yago3-10/> .
 
 <kgnet:GML/GML_Task/DBLP_PV>
         a                      <kgnet:types/GML_Task> ;
@@ -148,7 +148,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/YAGO_CA> .
 
         <kgnet:GML/GML_Model/ID/1111214>
         a     <kgnet:types/GML_Model> ; 
@@ -157,7 +157,7 @@
         <kgnet:ModelAccuracy>  47 ;
         <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
         <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
-        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+        <kgnet:API_URL>     <http://127.0.0.1:64646/YAGO_CA> .
 
 <kgnet:GML/GML_Task/DBLP_AF>
         a                      <kgnet:types/GML_Task> ;
@@ -227,10 +227,10 @@
         <kgnet:description>     "This is a Node-Classification task that is used to predict fraudulent transactions." .
         
 
-<kgnet:LinkPredictor/YAGO-Connected-Airports>
+<kgnet:LinkPredictor/YAGO3-Connected-Airports>
 	a			        <kgnet:types/LinkPredictor> ;
-	<kgnet:GML/SourceNode>	        <yago:Flight> ;
-	<kgnet:GML/DestinationNode>	<yago:Airport> ;
+	<kgnet:GML/SourceNode>	        <yago3:airport> ;
+	<kgnet:GML/DestinationNode>	<yago3:airport> ;
 	<kgnet:term/uses>	        <kgnet:GML/GML_Task/YAGO_CA> ;
         <kgnet:name>            "YAGO Connected Airports";
         <kgnet:description>     "This is a Link-Prediction task that is used to predict connection between two Airports." .
