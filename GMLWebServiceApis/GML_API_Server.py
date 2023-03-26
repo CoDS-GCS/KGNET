@@ -77,7 +77,7 @@ def YAGO (page=PAGE,size=PAGE_SIZE):
     PATH_CSV = os.path.join('.','data','yago3-10_CA.csv')
     data = pd.read_csv(PATH_CSV)
     dblp_pv_pred = data[['Source_Node','Edge_type','Destination_Node']]
-    return gen_keyVal(y_pred=dblp_pv_pred,key='',value='')
+    return gen_keyVal(y_pred=dblp_pv_pred,key='Source_Node',value='Destination_Node')
 
 class GML_Server(BaseHTTPRequestHandler):
     
@@ -125,6 +125,9 @@ class GML_Server(BaseHTTPRequestHandler):
             
         elif endpoint == 'IEEECIS':
             y_pred = IEEECIS(page=page,size=size)
+            self._send_JSONresponse(y_pred)
+        elif endpoint == 'IEEECIS':
+            y_pred = YAGO(page=page,size=size)
             self._send_JSONresponse(y_pred)
 
 
