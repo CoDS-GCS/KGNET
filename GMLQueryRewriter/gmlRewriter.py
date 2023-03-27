@@ -463,21 +463,7 @@ def execute (query):
 # limit 10
 #   """
 
-dblp_LP="""
-prefix dblp:<https://dblp.org/rdf/schema#>
-prefix kgnet: <https://www.kgnet.ai/>
-select ?author ?affiliation
-where {
-?author a dblp:Person.
 
-?author ?LinkPredictor ?affiliation.
-
-?LinkPredictor  a <kgnet:types/LinkPredictor>.
-?LinkPredictor  <kgnet:GML/SourceNode> <dblp:author>.
-?LinkPredictor  <kgnet:GML/DestinationNode> <dblp:Affiliation>.
-}
-limit 10
-"""
 
 dblp_NC= """
 prefix dblp:<https://dblp.org/rdf/schema#>
@@ -524,11 +510,45 @@ where
 ?NodeClassifier <kgnet:GML/TargetNode> <mag:paper>.
 ?NodeClassifier <kgnet:GML/NodeLabel> <mag:venue> .
 }
+limit 100
 """
 
+dblp_LP="""
+prefix dblp:<https://dblp.org/rdf/schema#>
+prefix kgnet: <https://www.kgnet.ai/>
+select ?author ?affiliation
+where {
+?author a dblp:Person.
+
+?author ?LinkPredictor ?affiliation.
+
+?LinkPredictor  a <kgnet:types/LinkPredictor>.
+?LinkPredictor  <kgnet:GML/SourceNode> <dblp:author>.
+?LinkPredictor  <kgnet:GML/DestinationNode> <dblp:Affiliation>.
+}
+limit 10
+"""
+
+YAGO_LP = """
+prefix yago3: <http://www.yago3-10/>
+prefix kgnet: <https://www.kgnet.com/>
+select ?airport1 ?airport2
+where { 
+?airport1 yago3:isConnectedTo ?o.
+?airport1 ?LinkPredictor ?airport2.
+?LinkPredictor a <kgnet:types/LinkPredictor>.
+?LinkPredictor <kgnet:GML/SourceNode> <yago3:airport1>.
+?LinkPredictor <kgnet:GML/DestinationNode> <yago3:airport2>.
+?LinkPredictor <kgnet:GML/EdgeType> <yago3:isConnectedTo> .
+?LinkPredictor <kgnet:GML/TopK-Links> 10.}
+limit 10
+"""
+
+
+
 # print("*"*20,"INPUT QUERY","*"*20)
-# query_dict = extract(mag_NC) 
-# output_2 = gen_queries(query_dict)
+query_dict = extract(YAGO_LP) 
+output_2 = gen_queries(query_dict)
 # print("*"*20,"DATA QUERY","*"*20)
 # print(output_2[0])
 # print("*"*20,"GML QUERY","*"*20)

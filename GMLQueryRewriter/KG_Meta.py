@@ -25,19 +25,23 @@ class KgMeta():
 
     
 # kg = KgMeta()
-# query = """ PREFIX ieeecis: <https://ieee-cis-fraud-detection>
-# PREFIX mag: <http://ogb-mag.graph.org/>
+# query = """ 
+# PREFIX yago3: <http://www.yago3-10/>
+# PREFIX kgnet: <https://www.kgnet.com/>
 
 #    SELECT ?apiUrl
-   
 #    WHERE
-#    {?NodeClassifier <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <kgnet:types/NodeClassifier> .
-# ?NodeClassifier <kgnet:GML/TargetNode> <mag:paper> .
-# ?NodeClassifier <kgnet:GML/NodeLabel> <mag:venue> .
-# ?NodeClassifier <kgnet:term/uses> ?gmlModel .
+#    {
+# ?LinkPredictor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <kgnet:types/LinkPredictor> .
+# ?LinkPredictor <kgnet:GML/SourceNode> <yago3:airport1> .
+# ?LinkPredictor <kgnet:GML/DestinationNode> <yago3:airport2> .
+# ?LinkPredictor <kgnet:GML/EdgeType> <yago3:isConnectedTo> .
+# ?LinkPredictor <kgnet:GML/TopK-Links> 10 .
+# ?LinkPredictor <kgnet:term/uses> ?gmlModel .
 # ?gmlModel <kgnet:GML_ID> ?mID .
-# ?mID <kgnet:API_URL> ?apiUrl .   
-# }
+#                     ?mID <kgnet:API_URL> ?apiUrl .  
+#                     } 
+
 # """
    
 # print(kg.query(query))
