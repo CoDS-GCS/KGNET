@@ -1,0 +1,51 @@
+label idx,label name
+0,AAAI
+1,ACC
+2,Appl. Math. Comput.
+3,Autom.
+4,BMC Bioinform.
+5,Bioinform.
+6,CDC
+7,CVPR
+8,CoRR
+9,Commun. ACM
+10,Discret. Math.
+11,EMBC
+12,EUSIPCO
+13,Eur. J. Oper. Res.
+14,Expert Syst. Appl.
+15,GLOBECOM
+16,HICSS
+17,IACR Cryptol. ePrint Arch.
+18,ICASSP
+19,ICC
+20,ICIP
+21,ICRA
+22,IECON
+23,IEEE Access
+24,IEEE Trans. Autom. Control.
+25,IEEE Trans. Commun.
+26,IEEE Trans. Geosci. Remote. Sens.
+27,IEEE Trans. Ind. Electron.
+28,IEEE Trans. Inf. Theory
+29,IEEE Trans. Signal Process.
+30,IEEE Trans. Veh. Technol.
+31,IGARSS
+32,IJCAI
+33,IJCNN
+34,INTERSPEECH
+35,IROS
+36,ISCAS
+37,ISIT
+38,Inf. Sci.
+39,Lecture Notes in Computer Science
+40,Multim. Tools Appl.
+41,NeuroImage
+42,Neurocomputing
+43,PIMRC
+44,Remote. Sens.
+45,SMC
+46,Sensors
+47,Theor. Comput. Sci.
+48,WCNC
+49,WSC
