@@ -239,7 +239,7 @@
 
 <kgnet:LinkPredictor/DBLP_AF>
 	a			<kgnet:types/LinkPredictor> ;
-	<kgnet:GML/SourceNode>	<dblp:Person> ;
+	<kgnet:GML/SourceNode>	<dblp:author> ;
 	<kgnet:GML/DestinationNode>	<dblp:Affiliation> ;
 	<kgnet:term/uses>	<kgnet:GML/GML_Task/DBLP_AF> ;
         <kgnet:name>            "DBLP Author Affiliation";

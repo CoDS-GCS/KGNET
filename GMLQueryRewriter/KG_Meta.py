@@ -24,24 +24,19 @@ class KgMeta():
         return pd.DataFrame(results,columns=columns)
 
     
-# kg = KgMeta()
-# query = """ 
-# PREFIX yago3: <http://www.yago3-10/>
-# PREFIX kgnet: <https://www.kgnet.com/>
+kg = KgMeta()
+query = """ 
+    SELECT ?LinkPredictor
+    WHERE
+    {
+?LinkPredictor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <kgnet:types/LinkPredictor> .
+?LinkPredictor <kgnet:GML/SourceNode> <dblp:author> .
+?LinkPredictor <kgnet:GML/DestinationNode> <dblp:Affiliation> .
+?LinkPredictor <kgnet:term/uses> ?gmlModel .
+?gmlModel <kgnet:GML_ID> ?mID .
+?mID <kgnet:API_URL> ?apiUrl .   
+}
 
-#    SELECT ?apiUrl
-#    WHERE
-#    {
-# ?LinkPredictor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <kgnet:types/LinkPredictor> .
-# ?LinkPredictor <kgnet:GML/SourceNode> <yago3:airport1> .
-# ?LinkPredictor <kgnet:GML/DestinationNode> <yago3:airport2> .
-# ?LinkPredictor <kgnet:GML/EdgeType> <yago3:isConnectedTo> .
-# ?LinkPredictor <kgnet:GML/TopK-Links> 10 .
-# ?LinkPredictor <kgnet:term/uses> ?gmlModel .
-# ?gmlModel <kgnet:GML_ID> ?mID .
-#                     ?mID <kgnet:API_URL> ?apiUrl .  
-#                     } 
-
-# """
+"""
    
-# print(kg.query(query))
+print(kg.query(query))
