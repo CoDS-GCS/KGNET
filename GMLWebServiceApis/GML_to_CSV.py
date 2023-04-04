@@ -41,6 +41,7 @@ class sparqlEndpoint:
                 res_val.append(lst_values)
         return pd.DataFrame(res_val, columns = lst_columns) 
 
+<<<<<<< HEAD
 def mapLabels(predictions,label_idx,label_name,pred_col,labels_path=r'./data/labelidx2labelname.csv',col_type='int64'):
 
     label_info = pd.read_csv(labels_path)
@@ -54,6 +55,15 @@ def mapLabels(predictions,label_idx,label_name,pred_col,labels_path=r'./data/lab
     # predictions[pred_col] = intersection['label name']
     predictions[pred_col] = intersection[label_name]
     #predictions.to_csv(filename,index=False)
+=======
+def mapVenues(filename,labels_path=r'./data/labelidx2labelname.csv'):
+
+    label_info = pd.read_csv(labels_path)
+    predictions = pd.read_csv(filename)#.iloc[:,:]
+    intersection = pd.merge(label_info,predictions,left_on='label idx',right_on = 'venue')
+    predictions['venue'] = intersection['label name']
+    predictions.to_csv(filename,index=False)
+>>>>>>> origin
 
 def sparqlToCSV(query,filename):
     s_endpoint = sparqlEndpoint()
@@ -72,4 +82,8 @@ def csvToHTML(filename):
     df = df.replace('NaN','-')
     return df
 # filename = os.path.join('.','test_results.csv')
+<<<<<<< HEAD
 # sparqlToCSV(query, filename)
+=======
+# sparqlToCSV(query, filename)
+>>>>>>> origin

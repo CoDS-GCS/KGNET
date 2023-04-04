@@ -229,17 +229,26 @@
 
 <kgnet:LinkPredictor/YAGO3-Connected-Airports>
 	a			        <kgnet:types/LinkPredictor> ;
+<<<<<<< HEAD
 	<kgnet:GML/SourceNode>	        <yago3:airport1> ;
 	<kgnet:GML/DestinationNode>	<yago3:airport2> ;
         <kgnet:GML/EdgeType>            <yago3:isConnectedTo>;
         <kgnet:GML/TopK-Links>           10;
+=======
+	<kgnet:GML/SourceNode>	        <yago3:airport> ;
+	<kgnet:GML/DestinationNode>	<yago3:airport> ;
+>>>>>>> origin
 	<kgnet:term/uses>	        <kgnet:GML/GML_Task/YAGO_CA> ;
         <kgnet:name>            "YAGO Connected Airports";
         <kgnet:description>     "This is a Link-Prediction task that is used to predict connection between two Airports." .
 
 <kgnet:LinkPredictor/DBLP_AF>
 	a			<kgnet:types/LinkPredictor> ;
+<<<<<<< HEAD
 	<kgnet:GML/SourceNode>	<dblp:author> ;
+=======
+	<kgnet:GML/SourceNode>	<dblp:Person> ;
+>>>>>>> origin
 	<kgnet:GML/DestinationNode>	<dblp:Affiliation> ;
 	<kgnet:term/uses>	<kgnet:GML/GML_Task/DBLP_AF> ;
         <kgnet:name>            "DBLP Author Affiliation";

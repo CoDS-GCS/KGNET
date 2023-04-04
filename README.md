@@ -4,14 +4,7 @@
 
 
 <div style="text-align: justify">
-<p>This vision paper proposes KGNet, a graph machine learning (GML)
-enabled RDF engine. KGNet extends existing RDF engines with GML as a service to automate the training of GML models on KGs.
-In KGNet, we maintain from the metadata of trained models a transparent RDF graph associated with the target knowledge graph (KG) to enable SPARQL queries to use these models while querying the target KG. The development of KGNet poses research opportunities
-in various areas spanning GML pipeline automation, GML-Enabled SPARQL query optimization, and KG sampling for task-oriented training. The paper discusses the KGNet potential in supporting GML-enabled queries in real KGs of different application domains.
-KGNet automatically opts to train models based on a given budget for node classification, link prediction, and semantic entity similarity. Using KGNet KG sampling, we achieved up 62% memory reduction and 35% faster training, while achieving similar or better accuracy w.r.t using the full KG.</p></div>
-
-## Technical Report
-Our technical report is available [here](docs/KGNET_CIDR_2023_technicalReport.pdf)
+<p>This vision paper proposes KGNet, an on-demand graph machine learning (GML) as a service on top of RDF engines to support GML-enabled SPARQL queries. KGNet automates the training of GML models on a KG by identifying a task-specific subgraph. This helps reduce the task-irrelevant KG structure and properties for better scalability and accuracy. While training a GML model on KG, KGNet collects metadata of trained models in the form of an RDF graph called KGMeta, which is interlinked with the relevant subgraphs in KG. Finally, all trained models are accessible via a SPARQL-like query. We call it a GML-enabled query and refer to it as SPARQLML. KGNet supports SPARQLML on top of existing RDF engines as an interface for querying and inferencing over KGs using GML models. The development of KGNet poses research opportunities in several areas, including meta-sampling for identifying task-specific subgraphs, GML pipeline automation with computational constraints, such as limited time and memory budget, and SPARQLML query optimization. KGNet supports different GML tasks, such as node classification, link prediction, and semantic entity matching. We evaluated KGNet using two real KGs of different application domains. Compared to training on the entire KG, KGNet significantly reduced training time and memory usage while maintaining comparable or improved accuracy. The KGNet source-code1 is available for further study</p></div>
 
 ## Installation
 * Clone the `kgnet` repo 
@@ -31,7 +24,7 @@ conda activate kgnet
 </li>
 </ul>
 
-<b>Generating the sampled graph dataset:</b>
+<b>Generating the Meta-sampled graph dataset:</b>
 1. under dataSampling the node sampler and edge sampler methods are used to sample large datasets for node classification and link prediction respectively. the sampling methods take the sull graph as input and the traget node or target edge and generate the task sampled subgraph
 ```python
 # run node sampler 
@@ -98,8 +91,8 @@ python kgnet_data_transformer.py --KG DBLP --splittingEdge  https://dblp.org/rdf
         ?paper dblp:title ?title.
         ?paper ?NodeClassifier ?venue.
         ?NodeClassifier a kgnet:NodeClassifier.
-        ?NodeClassifier kgnet:classifierTarget dblp:paper.
-        ?NodeClassifier kgnet:classifierLabel dblp:venue.}"""   
+        ?NodeClassifier kgnet:TargetNode dblp:paper.
+        ?NodeClassifier kgnet:NodeLabel dblp:venue.}"""   
       
          python NodeClassifier.py --query gml_query
          ```
@@ -110,41 +103,26 @@ python kgnet_data_transformer.py --KG DBLP --splittingEdge  https://dblp.org/rdf
         delete {?NodeClassifier ?p ?o}
         where {
         ?NodeClassifier a kgnet:NodeClassifier.
-        ?NodeClassifier kgnet:classifierTarget dblp:paper.
+        ?NodeClassifier kgnet:classifierTarget dblp:publication.
         ?NodeClassifier kgnet:classifierLabel dblp:venue.}"""
       
         python InsertOperator.py --query gml_query
         ```
      - GML **Link Predictor** Query   
         ```python
-         gml_query="""prefix fb: <https://www.freebase.com/>
+         gml_query="""prefix dblp: <https://www.dblp.com/>
          prefix kgnet: <https://www.kgnet.com/>
-         select ?person ?profession
+         select ?person ?affiliation
          where { ?person a fb:person.
-         ?person ?LinkPredictor ?profession.
+         ?person ?LinkPredictor ?affiliation.
          ?LinkPredictor a kgnet:LinkPredictor.
-         ?LinkPredictor kgnet:SourceNode fb:person.
-         ?LinkPredictor kgnet:DestinationNode fb:Profession.
+         ?LinkPredictor kgnet:SourceNode dblp:person.
+         ?LinkPredictor kgnet:DestinationNode dblp:affiliation.
          ?LinkPredictor kgnet:TopK-Links 10.}"""  
        
          python LinkPredictor.py --query gml_query
          ```
-     - GML **Similar Entity** Query
-        ```python
-           gml_query="""prefix dblp: <https://www.dblp.org/>
-           prefix kgnet: <https://www.kgnet.com/>
-           select ?paper ?similarPaper
-           where { ?paper a dblp:publication.
-           ?paper dblp:title ?title.
-           ?paper ?Similar-Entity ?similarPaper.
-           ?Similar-Entity a kgnet:Similar-Entity.
-           ?Similar-Entity kgnet:TrainedFor dblp:paper.
-           ?Similar-Entity kgnet:GRL_Model kgnet:KGE/ComplEx.
-           ?Similar-Entity kgnet:Metric kgnet:CosineSim.}"""  
       
-           python EntitySimilarity.py --query gml_query
-         ```
-  
 ##  Using the Kgnet Web Interface 
 Kgnet provides predefined operators in form of python apis that allow seamless integration with a conventional data science pipeline.
 Checkout our [rep](https://github.com/hussien/KGNet-Interface) and [KGNET APIs](GMLWebServiceApis)
@@ -155,6 +133,7 @@ See the full list of supported GML-Operators [here](docs/kgnet_gml_operators.md)
 ## Citing Our Work
 If you find our work useful, please cite it in your research:
 
+"Abdallah, Hussein, and Essam Mansour. "Towards a GML-Enabled Knowledge Graph Platform." arXiv preprint arXiv:2303.02166 (2023)."
 ## Publicity
 This repository is part of our submission to CIDR-2023. We will make it available to the public research community upon acceptance. 
 

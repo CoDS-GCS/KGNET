@@ -463,7 +463,25 @@ def execute (query):
 # limit 10
 #   """
 
+<<<<<<< HEAD
 
+=======
+dblp_LP="""
+prefix dblp:<https://dblp.org/rdf/schema#>
+prefix kgnet: <https://www.kgnet.ai/>
+select ?author ?affiliation
+where {
+?author a dblp:Person.
+
+?author ?LinkPredictor ?affiliation.
+
+?LinkPredictor  a <kgnet:types/LinkPredictor>.
+?LinkPredictor  <kgnet:GML/SourceNode> <dblp:author>.
+?LinkPredictor  <kgnet:GML/DestinationNode> <dblp:Affiliation>.
+}
+limit 10
+"""
+>>>>>>> origin
 
 dblp_NC= """
 prefix dblp:<https://dblp.org/rdf/schema#>
@@ -510,6 +528,7 @@ where
 ?NodeClassifier <kgnet:GML/TargetNode> <mag:paper>.
 ?NodeClassifier <kgnet:GML/NodeLabel> <mag:venue> .
 }
+<<<<<<< HEAD
 limit 100
 """
 
@@ -569,6 +588,12 @@ limit 100
 
 # print("*"*20,"INPUT QUERY","*"*20)
 # query_dict = extract(double_nc) 
+=======
+"""
+
+# print("*"*20,"INPUT QUERY","*"*20)
+# query_dict = extract(mag_NC) 
+>>>>>>> origin
 # output_2 = gen_queries(query_dict)
 # print("*"*20,"DATA QUERY","*"*20)
 # print(output_2[0])

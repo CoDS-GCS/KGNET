@@ -53,6 +53,7 @@ def all_pred (page=PAGE,size=PAGE_SIZE):
 def DBLP_AF (page=PAGE,size=PAGE_SIZE):
     """ For DBLP Author Affiliation prediction """
     #TODO Page implementation
+<<<<<<< HEAD
     PATH_CSV = os.path.join('.','data','AuthorsPrimaryAffaliations_LP.csv')
     # PATH_LABELS = os.path.join('.','data','AuthorsPrimaryAffaliations_LP.csv')
     data = pd.read_csv(PATH_CSV)
@@ -63,6 +64,10 @@ def DBLP_AF (page=PAGE,size=PAGE_SIZE):
     # intersection = pd.merge(label_info,data,left_on='label_idx',right_on = 'author')
     # data['author']
 
+=======
+    PATH_CSV = os.path.join('.','data','DBLP_AF.csv')
+    data = pd.read_csv(PATH_CSV)
+>>>>>>> origin
     dblp_af_pred = data[['author','affiliation']]
     return gen_keyVal(y_pred=dblp_af_pred,key='author',value='affiliation')
 
@@ -85,7 +90,11 @@ def YAGO (page=PAGE,size=PAGE_SIZE):
     PATH_CSV = os.path.join('.','data','yago3-10_CA.csv')
     data = pd.read_csv(PATH_CSV)
     dblp_pv_pred = data[['Source_Node','Edge_type','Destination_Node']]
+<<<<<<< HEAD
     return gen_keyVal(y_pred=dblp_pv_pred,key='',value='')
+=======
+    return gen_keyVal(y_pred=dblp_pv_pred,key='Source_Node',value='Destination_Node')
+>>>>>>> origin
 
 class GML_Server(BaseHTTPRequestHandler):
     
@@ -134,6 +143,12 @@ class GML_Server(BaseHTTPRequestHandler):
         elif endpoint == 'IEEECIS':
             y_pred = IEEECIS(page=page,size=size)
             self._send_JSONresponse(y_pred)
+<<<<<<< HEAD
+=======
+        elif endpoint == 'IEEECIS':
+            y_pred = YAGO(page=page,size=size)
+            self._send_JSONresponse(y_pred)
+>>>>>>> origin
 
 
 if __name__ == "__main__":        
@@ -148,4 +163,8 @@ if __name__ == "__main__":
     webServer.server_close()
     print("Server stopped.")
 
+<<<<<<< HEAD
         
+=======
+        
+>>>>>>> origin
