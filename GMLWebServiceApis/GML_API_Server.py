@@ -12,7 +12,7 @@ import json
 import os
 
 PATH_CSV = os.path.join('.','data','DBLP_Paper_Venue_FM_Literals2Nodes_SY1900_EY2021_50Class_GA_0_GSAINT_50_run2_output.csv')
-HOSTNAME = '127.0.0.1'
+HOSTNAME = '0.0.0.0'
 PORT = 64646
 PAGE = 1
 PAGE_SIZE = 100
@@ -27,8 +27,10 @@ def gen_keyVal(y_pred,key,value):
 def single_pred (uri):
     """ Takes a single uri and searches its y_prediction from the provided CSV"""
     # data = pd.read_csv(PATH_CSV)
+    #print("single_pred")
     y_pred = data [data['ent name'] == uri][['y_pred','ent name']]
-    return gen_keyVal(y_pred)
+    #print("y_pred=",y_pred)
+    return gen_keyVal(y_pred=y_pred,key='ent name',value='y_pred')[uri]
 
 def multi_pred (list_uri,page=PAGE,size=PAGE_SIZE):
     """ Takes a list of uris and searches their y_predictions from the provided CSV.
@@ -44,57 +46,46 @@ def multi_pred (list_uri,page=PAGE,size=PAGE_SIZE):
 def all_pred (page=PAGE,size=PAGE_SIZE):
     """ Returns all the y_predictions from the csv. Page and size are optional parameters to 
         limit the size of returned items"""
-    # data = pd.read_csv(PATH_CSV)
+    PATH_CSV = os.path.join('.','data','DBLP_PV_GS.csv')
+    data = pd.read_csv(PATH_CSV)
     start = (page - 1) * size
     end = start + size
-    all_y_pred = data[['y_pred','ent name']][start:end]#.values
-    return gen_keyVal(y_pred=all_y_pred,key='ent name',value='y_pred')
+    all_y_pred = data[['y_pred','paper']][start:end]#.values
+    return gen_keyVal(y_pred=all_y_pred,key='paper',value='y_pred')
 
 def DBLP_AF (page=PAGE,size=PAGE_SIZE):
     """ For DBLP Author Affiliation prediction """
     #TODO Page implementation
-<<<<<<< HEAD
-    PATH_CSV = os.path.join('.','data','AuthorsPrimaryAffaliations_LP.csv')
-    # PATH_LABELS = os.path.join('.','data','AuthorsPrimaryAffaliations_LP.csv')
-    data = pd.read_csv(PATH_CSV)
-    # label_info = pd.read_csv(PATH_LABELS)
-    # label_info['label_idx'] = label_info['label_idx'].astype('str')
-    # data['author'] = data['author'].astype('str')
-    
-    # intersection = pd.merge(label_info,data,left_on='label_idx',right_on = 'author')
-    # data['author']
-
-=======
     PATH_CSV = os.path.join('.','data','DBLP_AF.csv')
     data = pd.read_csv(PATH_CSV)
->>>>>>> origin
-    dblp_af_pred = data[['author','affiliation']]
-    return gen_keyVal(y_pred=dblp_af_pred,key='author',value='affiliation')
+    data = data.fillna('-')
+    dblp_pv_pred = data[['author','affiliation']]
+    return gen_keyVal(y_pred=dblp_pv_pred,key='author',value='affiliation')
 
 def MAG_PV (page=PAGE,size=PAGE_SIZE):
     """ For MAG Paper Venue prediction """
-    PATH_CSV = os.path.join('.','data','mag_papers.csv')
+    PATH_CSV = os.path.join('.','data','mag_papers2.csv')
     data = pd.read_csv(PATH_CSV)
-    mag_pv_pred = data[['paper','y_pred']]
-    return gen_keyVal(y_pred=mag_pv_pred,key='paper',value='y_pred')
+    dblp_pv_pred = data[['paper','y_pred']]
+    return gen_keyVal(y_pred=dblp_pv_pred,key='paper',value='y_pred')
 
 def IEEECIS (page=PAGE,size=PAGE_SIZE):
     """ For IEEE Fraud Transaction prediction """
     PATH_CSV = os.path.join('.','data','CIS_Transactions2.csv')
     data = pd.read_csv(PATH_CSV)
-    ieeecis_pred = data[['Transaction','ypred']]
-    return gen_keyVal(y_pred=ieeecis_pred,key='Transaction',value='ypred')
+    start = (page - 1) * size
+    end = start + size    
+    dblp_pv_pred = data[['Transaction','ypred']][start:end]
+    dic=gen_keyVal(y_pred=dblp_pv_pred,key='Transaction',value='ypred')
+    print("dic_size=",len(dic))
+    return dic
 
 def YAGO (page=PAGE,size=PAGE_SIZE):
     """ For IEEE Fraud Transaction prediction """
     PATH_CSV = os.path.join('.','data','yago3-10_CA.csv')
     data = pd.read_csv(PATH_CSV)
     dblp_pv_pred = data[['Source_Node','Edge_type','Destination_Node']]
-<<<<<<< HEAD
-    return gen_keyVal(y_pred=dblp_pv_pred,key='',value='')
-=======
     return gen_keyVal(y_pred=dblp_pv_pred,key='Source_Node',value='Destination_Node')
->>>>>>> origin
 
 class GML_Server(BaseHTTPRequestHandler):
     
@@ -143,12 +134,9 @@ class GML_Server(BaseHTTPRequestHandler):
         elif endpoint == 'IEEECIS':
             y_pred = IEEECIS(page=page,size=size)
             self._send_JSONresponse(y_pred)
-<<<<<<< HEAD
-=======
-        elif endpoint == 'IEEECIS':
+        elif endpoint == 'YAGO_CA':
             y_pred = YAGO(page=page,size=size)
             self._send_JSONresponse(y_pred)
->>>>>>> origin
 
 
 if __name__ == "__main__":        
@@ -163,8 +151,4 @@ if __name__ == "__main__":
     webServer.server_close()
     print("Server stopped.")
 
-<<<<<<< HEAD
         
-=======
-        
->>>>>>> origin
