@@ -25,8 +25,6 @@ class KgMeta():
 
     
 # kg = KgMeta()
-<<<<<<< HEAD
-<<<<<<< HEAD
 # query = """ 
 #     SELECT ?LinkPredictor
 #     WHERE
@@ -39,9 +37,6 @@ class KgMeta():
 # ?mID <kgnet:API_URL> ?apiUrl .   
 # }
 
-=======
-=======
->>>>>>> main
 # query = """ PREFIX ieeecis: <https://ieee-cis-fraud-detection>
 # PREFIX mag: <http://ogb-mag.graph.org/>
 
@@ -55,10 +50,6 @@ class KgMeta():
 # ?gmlModel <kgnet:GML_ID> ?mID .
 # ?mID <kgnet:API_URL> ?apiUrl .   
 # }
-<<<<<<< HEAD
->>>>>>> origin
-=======
->>>>>>> main
-# """
+
    
 # print(kg.query(query))
