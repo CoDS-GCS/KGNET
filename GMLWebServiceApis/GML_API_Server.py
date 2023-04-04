@@ -53,8 +53,16 @@ def all_pred (page=PAGE,size=PAGE_SIZE):
 def DBLP_AF (page=PAGE,size=PAGE_SIZE):
     """ For DBLP Author Affiliation prediction """
     #TODO Page implementation
-    PATH_CSV = os.path.join('.','data','DBLP_AF.csv')
+    PATH_CSV = os.path.join('.','data','AuthorsPrimaryAffaliations_LP.csv')
+    # PATH_LABELS = os.path.join('.','data','AuthorsPrimaryAffaliations_LP.csv')
     data = pd.read_csv(PATH_CSV)
+    # label_info = pd.read_csv(PATH_LABELS)
+    # label_info['label_idx'] = label_info['label_idx'].astype('str')
+    # data['author'] = data['author'].astype('str')
+    
+    # intersection = pd.merge(label_info,data,left_on='label_idx',right_on = 'author')
+    # data['author']
+
     dblp_af_pred = data[['author','affiliation']]
     return gen_keyVal(y_pred=dblp_af_pred,key='author',value='affiliation')
 

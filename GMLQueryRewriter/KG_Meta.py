@@ -24,19 +24,19 @@ class KgMeta():
         return pd.DataFrame(results,columns=columns)
 
     
-kg = KgMeta()
-query = """ 
-    SELECT ?LinkPredictor
-    WHERE
-    {
-?LinkPredictor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <kgnet:types/LinkPredictor> .
-?LinkPredictor <kgnet:GML/SourceNode> <dblp:author> .
-?LinkPredictor <kgnet:GML/DestinationNode> <dblp:Affiliation> .
-?LinkPredictor <kgnet:term/uses> ?gmlModel .
-?gmlModel <kgnet:GML_ID> ?mID .
-?mID <kgnet:API_URL> ?apiUrl .   
-}
+# kg = KgMeta()
+# query = """ 
+#     SELECT ?LinkPredictor
+#     WHERE
+#     {
+# ?LinkPredictor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <kgnet:types/LinkPredictor> .
+# ?LinkPredictor <kgnet:GML/SourceNode> <dblp:author> .
+# ?LinkPredictor <kgnet:GML/DestinationNode> <dblp:Affiliation> .
+# ?LinkPredictor <kgnet:term/uses> ?gmlModel .
+# ?gmlModel <kgnet:GML_ID> ?mID .
+# ?mID <kgnet:API_URL> ?apiUrl .   
+# }
 
-"""
+# """
    
-print(kg.query(query))
+# print(kg.query(query))

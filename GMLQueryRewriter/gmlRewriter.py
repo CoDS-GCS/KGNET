@@ -544,11 +544,32 @@ where {
 limit 10
 """
 
+double_nc = """
+prefix dblp:<https://dblp.org/rdf/schema#>
+prefix kgnet: <https://www.kgnet.ai/>
+select ?title ?venue ?discipline
+where {
+?paper a dblp:Publication.
+?paper dblp:title ?title.
+?paper <https://dblp.org/rdf/schema#publishedIn> ?o.
+?paper <https://dblp.org/has_gnn_model> 1.
+?paper ?NodeClassifier ?venue.
+?NodeClassifier a <kgnet:types/NodeClassifier>.
+?NodeClassifier <kgnet:GML/TargetNode> <dblp:paper>.
+?NodeClassifier <kgnet:GML/NodeLabel> <dblp:venue>.
+?paper ?NodeClassifier ?discipline.
+?NodeClassifier_dic a <kgnet:types/NodeClassifier>.
+?NodeClassifier_dic <kgnet:GML/TargetNode> <dblp:paper>.
+?NodeClassifier_dic <kgnet:GML/NodeLabel> <dblp:discipline>.
+}
+limit 100
+
+"""
 
 
 # print("*"*20,"INPUT QUERY","*"*20)
-query_dict = extract(YAGO_LP) 
-output_2 = gen_queries(query_dict)
+# query_dict = extract(double_nc) 
+# output_2 = gen_queries(query_dict)
 # print("*"*20,"DATA QUERY","*"*20)
 # print(output_2[0])
 # print("*"*20,"GML QUERY","*"*20)
