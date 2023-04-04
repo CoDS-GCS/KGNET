@@ -464,8 +464,11 @@ def execute (query):
 #   """
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
+=======
+>>>>>>> main
 dblp_LP="""
 prefix dblp:<https://dblp.org/rdf/schema#>
 prefix kgnet: <https://www.kgnet.ai/>
@@ -481,7 +484,10 @@ where {
 }
 limit 10
 """
+<<<<<<< HEAD
 >>>>>>> origin
+=======
+>>>>>>> main
 
 dblp_NC= """
 prefix dblp:<https://dblp.org/rdf/schema#>
@@ -528,6 +534,7 @@ where
 ?NodeClassifier <kgnet:GML/TargetNode> <mag:paper>.
 ?NodeClassifier <kgnet:GML/NodeLabel> <mag:venue> .
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 limit 100
 """
@@ -589,11 +596,16 @@ limit 100
 # print("*"*20,"INPUT QUERY","*"*20)
 # query_dict = extract(double_nc) 
 =======
+=======
+>>>>>>> main
 """
 
 # print("*"*20,"INPUT QUERY","*"*20)
 # query_dict = extract(mag_NC) 
+<<<<<<< HEAD
 >>>>>>> origin
+=======
+>>>>>>> main
 # output_2 = gen_queries(query_dict)
 # print("*"*20,"DATA QUERY","*"*20)
 # print(output_2[0])
