@@ -524,8 +524,6 @@ where
 ?NodeClassifier <kgnet:GML/TargetNode> <mag:paper>.
 ?NodeClassifier <kgnet:GML/NodeLabel> <mag:venue> .
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
 limit 100
 """
 
