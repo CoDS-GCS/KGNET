@@ -1,4 +1,4 @@
-### KGNET Accepted at <a href="https://icde2023.ics.uci.edu/">ICDE-2023</a>
+### <a href="https://arxiv.org/abs/2303.02166"> KGNET</a> Accepted at <a href="https://icde2023.ics.uci.edu/papers-special-track/">ICDE-2023</a>
 # KGNET - A GML-Enabled RDF Engine
 <img alt="kgnet_architecture" src="docs/imgs/kgnet.png" width="500"/>
 
@@ -133,7 +133,7 @@ See the full list of supported GML-Operators [here](docs/kgnet_gml_operators.md)
 ## Citing Our Work
 If you find our work useful, please cite it in your research:
 
-"Abdallah, Hussein, and Essam Mansour. "Towards a GML-Enabled Knowledge Graph Platform." arXiv preprint arXiv:2303.02166 (2023)."
+"Abdallah, Hussein, and Essam Mansour. Towards a GML-Enabled Knowledge Graph Platform  arXiv preprint arXiv:2303.02166 (ICDE-2023)."
 ## Publicity
 This repository is part of our submission to CIDR-2023. We will make it available to the public research community upon acceptance. 
 
