@@ -10,11 +10,8 @@
 <a href="https://www.youtube.com/watch?v=DJaDhJ-OW-Q&ab_channel=hussienshahata" target="_blank"><img alt="SPARQL-ML Demo" src="docs/imgs/SPARQLML-Demo.png" width="300"/></a>
 <br/>
 <a href="https://colab.research.google.com/drive/1mBVNdAGYi7V6giMYCrYhz7oCvZpTvDyI?usp=sharing" target="_blank"> 
-<div>
   <img style="vertical-align:middle" src="https://img.icons8.com/?size=512&id=lOqoeP2Zy02f&format=png" width="40"/>
-  <span style="vertical-align:top" >SAPRQL-ML Demo Colab notebook.</span>
-</div>
-</a>
+  <span style="vertical-align:top" >SAPRQL-ML Demo Colab notebook.</span> </a>
 
 ## Installation
 * Clone the `kgnet` repo 
