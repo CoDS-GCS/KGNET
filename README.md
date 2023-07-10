@@ -8,6 +8,7 @@
 
 ## SPARQL-ML Demo Vedio
 <a href="https://www.youtube.com/watch?v=DJaDhJ-OW-Q&ab_channel=hussienshahata" target="_blank"><img alt="SPARQL-ML Demo" src="docs/imgs/SPARQLML-Demo.png" width="300"/></a>
+<a href="https://colab.research.google.com/drive/1mBVNdAGYi7V6giMYCrYhz7oCvZpTvDyI?usp=sharing" target="_blank"> <img src="https://img.icons8.com/?size=512&id=lOqoeP2Zy02f&format=png" width="50"/>SAPRQL-ML Demo Colab notebook</a>
 ## Installation
 * Clone the `kgnet` repo 
 * Create `kgnet` Conda environment (Python 3.8) and install pip requirements.
