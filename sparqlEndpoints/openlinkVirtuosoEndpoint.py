@@ -103,7 +103,6 @@ class openlinkVirtuosoEndpoint(sparqlEndpoint):
         finally:
             conn.close()   
         return df
-        
     def createVirtuosoProcedure(self,SQL,Parameters,Description):
         print('SQL=',SQL)
         # http://docs.openlinksw.com/virtuoso/execpythonscript/
@@ -124,7 +123,6 @@ class openlinkVirtuosoEndpoint(sparqlEndpoint):
             self.setVirtuosoProcedureExecuteGrant(udf_name,"dba")
             self.setVirtuosoProcedureExecuteGrant(udf_name,"SPARQL")
         return result
-
     def setVirtuosoProcedureExecuteGrant(self, procedureName,UserName):
         conn = pyodbc.connect(self.VirtuosoConn)
         SQL="""grant execute on DB.DBA."""+procedureName+""" to \""""+UserName+"""\" """

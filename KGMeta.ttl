@@ -1,0 +1,246 @@
+@prefix kgnet: <http://www.kgnet.ai/> .
+@prefix dblp:  <https://dblp.org/rdf/schema/> .
+@prefix mag: <http://ogb-mag.graph.org> .
+@prefix ieeecis: <https://ieee-cis-fraud-detection> .
+@prefix yago3: <http://www.yago3-10/> .
+
+<kgnet:GML/GML_Task/DBLP_PV>
+        a                      <kgnet:types/GML_Task> ;
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111111> ; 
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111112> ;
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111113> ; 
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111114> .
+
+        <kgnet:GML/GML_Model/ID/1111111> 
+        a     <kgnet:types/GML_Model> ;
+        <kgnet:GMLMethod>      <kgnet:GML/Method/G-SAINT> ; 
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+
+        <kgnet:GML/GML_Model/ID/1111112>
+        a     <kgnet:types/GML_Model> ;
+        <kgnet:GMLMethod>      <kgnet:GML/Method/RGCN> ;
+        <kgnet:InferenceTime>   1.5 ;
+        <kgnet:ModelAccuracy>  52 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+
+        <kgnet:GML/GML_Model/ID/1111113>
+        a     <kgnet:types/GML_Model> ;
+        <kgnet:GMLMethod>      <kgnet:GML/Method/ShadwoSAINT> ;
+        <kgnet:InferenceTime>   2 ;
+        <kgnet:ModelAccuracy>  55 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+
+        <kgnet:GML/GML_Model/ID/1111114>
+        a     <kgnet:types/GML_Model> ;
+        <kgnet:GMLMethod>      <kgnet:GML/Method/SeHGNN> ;
+        <kgnet:InferenceTime>   1.8 ;
+        <kgnet:ModelAccuracy>  49 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/all> .
+
+<kgnet:GML/GML_Task/MAG_PV>
+        a                      <kgnet:types/GML_Task>  ;
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111115> ; 
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111116> ;
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111117> ; 
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111118> .
+
+        <kgnet:GML/GML_Model/ID/1111115>
+        a     <kgnet:types/GML_Model> ;
+        <kgnet:GMLMethod>      <kgnet:GML/Method/G-SAINT> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/MAG_PV> .
+
+        <kgnet:GML/GML_Model/ID/1111116>
+        a     <kgnet:types/GML_Model> ;
+        <kgnet:GMLMethod>      <kgnet:GML/Method/ShadwoSAINT> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/MAG_PV> .
+
+
+        <kgnet:GML/GML_Model/ID/1111117>
+        a     <kgnet:types/GML_Model> ;
+        <kgnet:GMLMethod>      <kgnet:GML/Method/RGCN> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/MAG_PV> .
+
+        <kgnet:GML/GML_Model/ID/1111118>
+        a     <kgnet:types/GML_Model> ;  
+        <kgnet:GMLMethod>      <kgnet:GML/Method/SeHGNN> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/MAG_PV> .
+
+
+
+<kgnet:GML/GML_Task/CIS_FD>
+        a                      <kgnet:types/GML_Task>  ;
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111119> ; 
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111210> ;
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111211> ; 
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111212> .
+
+        <kgnet:GML/GML_Model/ID/1111119> 
+        a     <kgnet:types/GML_Model> ;  
+        <kgnet:GMLMethod>      <kgnet:GML/Method/G-SAINT> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/IEEECIS> .
+
+        <kgnet:GML/GML_Model/ID/1111210>
+        a     <kgnet:types/GML_Model> ; 
+        <kgnet:GMLMethod>      <kgnet:GML/Method/ShadwoSAINT> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/IEEECIS> .
+
+        <kgnet:GML/GML_Model/ID/1111211>
+        a     <kgnet:types/GML_Model> ; 
+        <kgnet:GMLMethod>      <kgnet:GML/Method/RGCN> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/IEEECIS> .
+
+        <kgnet:GML/GML_Model/ID/1111212>
+        a     <kgnet:types/GML_Model> ; 
+        <kgnet:GMLMethod>      <kgnet:GML/Method/SeHGNN> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/IEEECIS> .
+
+<kgnet:GML/GML_Task/YAGO_CA>
+        a                      <kgnet:types/GML_Task>  ;
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111213> ; 
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111214> .
+
+        <kgnet:GML/GML_Model/ID/1111213>
+        a     <kgnet:types/GML_Model> ; 
+        <kgnet:GMLMethod>      <kgnet:GML/Method/RGCN> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/YAGO_CA> .
+
+        <kgnet:GML/GML_Model/ID/1111214>
+        a     <kgnet:types/GML_Model> ; 
+        <kgnet:GMLMethod>      <kgnet:GML/Method/MorsE> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/YAGO_CA> .
+
+<kgnet:GML/GML_Task/DBLP_AF>
+        a                      <kgnet:types/GML_Task> ;
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111215> ; 
+        <kgnet:GML_ID> <kgnet:GML/GML_Model/ID/1111216> .
+
+        <kgnet:GML/GML_Model/ID/1111215>
+        a     <kgnet:types/GML_Model> ; 
+        <kgnet:GMLMethod>      <kgnet:GML/Method/RGCN> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/DBLP_AF> .
+
+        <kgnet:GML/GML_Model/ID/1111216>
+        a     <kgnet:types/GML_Model> ; 
+        <kgnet:GMLMethod>      <kgnet:GML/Method/MorsE> ;
+        <kgnet:InferenceTime>   1 ;
+        <kgnet:ModelAccuracy>  47 ;
+        <kgnet:Sampler>        <kgnet:GML/GNNSampler/RW> ;
+        <kgnet:TaskBudget>     <kgnet:Task/TaskBudget> ;
+        <kgnet:API_URL>     <http://127.0.0.1:64646/DBLP_AF> .
+       
+
+<kgnet:GML/Method/G-SAINT>
+        a       <kgnet:types/Method> .
+
+<kgnet:GML/Method/RGCN>
+        a       <kgnet:types/Method> .
+
+<kgnet:GML/Method/ShadwoSAINT>
+        a       <kgnet:types/Method> .
+
+<kgnet:GML/Method/SeHGNN>
+        a       <kgnet:types/Method> .
+
+<kgnet:GML/Method/MorsE>
+        a       <kgnet:types/Method> .
+
+
+<dblp:publication>  <kgnet:GML/HasGMLTask>
+                <kgnet:NodeClassificationTask/DBLP_PV> .
+
+<kgnet:NodeClassificationTask/DBLP_PV>
+        a                       <kgnet:types/NodeClassifier> ;
+        <kgnet:GML/NodeLabel>   <dblp:venue> ;
+        <kgnet:GML/TargetNode>  <dblp:Publication> ;
+        <kgnet:term/uses>       <kgnet:GML/GML_Task/DBLP_PV> ;
+        <kgnet:name>            "DBLP Paper Venue Classification";
+        <kgnet:description>     "This is a Node-Classification task that is used to predict the Venue of a given DBLP Paper." .
+        
+<kgnet:NodeClassificationTask/MAG_PV>
+	a			<kgnet:types/NodeClassifier> ;
+	<kgnet:GML/NodeLabel>	<mag:venue> ;
+	<kgnet:GML/TargetNode>	<mag:paper> ;
+	<kgnet:term/uses>	<kgnet:GML/GML_Task/MAG_PV> ;
+        <kgnet:name>            "MAG Paper Venue Classification";
+        <kgnet:description>     "This is a Node-Classification task that is used to predict the Venue of a given MAG Paper." .
+
+<kgnet:NodeClassificationTask/IEEE-CIS-FraudDetection>
+	a			<kgnet:types/NodeClassifier> ;
+	<kgnet:GML/NodeLabel>	<ieeecis:is_fraud> ;
+	<kgnet:GML/TargetNode>	<ieeecis:Transaction> ;
+	<kgnet:term/uses>	<kgnet:GML/GML_Task/CIS_FD> ;
+        <kgnet:name>            "IEEE-CIS-Fraud Detection";
+        <kgnet:description>     "This is a Node-Classification task that is used to predict fraudulent transactions." .
+        
+
+<kgnet:LinkPredictor/YAGO3-Connected-Airports>
+	a			        <kgnet:types/LinkPredictor> ;
+	<kgnet:GML/SourceNode>	        <yago3:airport> ;
+	<kgnet:GML/DestinationNode>	<yago3:airport> ;
+	<kgnet:term/uses>	        <kgnet:GML/GML_Task/YAGO_CA> ;
+        <kgnet:name>            "YAGO Connected Airports";
+        <kgnet:description>     "This is a Link-Prediction task that is used to predict connection between two Airports." .
+
+<kgnet:LinkPredictor/DBLP_AF>
+	a			<kgnet:types/LinkPredictor> ;
+	<kgnet:GML/SourceNode>	<dblp:Person> ;
+	<kgnet:GML/DestinationNode>	<dblp:Affiliation> ;
+	<kgnet:term/uses>	<kgnet:GML/GML_Task/DBLP_AF> ;
+        <kgnet:name>            "DBLP Author Affiliation";
+        <kgnet:description>     "This is a Link Prediction task that is used to predict the link between an Author and a University." .
+
+
