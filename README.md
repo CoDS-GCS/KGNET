@@ -1,5 +1,6 @@
 ### <a href="https://arxiv.org/abs/2303.02166"> KGNET</a> Accepted at <a href="https://icde2023.ics.uci.edu/papers-special-track/">ICDE-2023</a>
 # KGNET - A GML-Enabled RDF Engine
+<p><b>Note: We are working on a full release of KGNET with all working functionalities by end of Augest</b></p>
 <img alt="kgnet_architecture" src="docs/imgs/kgnet.png" width="500"/>
 
 
