@@ -1,0 +1,18 @@
+{
+  "transformation":{
+  "target_rel": "https://dblp.org/rdf/schema#publishedIn",
+  "dataset_name": "DBLP-Springer-Papers",
+  "dataset_name_csv": "DBLP-Springer-Papers",
+  "test_size": 0.1,
+  "valid_size": 0.1,
+  "MINIMUM_INSTANCE_THRESHOLD":9,
+  "output_root_path":"Datasets/"
+  },
+  "training":
+  {"dataset_name":"DBLP-Springer-Papers",
+  "target_node":"rec",
+  "n_classes":440,
+   "root_path":"Datasets/"
+  }
+  
+}
