@@ -6,14 +6,14 @@ import csv
 import pandas
 import  pandas as pd
 from classificationModels.classificationModel import RandomForest
-from GMLQueryRewriter.queryRewriter import queryRewriter
+from GMLQueryRewriter.queryRewriter_old import queryRewriter
 from embeddingServices.KGEmbeddingService import embeddingAsaService
 from embeddingServices.KGEmbeddingService import startHttpServerThread
 from embeddingServices.embeddingStore import pickleInMemoryStore
 from embeddingServices.embeddingStore import FaissInMemoryStore
 from embeddingServices.similarityMetrics import euclideanDistance
-from sparqlEndpoints.openlinkVirtuosoEndpoint import openlinkVirtuosoEndpoint
-from sparqlEndpoints.sparqlEndpoint import sparqlEndpoint
+from RDFEngineManager.UDF_Manager_Virtuoso import openlinkVirtuosoEndpoint
+from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 from embeddingServices.similarityMetrics import cosineSimilarity
 from embeddingServices.generateKGEmbeddings import ComplEx
 from embeddingServices.generateKGEmbeddings import DistMult

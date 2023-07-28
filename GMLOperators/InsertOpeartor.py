@@ -4,9 +4,9 @@ from pathlib import Path
 import csv
 import pandas
 import  pandas as pd
-from sparqlEndpoints.openlinkVirtuosoEndpoint import openlinkVirtuosoEndpoint
+from RDFEngineManager.UDF_Manager_Virtuoso import openlinkVirtuosoEndpoint
 from GMLQueryManager import gmlManager
-from sparqlEndpoints.sparqlEndpoint import sparqlEndpoint
+from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 from embeddingServices.similarityMetrics import cosineSimilarity
 import datetime
 if __name__ == '__main__':

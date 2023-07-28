@@ -2,16 +2,15 @@ import os
 from urllib.parse import urlparse
 import pandas as pd
 import pyodbc
-# import wget as wget
+import wget as wget
 
-from .sparqlEndpoint import sparqlEndpoint
+from sparqlEndpoint import sparqlEndpoint
 
-
-class openlinkVirtuosoEndpoint(sparqlEndpoint):
-    def __init__(self):
-        sparqlEndpoint.__init__(self)
+class UDF_Manager_Virtuoso(sparqlEndpoint):
+    def __init__(self,host='localhost',port=1111,username='dba', password='dba'):
+        sparqlEndpoint.__init__(self,endpointUrl="http://"+host+":8890/sparql")
         self.version="vos 7.5.2"  
-        self.VirtuosoConn="DRIVER=/usr/local/virtuoso-opensource/lib/virtodbc.so;HOST=localhost:1111;UID=dba;PWD=dba"
+        self.VirtuosoConn="DRIVER=/usr/local/virtuoso-opensource/lib/virtodbc.so;HOST="+host+":"+str(port)+";UID="+username+";PWD="+password
     def executeInteractiveSQL(self,SQL):
         conn = pyodbc.connect(self.VirtuosoConn)
         conn.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
@@ -75,7 +74,7 @@ class openlinkVirtuosoEndpoint(sparqlEndpoint):
         finally:
             conn.close()   
         return df
-    def searchProcedures(self,P_Name):
+    def searchProcedure(self,P_Name):
         conn = self.getPyodbcConnection()
         SQL=""" SELECT P_NAME  FROM SYS_PROCEDURES WHERE P_NAME like '%"""+P_Name+"""%' """
         df=[]
@@ -103,7 +102,7 @@ class openlinkVirtuosoEndpoint(sparqlEndpoint):
         finally:
             conn.close()   
         return df
-    def createVirtuosoProcedure(self,SQL,Parameters,Description):
+    def createProcedure(self,SQL,Parameters,Description):
         print('SQL=',SQL)
         # http://docs.openlinksw.com/virtuoso/execpythonscript/
         conn = self.getPyodbcConnection()
@@ -123,7 +122,7 @@ class openlinkVirtuosoEndpoint(sparqlEndpoint):
             self.setVirtuosoProcedureExecuteGrant(udf_name,"dba")
             self.setVirtuosoProcedureExecuteGrant(udf_name,"SPARQL")
         return result
-    def setVirtuosoProcedureExecuteGrant(self, procedureName,UserName):
+    def setProcedureExecuteGrant(self, procedureName,UserName):
         conn = pyodbc.connect(self.VirtuosoConn)
         SQL="""grant execute on DB.DBA."""+procedureName+""" to \""""+UserName+"""\" """
         print("SQL=",SQL)
@@ -138,7 +137,7 @@ class openlinkVirtuosoEndpoint(sparqlEndpoint):
         finally:
             conn.close()
         return result
-    def loadTTLFileToVirtuoso(self,ttlFileUrl):
+    def uploadKG_ttl(self,ttlFileUrl):
 #         url = 'https://raw.githubusercontent.com/frmichel/taxref-ld/13.0/dataset/Taxrefld_static_dcat.ttl'
         a = urlparse(ttlFileUrl)
         # print(a.path)                   
@@ -165,11 +164,14 @@ class openlinkVirtuosoEndpoint(sparqlEndpoint):
         df,q= self.getVirtuosoGraphsList()
     #         df.head(10)
         return len(df[df["g"].str.contains(file_name)]),result
-    def getVirtuosoGraphsList(self):
+    def getKGList(self):
         Query="""
             SELECT  DISTINCT ?g 
             WHERE  { GRAPH ?g {?s ?p ?o} } 
             ORDER BY  ?g
             limit 100
         """
-        return self.executeSparqlQuery(Query),Query
+        return self.executeSparqlQuery_dopost(Query),Query
+if __name__ == '__main__':
+    udfm=UDF_Manager_Virtuoso(host="206.12.98.118",port=1111,username='dba', password='dba')
+    print(udfm.getKGList())

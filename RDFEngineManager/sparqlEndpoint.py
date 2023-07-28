@@ -46,9 +46,11 @@ class sparqlEndpoint:
             'Accept': 'text/tab-separated-values; charset=UTF-8'}
         r = requests.post(self.endpointUrl, data=body, headers=headers)
         if firstRowHeader:
-            return pd.DataFrame([x.split('\t') for x in r.text.split('\n')[1:] if x],columns=r.text.split('\n')[0].split('\t'))
+            return pd.DataFrame([x.split('\t') for x in r.text.split('\n')[1:] if x],columns=r.text.split('\n')[0].replace("\"","").split('\t'))
         else:
             return pd.DataFrame([x.split('\t') for x in r.text.split('\n')])
+    def executeSparqlquery(self,query,firstRowHeader=True):
+        return self.executeSparqlQuery_dopost(query,firstRowHeader)
 if __name__ == '__main__':
     e=sparqlEndpoint(endpointUrl="http://206.12.98.118:8890/sparql")
     res_df=e.executeSparqlQuery_dopost("select ?s ?p ?o from <https://linkedmdb.org> where {?s ?p ?o} limit 10")
