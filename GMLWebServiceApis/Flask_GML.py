@@ -9,7 +9,7 @@ import GML_to_CSV as gcsv
 import GMLQueryRewriter.gmlRewriter as qr
 import time
 import os
-# import sparqlEndpoints.sparqlEndpoint as se
+# import RDFEngineManager.sparqlEndpoint as se
 
 test_query = """ 
 prefix dblp:<https://dblp.org/rdf/schema#>
