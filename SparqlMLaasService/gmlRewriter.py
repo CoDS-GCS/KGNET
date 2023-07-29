@@ -184,10 +184,12 @@ class gmlQueryParser:
             return self.parse_select()
 
 class gmlQueryRewriter:
-    def __init__(self,query_dict):
+    def __init__(self,query_dict,KGMeta_Governer):
        self.query_dict=query_dict
+       self.KGMeta_Governer=KGMeta_Governer
 
-    def gen_queries(self, KGMeta_prefix="kgnet",modelURI=None):
+    def rewrite_gml_select_queries(self, KGMeta_prefix="kgnet",modelURI=None):
+        """return data query a candidate  form 2 for sparqlML query and KGMeta query"""
         string_q = ""
         string_gml = ""
         bool_gml = False
@@ -206,14 +208,13 @@ class gmlQueryRewriter:
                 string_q += s
         string_q += "\n WHERE { \n"
 
-        data_triples, gml_triples = self.filter_triples(self.query_dict)
+        data_triples, gml_triples = self.filter_triples()
         dict_gml_var_dict,prep_gml_vars = self.prep_gml_vars(gml_triples)
         string_gml += self.get_KGMeta_gmlOperatorQuery(dict_gml_var_dict, data_triples)
-        kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.98.118:8890/sparql', KGMeta_URI="http://kgnet")
-        gml_query_res_df=kgmeta_govener.executeSparqlquery(string_gml)
+        gml_query_res_df=self.kgmeta_govener.executeSparqlquery(string_gml)
         #dict_gml_var_dict['$m'] = gml_query_res_df[' modelURI if modelURI is not None else 'http://127.0.0.1:64646/all'
         dict_gml_var_dict['$m']=gml_query_res_df['apiUrl'].values[0].replace('"', "")
-        string_q = self.get_data_query(self.query_dict, dict_gml_var_dict, data_triples)
+        string_q = self.get_data_query(dict_gml_var_dict, data_triples)
         return (string_q, string_gml)
 
     def filter_triples(self):
@@ -446,9 +447,8 @@ class gmlQueryRewriter:
             return data_query
 
     def rewrite_gml_query (self):
-        query_dict = self.extractQueryStatmentsDict(self.gml_query)
-        print("gml_query_type=",query_dict["query_type"])
-        return self.gen_queries(query_dict)
+        print("gml_query_type=",self.query_dict["query_type"])
+        return self.rewrite_gml_select_queries(self.query_dict)
 
 if __name__ == '__main__':
     dblp_LP="""
@@ -469,6 +469,23 @@ if __name__ == '__main__':
     limit 10
     offset 0
     """
+    dblp_NC = """
+       prefix dblp:<https://dblp.org/rdf/schema#>
+       prefix kgnet: <https://www.kgnet.ai/>
+       select ?paper ?title ?venue 
+       where {
+       ?paper a dblp:Publication.
+       ?paper dblp:title ?title.
+       ?paper <https://dblp.org/rdf/schema#publishedIn> ?o.
+       ?paper <https://dblp.org/has_gnn_model> 1.
+       ?paper ?NodeClassifier ?venue.
+       ?NodeClassifier a <kgnet:types/NodeClassifier>.
+       ?NodeClassifier <kgnet:GML/TargetNode> <dblp:Publication>.
+       ?NodeClassifier <kgnet:GML/NodeLabel> <dblp:venue>.
+       }
+       limit 100
+       """
+
     Insert_Query = """
         prefix dblp:<https://www.dblp.org/>
         prefix kgnet:<https://www.kgnet.com/>
@@ -479,8 +496,10 @@ if __name__ == '__main__':
             "Name":"MAG_Paper-Venue_Classifer",
             "GML-Task":{
                 "TaskType":"kgnet:NodeClassifier",
-                "TargetNode":"dblp:publication",
-                "NodeLabel":"dblp:venue"},
+                "TargetNode":"dblp:Publication",
+                "NodeLabel":"dblp:venue",
+                "GNN_Method":"G_SAINT"
+                },
             "TaskBudget":{
                 "MaxMemory":"50GB",
                 "MaxTime":"1h",
@@ -500,29 +519,12 @@ if __name__ == '__main__':
     #         }
     #     }
     #     """
-    gmlqp = gmlQueryParser(Insert_Query)
-    gmlqw=gmlQueryRewriter(gmlqp.extractQueryStatmentsDict()).rewrite_gml_query()
+    kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.98.118:8890/sparql', KGMeta_URI="http://kgnet")
 
-    dblp_NC= """
-    prefix dblp:<https://dblp.org/rdf/schema#>
-    prefix kgnet: <https://www.kgnet.ai/>
-    select ?title ?venue 
-    where {
-    ?paper a dblp:Publication.
-    ?paper dblp:title ?title.
-    ?paper <https://dblp.org/rdf/schema#publishedIn> ?o.
-    
-    
-    ?paper ?NodeClassifier ?venue.
-    
-    ?NodeClassifier a <kgnet:types/NodeClassifier>.
-    ?NodeClassifier <kgnet:GML/TargetNode> <dblp:paper>.
-    ?NodeClassifier <kgnet:GML/NodeLabel> <dblp:venue>.
-    
-    }
-    limit 100
-    """
+    # gmlqp = gmlQueryParser(dblp_NC)
+    # (dataq,kmetaq)=gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(),kgmeta_govener).rewrite_gml_query()
 
+    insert_task_dict = gmlQueryParser(Insert_Query).extractQueryStatmentsDict()
     ieeecis_NC = """
     prefix ieeecis:<https://ieee-cis-fraud-detection/>
     select  ?Transaction ?is_fraud

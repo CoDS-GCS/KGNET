@@ -8,7 +8,7 @@ from threading import Thread
 import threading
 
 lock = threading.Lock()
-def ExecQueryAndWriteOutput(endpoint_url,query, offset, batch_size, f):
+def ExecQueryAndWriteOutput(endpoint_url,query, offset, batch_size,batches_count, f):
     start_t = datetime.datetime.now()
     r_query = query.replace("?offset", str(offset))
     r_query = r_query.replace("?limit", str(batch_size))
@@ -33,8 +33,7 @@ def ExecQuery(endpoint_url,query):
                'Accept': 'text/tab-separated-values; charset=UTF-8'}
     r = requests.post(endpoint_url, data=body, headers=headers)
     return r.text.split('\n')[1]
-
-def get_d1h1_query(graph_uri,target_rel_uri):
+def get_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
     query="""select distinct ?s as ?subject ?p as ?predicate ?o as ?object  
            where
            {
@@ -44,14 +43,17 @@ def get_d1h1_query(graph_uri,target_rel_uri):
                 {
                 ?s <"""+target_rel_uri+"""> ?label.
                 ?s ?p ?o.
-                filter(!isBlank(?o)).
-                }
+                filter(!isBlank(?o)).\n"""
+    if tragetNode_filter_statments:
+        query+=tragetNode_filter_statments
+
+    query+="""}
                 limit ?limit 
                 offset ?offset
            } 
         """
     return query
-def get_d2h1_query(graph_uri,target_rel_uri):
+def get_d2h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
     query="""select distinct ?s as ?subject ?p as ?predicate ?o as ?object
             where
             {
@@ -61,13 +63,15 @@ def get_d2h1_query(graph_uri,target_rel_uri):
                  {
                   ?s <"""+target_rel_uri+"""> ?label.
                   ?o2 ?p2 ?s.
-                  filter(!isBlank(?o2)).
-                 }
+                  filter(!isBlank(?o2)).\n"""
+    if tragetNode_filter_statments:
+        query+=tragetNode_filter_statments
+    query+="""\n}
                 limit ?limit 
                 offset ?offset
             } 
             """
-    return [get_d1h1_query(graph_uri,target_rel_uri),query]
+    return [get_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments),query]
 def get_d1h2_query(graph_uri,target_rel_uri):
     query="""select distinct ?s as ?subject ?p as ?predicate ?o as ?object
             where
@@ -87,7 +91,7 @@ def get_d1h2_query(graph_uri,target_rel_uri):
             }  
             """
     return [get_d1h1_query(graph_uri,target_rel_uri),query]
-def get_d2h2_query(graph_uri,target_rel_uri):
+def get_d2h2_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
     query1="""select distinct ?s as ?subject ?p as ?predicate ?o as ?object
             where
             {     
@@ -99,8 +103,10 @@ def get_d2h2_query(graph_uri,target_rel_uri):
                   ?s ?p2 ?o2.
                   ?o2 ?p3 ?o3.
                   filter(!isBlank(?o2)).
-                  filter(!isBlank(?o3)).
-                 }
+                  filter(!isBlank(?o3)).\n"""
+    if tragetNode_filter_statments:
+        query1+=tragetNode_filter_statments
+    query1+="""\n}
                 limit ?limit 
                 offset ?offset
             }
@@ -123,7 +129,45 @@ def get_d2h2_query(graph_uri,target_rel_uri):
                 }
                 """
     return  [get_d1h1_query(graph_uri,target_rel_uri),get_d2h1_query(graph_uri,target_rel_uri),query1,query2]
-
+def execute_sparql_multithreads(start_offset,sparql_endpoint_url,batch_size,queries,out_file,threads_count):
+    q_start_t = datetime.datetime.now()
+    rows_count_lst=[]
+    for query  in queries:
+        rows_count_query = query.replace("select distinct ?s as ?subject ?p as ?predicate ?o as ?object", "select count(*) as ?c")
+        rows_count_query=rows_count_query.replace("limit ?limit" ,"")
+        rows_count_query = rows_count_query.replace("offset ?offset", "")
+        rows_count=ExecQuery(sparql_endpoint_url,rows_count_query)
+        rows_count_lst.append(int(rows_count))
+    q_end_t = datetime.datetime.now()
+    print("rows_count=", sum(rows_count_lst), "Query Time=",q_end_t - q_start_t, " sec.")
+    #######################
+    q_start_t = datetime.datetime.now()
+    with open(out_file, 'w') as f:
+        for q_idx,query  in enumerate(queries):
+            batches_count = int(rows_count_lst[q_idx] / batch_size) + 1
+            print("query idx=",q_idx,"batches_count=", batches_count)
+            th_idx = 1
+            th_lst = []
+            for idx, offset in enumerate(range(start_offset, rows_count_lst[q_idx], batch_size)):
+                try:
+                    t = Thread(target=ExecQueryAndWriteOutput, args=(sparql_endpoint,query, offset, batch_size,batches_count, f))
+                    th_lst.append(t)
+                    t.start()
+                    th_idx = th_idx + 1
+                    if th_idx == threads_count:
+                        th_idx = 0
+                        for th in th_lst:
+                            th.join()
+                        th_lst = []
+                        print(threads_count, " threads finish at ", datetime.datetime.now() - q_start_t, " sec.")
+                except  Exception as e:
+                    print("Exception", e)
+            for th in th_lst:
+                th.join()
+            print(threads_count, " threads finish at ", datetime.datetime.now() - q_start_t, " sec.")
+    q_end_t = datetime.datetime.now()
+    print("total time ", q_end_t - q_start_t, " sec.")
+    return  q_end_t - q_start_t,sum(rows_count_lst)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--start_offset', dest='start_offset', type=int, help='Add start_offset', default=0)
@@ -153,41 +197,4 @@ if __name__ == '__main__':
         queries=get_d2h1_query(graph_uri,target_rel_uri)
     elif TOSG=='d2h2':
         queries=get_d2h2_query(graph_uri,target_rel_uri)
-    ###################################
-    q_start_t = datetime.datetime.now()
-    rows_count_lst=[]
-    for query  in queries:
-        rows_count_query = query.replace("select distinct ?s as ?subject ?p as ?predicate ?o as ?object", "select count(*) as ?c")
-        rows_count_query=rows_count_query.replace("limit ?limit" ,"")
-        rows_count_query = rows_count_query.replace("offset ?offset", "")
-        rows_count=ExecQuery(sparql_endpoint,rows_count_query)
-        rows_count_lst.append(int(rows_count))
-    q_end_t = datetime.datetime.now()
-    print("rows_count=", sum(rows_count_lst), "Query Time=",q_end_t - q_start_t, " sec.")
-    #######################
-    q_start_t = datetime.datetime.now()
-    with open(out_file, 'w') as f:
-        for q_idx,query  in enumerate(queries):
-            batches_count = int(rows_count_lst[q_idx] / batch_size) + 1
-            print("query idx=",q_idx,"batches_count=", batches_count)
-            th_idx = 1
-            th_lst = []
-            for idx, offset in enumerate(range(start_offset, rows_count_lst[q_idx], batch_size)):
-                try:
-                    t = Thread(target=ExecQueryAndWriteOutput, args=(sparql_endpoint,query, offset, batch_size, f))
-                    th_lst.append(t)
-                    t.start()
-                    th_idx = th_idx + 1
-                    if th_idx == threads_count:
-                        th_idx = 0
-                        for th in th_lst:
-                            th.join()
-                        th_lst = []
-                        print(threads_count, " threads finish at ", datetime.datetime.now() - q_start_t, " sec.")
-                except  Exception as e:
-                    print("Exception", e)
-            for th in th_lst:
-                th.join()
-            print(threads_count, " threads finish at ", datetime.datetime.now() - q_start_t, " sec.")
-    q_end_t = datetime.datetime.now()
-    print("total time ", q_end_t - q_start_t, " sec.")
+    execute_sparql_multithreads(start_offset, sparql_endpoint, queries, batch_size,out_file, threads_count)

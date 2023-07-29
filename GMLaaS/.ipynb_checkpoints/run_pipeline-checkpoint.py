@@ -30,8 +30,8 @@ def format_args(task,json_args,path_script):
 # subprocess.run(list_transformation)
 
 # list_training = []
-# list_training.extend(['python','Training/models/graph_saint/graph_saint_KGTOSA.py'])
-# # list_training.append('Training/models/graph_saint/graph_saint_KGTOSA.py')
+# list_training.extend(['python','models/models/graph_saint/graph_saint_KGTOSA.py'])
+# # list_training.append('models/models/graph_saint/graph_saint_KGTOSA.py')
 # for arg in data['training_args'].keys():
 #     format_arg = '--'+str(arg)+'='+str(data['training_args'][arg])
 #     list_training.append(format_arg)
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GMLaaS Pipeline')
     parser.add_argument('--path_json',type=str,default='args.json')
     parser.add_argument('--path_transformation_py',type=str,default='DataTransform/TSV_TO_PYG_dataset.py')
-    parser.add_argument('--path_training_py',type=str,default='Training/models/graph_saint/graph_saint_KGTOSA.py')
+    parser.add_argument('--path_training_py',type=str,default='models/models/graph_saint/graph_saint_KGTOSA.py')
     args = parser.parse_args()
     
     json_args = load_args(args.path_json)
