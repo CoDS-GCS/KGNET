@@ -1,4 +1,5 @@
 from copy import copy
+import json
 import argparse
 import shutil
 import pandas as pd
@@ -11,7 +12,7 @@ from torch_sparse import SparseTensor
 from torch_geometric.utils import to_undirected
 from torch_geometric.data import Data
 from torch_geometric.loader import  GraphSAINTRandomWalkSampler
-from KGTOSA_Samplers import GraphSAINTTaskBaisedRandomWalkSampler,GraphSAINTTaskWeightedRandomWalkSampler
+#from KGTOSA_Samplers import GraphSAINTTaskBaisedRandomWalkSampler,GraphSAINTTaskWeightedRandomWalkSampler
 from torch_geometric.utils.hetero import group_hetero_graph
 from torch_geometric.nn import MessagePassing
 import sys
@@ -25,7 +26,10 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import cross_val_score
 import traceback
 import sys
-#sys.path.insert(0, '/shared_mnt/github_repos/ogb/')
+# sys.path.insert(0, '/media/hussein/UbuntuData/GithubRepos/KGNET/GMLaaS/models/')
+GMLaaS_models_path=sys.path[1]+"/GMLaaS/models"
+sys.path.insert(0,GMLaaS_models_path)
+print("sys.path=",sys.path)
 from ogb.nodeproppred import PygNodePropPredDataset
 from evaluater import Evaluator
 from custome_pyg_dataset import PygNodePropPredDataset_hsh
@@ -42,11 +46,11 @@ def print_memory_usage():
     print('used virtual memory GB:', psutil.virtual_memory().used / (1024.0 ** 3), " percent",
           psutil.virtual_memory().percent)
 
-def gen_model_name(dataset_name,model_name,):
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    return dataset_name+'_'+model_name+'_'+timestamp
+def gen_model_name(dataset_name,GNN_Method):
+    # timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    # return dataset_name+'_'+model_name+'_'+timestamp
+    return dataset_name
     
-
 def create_dir(list_paths):
     for path in list_paths:
         if not os.path.exists(path):
@@ -95,7 +99,6 @@ class RGCNConv(MessagePassing):
 
     def message(self, x_j, edge_type: int):
         return self.rel_lins[edge_type](x_j)
-
 
 class RGCN(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
@@ -212,11 +215,11 @@ class RGCN(torch.nn.Module):
 
         return x_dict
 dic_results = {}
-def graphSaint():
+def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,runs=1,batch_size=2000,walk_length=2,num_steps=10,loadTrainedModel=0,dataset_name="DBLP-Springer-Papers",root_path="../../Datasets/",output_path="./",include_reverse_edge=True,n_classes=1000,emb_size=128):
     def train(epoch):
         model.train()
         # tqdm.monitor_interval = 0
-        pbar = tqdm(total=args.num_steps * args.batch_size)
+        pbar = tqdm(total=num_steps * batch_size)
         pbar.set_description(f'Epoch {epoch:02d}')
 
         total_loss = total_examples = 0
@@ -234,18 +237,15 @@ def graphSaint():
             num_examples = data.train_mask.sum().item()
             total_loss += loss.item() * num_examples
             total_examples += num_examples
-            pbar.update(args.batch_size)
+            pbar.update(batch_size)
 
         # pbar.refresh()  # force print final state
         pbar.close()
         # pbar.reset()
         return total_loss / total_examples
-
-
     @torch.no_grad()
     def test():
         model.eval()
-        
         out = model.inference(x_dict, edge_index_dict, key2int)
         out = out[key2int[subject_node]]
 
@@ -265,68 +265,39 @@ def graphSaint():
             'y_pred': y_pred[split_idx['test'][subject_node]],
         })['acc']
         return train_acc, valid_acc, test_acc
-
-
-    parser = argparse.ArgumentParser(description='OGBN-MAG (GraphSAINT)')
-    parser.add_argument('--device', type=int, default=0)
-    parser.add_argument('--num_layers', type=int, default=2)
-    parser.add_argument('--hidden_channels', type=int, default=64)
-    parser.add_argument('--dropout', type=float, default=0.5)
-    parser.add_argument('--lr', type=float, default=0.005)
-    parser.add_argument('--epochs', type=int, default=5)
-    parser.add_argument('--runs', type=int, default=1)
-    parser.add_argument('--batch_size', type=int, default=20000)
-    parser.add_argument('--walk_length', type=int, default=2)
-    parser.add_argument('--num_steps', type=int, default=30)
-    parser.add_argument('--loadTrainedModel', type=int, default=0)
-    parser.add_argument('--target_node',type=str, default="")
-    parser.add_argument('--dataset_name',type=str, default="")
-    parser.add_argument('--method_name',type=str, default="")
-    parser.add_argument('--root_path',type=str, default="../../../Datasets/")
-    parser.add_argument('--output_path',type=str,default="./")
-    parser.add_argument('--include_reverse_edge',type=bool,default=True)
-    parser.add_argument('--n_classes',type=int,default=0)
-    parser.add_argument('--GA_Index',type=int,default=0)
-    parser.add_argument('--emb_size',type=int,default=128)
-    
     init_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
-    args = parser.parse_args()
-    subject_node=args.target_node
-    dataset_name = args.dataset_name
+    dataset_name = dataset_name
     to_remove_pedicates = []
     to_remove_subject_object =[]
     to_keep_edge_idx_map = []
-    GA_Index = args.GA_Index
-    MAG_datasets=[dataset_name]
-    root_path=args.root_path#"/shared_mnt/DBLP/KGTOSA_DBLP_Datasets/"
-    include_reverse_edge=args.include_reverse_edge
-    n_classes=args.n_classes
-    output_path=args.output_path
-    print(args)
+    GNN_datasets=[dataset_name]
+    root_path=root_path#"/shared_mnt/DBLP/KGTOSA_DBLP_Datasets/"
+    include_reverse_edge=include_reverse_edge
+    n_classes=n_classes
+    output_path=output_path
     gsaint_Final_Test=0
-    for GA_dataset_name in MAG_datasets:  
+    for GNN_dataset_name in GNN_datasets:  
         try:
             gsaint_start_t = datetime.datetime.now()
             ###################################Delete Folder if exist #############################
-            dir_path=root_path+GA_dataset_name
+            dir_path=root_path+GNN_dataset_name
             try:
-                # shutil.rmtree(dir_path)
+                shutil.rmtree(dir_path)
                 print("Folder Deleted DEBUGGING")
             except OSError as e:
                 print("Error Deleting : %s : %s" % (dir_path, e.strerror))
     #         ####################
-            print(f'searching for dataset at: {root_path+GA_dataset_name}')
-            dataset = PygNodePropPredDataset_hsh(name=GA_dataset_name, root=root_path,numofClasses=str(n_classes))
-            # dataset_name=GA_dataset_name+"_GA_"+str(GA_Index)
+            print(f'searching for dataset at: {root_path+GNN_dataset_name}')
+            dataset = PygNodePropPredDataset_hsh(name=GNN_dataset_name, root=root_path,numofClasses=str(n_classes))
             print("dataset_name=",dataset_name)
             dic_results[dataset_name] = {}
-            dic_results[dataset_name]["GNN_Model"] = "GSaint"
-            dic_results[dataset_name]["GA_Index"] = GA_Index
+            dic_results[dataset_name]["GNN_Method"] = "GSaint"
             dic_results[dataset_name]["to_keep_edge_idx_map"] = to_keep_edge_idx_map        
             dic_results[dataset_name]["usecase"] = dataset_name
-            dic_results[dataset_name]["gnn_hyper_params"] = str(args)
-
-            
+            gnn_hyper_params_dict={"device":device,"num_layers":num_layers,"hidden_channels":hidden_channels,
+                "dropout":dropout,"lr":lr,"epochs":epochs,"runs":runs,"batch_size":batch_size,
+                "walk_length":walk_length,"num_steps":num_steps,"emb_size":emb_size}
+            dic_results[dataset_name]["gnn_hyper_params"] =gnn_hyper_params_dict
             print(getrusage(RUSAGE_SELF))
             start_t = datetime.datetime.now()
             data = dataset[0]
@@ -337,35 +308,11 @@ def graphSaint():
             print("dataset init time=", end_t - start_t, " sec.")
             dic_results[dataset_name]["GSaint_data_init_time"] = (end_t - start_t).total_seconds()
             evaluator = Evaluator(name='ogbn-mag')
-            logger = Logger(args.runs, args)
-
+            logger = Logger(runs, gnn_hyper_params_dict)
             start_t = datetime.datetime.now()
             # We do not consider those attributes for now.
             data.node_year_dict = None
             data.edge_reltype_dict = None
-
-            # remove_subject_object = [
-            #     # 'doi',
-            #     # 'sameAs',
-            #     # 'rdf',
-            #     # 'net',
-            #     # 'differentFrom',
-            #     # 'otherHomepage',
-            #     # 'primaryElectronicEdition',
-            #     # 'otherElectronicEdition',
-            #     # 'archivedElectronicEdition',
-            #     # 'entity',
-            #     # 'db'
-            # ]
-            # remove_pedicates = [
-            #     # 'schema#awardWebpage',
-            #     # 'schema#webpage',
-            #     # 'schema#archivedWebpage',
-            #     # 'schema#primaryHomepage',
-            #     # 'schema#wikipedia',
-            #     # 'schema#orcid',
-            #     # 'schema#publishedAsPartOf'
-            # ]
             to_remove_rels = []
             for keys, (row, col) in data.edge_index_dict.items():
                 if (keys[2] in to_remove_subject_object) or (keys[0] in to_remove_subject_object):
@@ -382,7 +329,6 @@ def graphSaint():
 
             for key in to_remove_subject_object:
                 data.num_nodes_dict.pop(key, None)
-
 
             dic_results[dataset_name]["data"] = str(data)
             ##############add inverse edges ###################
@@ -424,11 +370,11 @@ def graphSaint():
             # train_loader = GraphSAINTTaskBaisedRandomWalkSampler(
             #train_loader=GraphSAINTTaskWeightedRandomWalkSampler(
                  homo_data,
-                 batch_size=args.batch_size,
-                 walk_length=args.num_layers,
+                 batch_size=batch_size,
+                 walk_length=walk_length,
                  # Subject_indices=local2global[subject_node],
                  # NodesWeightDic=NodesWeightDic,
-                 num_steps=args.num_steps,
+                 num_steps=num_steps,
                  sample_coverage=0,
                  save_dir=dataset.processed_dir)
             end_t = datetime.datetime.now()
@@ -437,7 +383,7 @@ def graphSaint():
             start_t = datetime.datetime.now()
             # Map informations to their canonical type.
             #######################intialize random features ###############################
-            emb_size=args.emb_size
+            emb_size=emb_size
             feat = torch.Tensor(data.num_nodes_dict[subject_node], emb_size)
             torch.nn.init.xavier_uniform_(feat)
             feat_dic = {subject_node: feat}
@@ -453,19 +399,18 @@ def graphSaint():
             end_t = datetime.datetime.now()
             print("model init time CPU=", end_t - start_t, " sec.")
             dic_results[dataset_name]["model init Time"] = (end_t - start_t).total_seconds()
-            device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
-            model = RGCN(128, args.hidden_channels, dataset.num_classes, args.num_layers,
-                         args.dropout, num_nodes_dict, list(x_dict.keys()),
+            device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
+            model = RGCN(emb_size, hidden_channels, dataset.num_classes, num_layers,
+                         dropout, num_nodes_dict, list(x_dict.keys()),
                          len(edge_index_dict.keys())).to(device)
 
             x_dict = {k: v.to(device) for k, v in x_dict.items()}
             print("x_dict=", x_dict.keys())
-            optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+            optimizer = torch.optim.Adam(model.parameters(), lr=lr)
             model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
             # model_name = dataset_name + "_DBLP_conf_GSAINT_QM.model"
-            method_name = os.path.basename(os.getcwd()) if args.method_name=='' else args.method_name    
-            model_name = gen_model_name(dataset_name,method_name)
-            if args.loadTrainedModel == 1:
+            model_name = gen_model_name(dataset_name,dic_results[dataset_name]["GNN_Method"])
+            if loadTrainedModel == 1:
                 with torch.no_grad():
                     start_t = datetime.datetime.now()
                     model.load_state_dict(torch.load(output_path +model_name))
@@ -480,10 +425,10 @@ def graphSaint():
                 print("start test")
                 test()  # Test if inference on GPU succeeds.
                 total_run_t = 0
-                for run in range(args.runs):
+                for run in range(runs):
                     start_t = datetime.datetime.now()
                     model.reset_parameters()
-                    for epoch in range(1, 1 + args.epochs):
+                    for epoch in range(1, 1 + epochs):
                         loss = train(epoch)
                         ##############
                         if loss==-1:
@@ -500,14 +445,14 @@ def graphSaint():
                               f'Train: {100 * train_acc:.2f}%, '
                               f'Valid: {100 * valid_acc:.2f}%, '
                               f'Test: {100 * test_acc:.2f}%')
-                        print("model # Total  parameters ", sum(p.numel() for p in model.parameters()))
-                        print("model # trainable paramters ", sum(p.numel() for p in model.parameters() if p.requires_grad))
+                        # print("model # Total  parameters ", sum(p.numel() for p in model.parameters()))
+                        # print("model # trainable paramters ", sum(p.numel() for p in model.parameters() if p.requires_grad))
                     logger.print_statistics(run)
                     end_t = datetime.datetime.now()
                     total_run_t = total_run_t + (end_t - start_t).total_seconds()
                     print("model run ", run, " train time CPU=", end_t - start_t, " sec.")
                     print(getrusage(RUSAGE_SELF))
-                total_run_t = (total_run_t + 0.00001) / args.runs
+                total_run_t = (total_run_t + 0.00001) / runs
                 gsaint_end_t = datetime.datetime.now()
                 Highest_Train, Highest_Valid, Final_Train, Final_Test = logger.print_statistics()
                 model_trained_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
@@ -519,21 +464,22 @@ def graphSaint():
                 dic_results[dataset_name]["Final_Train"] = Final_Train.item()
                 gsaint_Final_Test= Final_Test.item()
                 dic_results[dataset_name]["Final_Test"] = Final_Test.item()
-                dic_results[dataset_name]["runs_count"] = args.runs
-                dic_results[dataset_name]["avg_train_time"] = total_run_t
-                dic_results[dataset_name]["rgcn_total_time"] = (gsaint_end_t - gsaint_start_t).total_seconds()
+                dic_results[dataset_name]["runs_count"] = runs
+                dic_results[dataset_name]["train_time"] = total_run_t
+                dic_results[dataset_name]["Training_total_time_runs"] = (gsaint_end_t - gsaint_start_t).total_seconds()
                 dic_results[dataset_name]["model_parameters_count"]= sum(p.numel() for p in model.parameters())
                 dic_results[dataset_name]["model_trainable_paramters_count"]=sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-                # pd.DataFrame(dic_results).transpose().to_csv(output_path+"GSAINT_" + GA_dataset_name + "_Times.csv", index=False)
+                # pd.DataFrame(dic_results).transpose().to_csv(output_path+"GSAINT_" + GNN_dataset_name + "_Times.csv", index=False)
                 # shutil.rmtree("/shared_mnt/DBLP/" + dataset_name)
                 logs_path = os.path.join(output_path,'logs')
                 model_path = os.path.join(output_path,'trained_models')        
                 create_dir([logs_path,model_path]) # args: list of paths
 
-                pd.DataFrame(dic_results).transpose().to_json(os.path.join(logs_path,model_name+'.json') )
-                
-                torch.save(model.state_dict(), os.path.join(model_path , model_name))
+                # pd.DataFrame(dic_results).transpose().to_json(os.path.join(logs_path,model_name+'.json') )
+                with open(os.path.join(logs_path, model_name +'_log.json'), "w") as outfile:
+                    json.dump(dic_results, outfile)
+                torch.save(model.state_dict(), os.path.join(model_path , model_name)+".model")
         except Exception as e:
             print(e)
             print(traceback.format_exc())
@@ -542,7 +488,27 @@ def graphSaint():
     return gsaint_Final_Test
 
 if __name__ == '__main__':
-    print(graphSaint())
+    parser = argparse.ArgumentParser(description='OGBN-MAG (GraphSAINT)')
+    parser.add_argument('--device', type=int, default=0)
+    parser.add_argument('--num_layers', type=int, default=2)
+    parser.add_argument('--hidden_channels', type=int, default=64)
+    parser.add_argument('--dropout', type=float, default=0.5)
+    parser.add_argument('--lr', type=float, default=0.005)
+    parser.add_argument('--epochs', type=int, default=2)
+    parser.add_argument('--runs', type=int, default=1)
+    parser.add_argument('--batch_size', type=int, default=2000)
+    parser.add_argument('--walk_length', type=int, default=2)
+    parser.add_argument('--num_steps', type=int, default=10)
+    parser.add_argument('--loadTrainedModel', type=int, default=0)
+    parser.add_argument('--dataset_name', type=str, default="DBLP-Springer-Papers")
+    parser.add_argument('--root_path', type=str, default="../../Datasets/")
+    parser.add_argument('--output_path', type=str, default="./")
+    parser.add_argument('--include_reverse_edge', type=bool, default=True)
+    parser.add_argument('--n_classes', type=int, default=440)
+    parser.add_argument('--emb_size', type=int, default=128)
+    args = parser.parse_args()
+    print(args)
+    print(graphSaint(args.device,args.num_layers,args.hidden_channels,args.dropout,args.lr,args.epochs,args.runs,args.batch_size,args.walk_length,args.num_steps,args.loadTrainedModel,args.dataset_name,args.root_path,args.output_path,args.include_reverse_edge,args.n_classes,args.emb_size))
 
 
 

@@ -33,67 +33,36 @@ def delete_multiple_element(list_object, indices):
 def define_rel_types(g_tsv_df):
     g_tsv_df["p"]
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='TSV to PYG')
-    #parser.add_argument('--csv_path', type=str, default="")
-    parser.add_argument('--target_rel', type=str, default="") # https://dblp.org/rdf/schema#publishedIn
-    #split_data_type
-    #size of train # if random then in % else specific value for train and valid split
-    #size of valid
-    parser.add_argument('--target_node', type=str, default="") # should be in node_types file (obtain using subject of target relation), 'paper'
-    parser.add_argument('--dataset_name',type=str, default="") # name of generated zip file
-    #parser.add_argument('--dataset_csv',type=str, default="")
-    parser.add_argument('--dataset_name_csv',type=str, default="")  # csv/tsv , input dataset name
-    parser.add_argument('--dataset_types',type=str, default="") # path to the 'types' file containing relatiolns
-    #parser.add_argument('--split_by', type=dict, default={}) replaced by train and valid args
-    parser.add_argument('--split_rel', type=str, default="random") # https://dblp.org/rdf/schema#yearOfPublication #default = random # TODO could be null in some rows
-    parser.add_argument('--split_rel_train_value', type=int, default=0)
-    parser.add_argument('--split_rel_valid_value', type=int, default=0)
-    parser.add_argument('--test_size',type=float,default=0.2)
-    parser.add_argument('--valid_size',type=float,default=0.5)
-    parser.add_argument('--similar_target_rels',type=list, default=[]) # 'https://dblp.org/rdf/schema#publishedInSeries' 
-    # parser.add_argument('--target_node',type=str, default = "")
-    #parser.add_argument('--dic_results',type=dict, default = "")
-    parser.add_argument('--Literals2Nodes',type=bool, default = False) # convert literal vals into nodes (eg name of paper )or ignore 
-    parser.add_argument('--output_root_path',type=str, default = "../Datasets/")
-    parser.add_argument('--MINIMUM_INSTANCE_THRESHOLD',type=int, default = 3)
-
-    
-    args = parser.parse_args()
+def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,target_node,output_root_path
+                         ,MINIMUM_INSTANCE_THRESHOLD=9,test_size=0.2,valid_size=0.5,split_rel_train_value=None,split_rel_valid_value=None,Header_row=None):
+    dic_results = {}  # args.dic_results #{}
     start_t = datetime.datetime.now()
-    dataset_name = args.dataset_name #"biokg_Drug_Classification" # Name of the dataset
-    dataset_name_csv = args.dataset_name_csv #"biokg"  # spo in IRI .csv no need for <>
-    dataset_types = args.dataset_types #"biokg_types.csv"  # kind of ontology
-    split_rel = args.split_rel #"http://purl.org/dc/terms/year"
-    #split_by = args.split_by #{"folder_name": "random"}  # , "split_data_type": "int", "train":2006  ,"valid":2007 , "test":2008 }
-    target_rel = args.target_rel  #"https://www.biokg.org/CLASS"  # is in the dataset and is StudiedDrug
-    similar_target_rels = args.similar_target_rels #["https://www.biokg.org/SUBCLASS", "https://www.biokg.org/SUPERCLASS"]
-    target_node = args.target_node  #"drug"  # to check -> because no labels yet
-    dic_results = {}# args.dic_results #{}
-    Literals2Nodes = args.Literals2Nodes #False
-    output_root_path = args.output_root_path #"/home/ubuntu/flora_tests/biokg/data/"
-    
     if dataset_types == "":
-        dataset_types = output_root_path +dataset_name_csv+"_types.csv"
-    
-    g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t")
-    g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore')
-    
+        dataset_types = output_root_path + dataset_name_csv + "_types.csv"
+
+    if Header_row is None:
+        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t",header=Header_row)
+        g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=Header_row)
+        g_tsv_df.columns=["s","p","o"]
+        g_tsv_types_df.columns=['stype','ptype', 'otype']
+    else:
+        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t")
+        g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore')
+
+
     #################### Remove '/' from the predicate of the Graph (tsv) ##############################
     g_tsv_df["p"] = g_tsv_df["p"].apply(lambda x: x.split('/')[-1])
     target_rel = target_rel.split('/')[-1]
-
-        
     ##################Check if headers are present in _types file
-    if any(col not in g_tsv_types_df.columns for col in ['stype','ptype','otype']):
+    if any(col not in g_tsv_types_df.columns for col in ['stype', 'ptype', 'otype']):
         old_columns = g_tsv_types_df.columns
         # print('***OLD g_tsv_types df:',g_tsv_types_df.head())
         # print(f'changing "{old_columns[0]}" to stype, "{old_columns[1]}" to ptype , and "{old_columns[2]}" to otype !')
-        g_tsv_types_df = g_tsv_types_df.rename(columns={old_columns[0]:'stype',old_columns[1]:'ptype',old_columns[2]:'otype'})
+        g_tsv_types_df = g_tsv_types_df.rename(
+            columns={old_columns[0]: 'stype', old_columns[1]: 'ptype', old_columns[2]: 'otype'})
         # print('***New g_tsv_types df:',g_tsv_types_df.head())
     # print("original_g_csv_df loaded , records length=", len(g_tsv_df))
-    
+
     # dataset_name += "_Discipline"
     try:
         g_tsv_df = g_tsv_df.rename(columns={"Subject": "s", "Predicate": "p", "Object": "o"})
@@ -111,7 +80,7 @@ if __name__ == '__main__':
     unique_p_lst = g_tsv_df["p"].unique().tolist()
     ########################delete non target nodes #####################
     relations_lst = g_tsv_df["p"].unique().astype("str").tolist()
-    relations_lst=[rel for rel in relations_lst if rel not in similar_target_rels]
+    relations_lst = [rel for rel in relations_lst if rel not in similar_target_rels]
     # print("relations_lst=", relations_lst)
     dic_results[dataset_name] = {}
     dic_results[dataset_name]["usecase"] = dataset_name
@@ -154,19 +123,20 @@ if __name__ == '__main__':
     label_idx_df = label_idx_df[["label idx", "label name"]]
     label_idx_df.to_csv(map_folder + "/labelidx2labelname.csv", index=None)
     compress_gz(map_folder + "/labelidx2labelname.csv")
-    
 
     ###########################################prepare relations mapping#################################
     relations_entites_map = {}
     relations_dic = {}
     entites_dic = {}
-    
+
     for rel in relations_lst:
         rel_type = rel.split("/")[-1]
         # rel_type = rel
         rel_df = g_tsv_df[g_tsv_df["p"] == rel_type].reset_index(drop=True)
         print("rel_type ", rel)
         rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
+        # print(rel_types.columns)
+        # print(len(rel_types))
         # print('stype', rel_types['stype'])
         s_type = rel_types['stype'].values[0]
         o_type = rel_types['otype'].values[0]
@@ -187,27 +157,27 @@ if __name__ == '__main__':
             e1, rel, e2 = rel_pair
             if e1 != "literal" and e1 in entites_dic:
                 entites_dic[e1] = entites_dic[e1].union(
-                    set(rel_df[rel_df["s_type"] == e1]["s"].unique()))#.apply(
-                        #lambda x: str(x).split("/")[-1]).unique()))
+                    set(rel_df[rel_df["s_type"] == e1]["s"].unique()))  # .apply(
+                # lambda x: str(x).split("/")[-1]).unique()))
             elif e1 != "literal":
-                entites_dic[e1] = set(rel_df[rel_df["s_type"] == e1]["s"].unique())#.apply(
-                    # lambda x: str(x).split("/")[-1]).unique())
+                entites_dic[e1] = set(rel_df[rel_df["s_type"] == e1]["s"].unique())  # .apply(
+                # lambda x: str(x).split("/")[-1]).unique())
 
             if e2 != "literal" and e2 in entites_dic:
                 entites_dic[e2] = entites_dic[e2].union(
-                    set(rel_df[rel_df["o_type"] == e2]["o"].unique()))#.apply(
-                        # lambda x: str(x).split("/")[-1]).unique()))
+                    set(rel_df[rel_df["o_type"] == e2]["o"].unique()))  # .apply(
+                # lambda x: str(x).split("/")[-1]).unique()))
             elif e2 != "literal":
-                entites_dic[e2] = set(rel_df[rel_df["o_type"] == e2]["o"].unique())#.apply(
-                    # lambda x: str(x).split("/")[-1]).unique())
-                
+                entites_dic[e2] = set(rel_df[rel_df["o_type"] == e2]["o"].unique())  # .apply(
+                # lambda x: str(x).split("/")[-1]).unique())
+
     ############################### Obtain Target node if not explicitly given #########
     if target_node == "":
-        target_node = list(g_tsv_types_df[g_tsv_types_df['ptype']==target_rel]['stype'])[0]
+        target_node = list(g_tsv_types_df[g_tsv_types_df['ptype'] == target_rel]['stype'])[0]
 
     ############################### Make sure all target nodes have label ###########
-    target_subjects_lst = g_tsv_df[g_tsv_df["p"] == target_rel]["s"].unique().tolist()#.apply(
-        # lambda x: str(x).split("/")[-1]).unique().tolist()
+    target_subjects_lst = g_tsv_df[g_tsv_df["p"] == target_rel]["s"].unique().tolist()  # .apply(
+    # lambda x: str(x).split("/")[-1]).unique().tolist()
     print("len of target_subjects_lst=", len(target_subjects_lst))
     # target_subjects_dic= {k: entites_dic['rec'][k] for k in target_subjects_lst}
     entites_dic[target_node] = set.intersection(entites_dic[target_node], set(target_subjects_lst))
@@ -299,8 +269,8 @@ if __name__ == '__main__':
     s_label_type = target_node
     o_label_type = o_type
     label_type = target_node
-    labels_rel_df["s_idx"] = labels_rel_df["s"]#.apply(
-        # lambda x: str(x).split("/")[-1])
+    labels_rel_df["s_idx"] = labels_rel_df["s"]  # .apply(
+    # lambda x: str(x).split("/")[-1])
     labels_rel_df["s_idx"] = labels_rel_df["s_idx"].astype("str")
     # print("entites_dic=", list(entites_dic.keys()))
     labels_rel_df["s_idx"] = labels_rel_df["s_idx"].apply(
@@ -310,7 +280,7 @@ if __name__ == '__main__':
     labels_rel_df = labels_rel_df[labels_rel_df["s_idx"] != -1]
     labels_rel_df = labels_rel_df.sort_values(by=["s_idx"]).reset_index(drop=True)
 
-    labels_rel_df["o_idx"] = labels_rel_df["o"]#.apply(lambda x: str(x).split("/")[-1])
+    labels_rel_df["o_idx"] = labels_rel_df["o"]  # .apply(lambda x: str(x).split("/")[-1])
     labels_rel_df["o_idx"] = labels_rel_df["o_idx"].apply(
         lambda x: label_idx_dic[str(x)] if str(x) in label_idx_dic.keys() else -1)
     out_labels_df = labels_rel_df[["o_idx"]]
@@ -323,15 +293,13 @@ if __name__ == '__main__':
     compress_gz(map_folder + "/node-label.csv")
     ###########################################split parts (train/test/validate)#########################
     # split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
-    split_rel = args.split_rel.split('/')[-1]
+    split_rel = split_rel.split('/')[-1]
     if split_rel.lower() == 'random':
         split_df = g_tsv_df[g_tsv_df["p"] == target_rel]
 
     else:
         split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
 
-
-    
     ########## remove drug  with multi labels ################
     target_label_dict = split_df["s"].value_counts().to_dict()
     target_nodes_to_keep_lst = list(k for k, v in target_label_dict.items() if v == 1)
@@ -340,7 +308,7 @@ if __name__ == '__main__':
     split_df = split_df[split_df["s"].isin(target_nodes_to_keep_lst)]
     ########## remove labels with less than 9 samples################
     labels_dict = split_df["o"].value_counts().to_dict()
-    labels_to_keep_lst = list(k for k, v in labels_dict.items() if v >= args.MINIMUM_INSTANCE_THRESHOLD) # 9
+    labels_to_keep_lst = list(k for k, v in labels_dict.items() if v >= MINIMUM_INSTANCE_THRESHOLD)  # 9
     print("labels_dict count=", len(labels_dict.keys()))
     print("labels_to_keep count=", len(labels_to_keep_lst))
     split_df = split_df[split_df["o"].isin(labels_to_keep_lst)]
@@ -359,7 +327,7 @@ if __name__ == '__main__':
 
     split_df = split_df[split_df["s"] != -1]
     # split_df["o"] = split_df["o"].astype(split_by["split_data_type"])
-    #split_df["o"] = split_df["o"]
+    # split_df["o"] = split_df["o"]
     label_type_values_lst = list(entites_dic[label_type + "_dic"].values())
     split_df = split_df[split_df["s"].isin(label_type_values_lst)]
     split_df = split_df.sort_values(by=["s"]).reset_index(drop=True)
@@ -367,13 +335,13 @@ if __name__ == '__main__':
     # train_df = split_df[split_df["o"] <= split_by["train"]]["s"]
     # valid_df = split_df[(split_df["o"] > split_by["train"]) & (split_df["o"] <= split_by["valid"])]["s"]
     # test_df = split_df[(split_df["o"] > split_by["valid"])]["s"]
-    
+
     ########## Random Splitting ###########
     if split_rel.lower() == 'random':
-        test_size = 1 - (1 - (args.test_size + args.valid_size))
-        valid_size = (args.valid_size)/(args.test_size + args.valid_size)
-        print("Test % ",test_size)
-        print("Valid % ",valid_size)
+        test_size = 1 - (1 - (test_size + valid_size))
+        valid_size = (valid_size) / (test_size + valid_size)
+        print("Test % ", test_size)
+        print("Valid % ", valid_size)
         X_train, X_test, y_train, y_test = train_test_split(split_df["s"].tolist(), split_df["o"].tolist(),
                                                             test_size=test_size, random_state=42,
                                                             stratify=split_df["o"].tolist())
@@ -382,15 +350,16 @@ if __name__ == '__main__':
         train_df = pd.DataFrame(X_train)
         valid_df = pd.DataFrame(X_valid)
         test_df = pd.DataFrame(X_test)
-    
+
     else:
-        print("SPLIT REL PROVIDED: " , split_rel)
-        train_df = split_df[split_df["o"].astype(int) <= args.split_rel_train_value]["s"]
-        valid_df = split_df[(split_df["o"].astype(int) > args.split_rel_train_value) & (split_df["o"].astype(int) <= args.split_rel_valid_value)]["s"]
-        test_df = split_df[(split_df["o"].astype(int) > args.split_rel_valid_value)]["s"]
-        
-    map_folder = output_root_path + dataset_name + "/split/" + label_type #+ split_by[        "folder_name"] + "/" 
-        
+        print("SPLIT REL PROVIDED: ", split_rel)
+        train_df = split_df[split_df["o"].astype(int) <= split_rel_train_value]["s"]
+        valid_df = split_df[(split_df["o"].astype(int) > split_rel_train_value) & (
+                    split_df["o"].astype(int) <= split_rel_valid_value)]["s"]
+        test_df = split_df[(split_df["o"].astype(int) > split_rel_valid_value)]["s"]
+
+    map_folder = output_root_path + dataset_name + "/split/" + label_type  # + split_by[        "folder_name"] + "/"
+
     try:
         os.stat(map_folder)
     except:
@@ -413,9 +382,9 @@ if __name__ == '__main__':
             lst_has_split.append("False")
     lst_node_has_split.append(lst_has_split)
     pd.DataFrame(lst_node_has_split).to_csv(
-        output_root_path + dataset_name + "/split/" #+ split_by["folder_name"]
+        output_root_path + dataset_name + "/split/"  # + split_by["folder_name"]
         + "nodetype-has-split.csv", header=None, index=None)
-    compress_gz(output_root_path + dataset_name + "/split/" #+ split_by["folder_name"] 
+    compress_gz(output_root_path + dataset_name + "/split/"  # + split_by["folder_name"]
                 + "nodetype-has-split.csv")
     ###################### write entites relations for nodes only (non literals) #########################
     idx = 0
@@ -423,16 +392,16 @@ if __name__ == '__main__':
         for rel_list in relations_entites_map[rel]:
             e1, rel, e2 = rel_list
             ############
-            relations_dic[rel]["s_idx"] = relations_dic[rel]["s"]#.apply(
-                # lambda x: str(x).split("/")[-1])
+            relations_dic[rel]["s_idx"] = relations_dic[rel]["s"]  # .apply(
+            # lambda x: str(x).split("/")[-1])
             relations_dic[rel]["s_idx"] = relations_dic[rel]["s_idx"].apply(
                 lambda x: entites_dic[e1 + "_dic"][x] if x in entites_dic[
                     e1 + "_dic"].keys() else -1)
             relations_dic[rel] = relations_dic[rel][relations_dic[rel]["s_idx"] != -1]
             ################
             # relations_dic[rel]["o_keys"]=relations_dic[rel]["o"].apply(lambda x:x.split("/")[3] if x.startswith("http") and len(x.split("/")) > 3 else x)
-            relations_dic[rel]["o_idx"] = relations_dic[rel]["o"]#.apply(
-                # lambda x: str(x).split("/")[-1])
+            relations_dic[rel]["o_idx"] = relations_dic[rel]["o"]  # .apply(
+            # lambda x: str(x).split("/")[-1])
             relations_dic[rel]["o_idx"] = relations_dic[rel]["o_idx"].apply(
                 lambda x: entites_dic[e2 + "_dic"][x] if x in entites_dic[
                     e2 + "_dic"].keys() else -1)
@@ -477,3 +446,45 @@ if __name__ == '__main__':
     pd.DataFrame(dic_results).transpose().to_csv(
         output_root_path + dataset_name.split(".")[0] + "_ToHetroG_times.csv", index=False)
 
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='TSV to PYG')
+    #parser.add_argument('--csv_path', type=str, default="")
+    parser.add_argument('--target_rel', type=str, default="https://dblp.org/rdf/schema#publishedIn") # https://dblp.org/rdf/schema#publishedIn
+    #split_data_type
+    #size of train # if random then in % else specific value for train and valid split
+    #size of valid
+    parser.add_argument('--target_node', type=str, default="rec") # should be in node_types file (obtain using subject of target relation), 'paper'
+    parser.add_argument('--dataset_name',type=str, default="DBLP-Springer-Papers") # name of generated zip file
+    #parser.add_argument('--dataset_csv',type=str, default="")
+    parser.add_argument('--dataset_name_csv',type=str, default="DBLP-Springer-Papers")  # csv/tsv , input dataset name
+    parser.add_argument('--dataset_types',type=str, default="") # path to the 'types' file containing relatiolns
+    #parser.add_argument('--split_by', type=dict, default={}) replaced by train and valid args
+    parser.add_argument('--split_rel', type=str, default="random") # https://dblp.org/rdf/schema#yearOfPublication #default = random # TODO could be null in some rows
+    parser.add_argument('--split_rel_train_value', type=int, default=0)
+    parser.add_argument('--split_rel_valid_value', type=int, default=0)
+    parser.add_argument('--test_size',type=float,default=0.2)
+    parser.add_argument('--valid_size',type=float,default=0.5)
+    parser.add_argument('--similar_target_rels',type=list, default=[]) # 'https://dblp.org/rdf/schema#publishedInSeries' 
+    # parser.add_argument('--target_node',type=str, default = "")
+    #parser.add_argument('--dic_results',type=dict, default = "")
+    parser.add_argument('--Literals2Nodes',type=bool, default = False) # convert literal vals into nodes (eg name of paper )or ignore 
+    parser.add_argument('--output_root_path',type=str, default = "../../Datasets/")
+    parser.add_argument('--MINIMUM_INSTANCE_THRESHOLD',type=int, default = 3)
+
+    args = parser.parse_args()
+    dataset_name = args.dataset_name  # "biokg_Drug_Classification" # Name of the dataset
+    dataset_name_csv = args.dataset_name_csv  # "biokg"  # spo in IRI .csv no need for <>
+    dataset_types = args.dataset_types  # "biokg_types.csv"  # kind of ontology
+    split_rel = args.split_rel  # "http://purl.org/dc/terms/year"
+    # split_by = args.split_by #{"folder_name": "random"}  # , "split_data_type": "int", "train":2006  ,"valid":2007 , "test":2008 }
+    target_rel = args.target_rel  # "https://www.biokg.org/CLASS"  # is in the dataset and is StudiedDrug
+    similar_target_rels = args.similar_target_rels  # ["https://www.biokg.org/SUBCLASS", "https://www.biokg.org/SUPERCLASS"]
+    target_node = args.target_node  # "drug"  # to check -> because no labels yet
+    Literals2Nodes = args.Literals2Nodes  # False
+    output_root_path = args.output_root_path  # "/home/ubuntu/flora_tests/biokg/data/"
+    transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,target_node,output_root_path,args.MINIMUM_INSTANCE_THRESHOLD,args.test_size,args.valid_size,args.split_rel_train_value,args.split_rel_valid_value,Header_row=True)
+
+
+
+    
