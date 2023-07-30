@@ -58,15 +58,14 @@ class GML_Insert_Operator():
                 "target_rel": query_dict["Insert_JSON_Object"]["GML-Task"]["LabelPredicate"],
                 "dataset_name": query_dict["Insert_JSON_Object"]["Name"],
                 "dataset_name_csv": query_dict["Insert_JSON_Object"]["Name"],
-                "dataset_types":"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/DBLP_Types.csv",
+                "dataset_types":query_dict["Insert_JSON_Object"]["GML-Task"]["dataset_types_path"],
                 "test_size": 0.1,
                 "valid_size": 0.1,
-                "MINIMUM_INSTANCE_THRESHOLD": 9,
+                "MINIMUM_INSTANCE_THRESHOLD": 6,
                 "output_root_path": "/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
             },
             "training":
                 {"dataset_name": query_dict["Insert_JSON_Object"]["Name"],
-                 "target_node": "rec",
                  "n_classes": 1000,
                  "root_path": "/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
                  }
@@ -75,6 +74,8 @@ class GML_Insert_Operator():
     def executeQuery(self,query_dict):
         exist,task_res_df,task_exist_query=self.check_gml_task_exist(query_dict)
         gml_model_status=""
+        transform_results_dict={}
+        train_results_dict={}
         if not exist:
             train_pipline_json = self.create_train_pipline_json(query_dict)
             print("################# TOSG Sampling ###########################")
@@ -82,11 +83,11 @@ class GML_Insert_Operator():
                                       train_pipline_json["transformation"]["output_root_path"]+train_pipline_json["transformation"]["dataset_name"]+".tsv",
                                       query_dict["Insert_JSON_Object"]["GML-Task"]["TOSG"])
             print("################# Start GNN Task Training  ###########################")
-            run_training_pipeline(json_args=train_pipline_json)
+            transform_results_dict,train_results_dict=run_training_pipeline(json_args=train_pipline_json)
             gml_model_status="SPARQL-ML Insert Operator Executed Scussfully"
         else:
             gml_model_status = "There is GML model exist with URI:"+task_res_df["model"].values[0].replace("\"","")
-        return gml_model_status
+        return gml_model_status,transform_results_dict,train_results_dict
 
 if __name__ == '__main__':
     dblp_LP = """
@@ -124,7 +125,7 @@ if __name__ == '__main__':
           limit 100
           """
 
-    Insert_Query = """
+    DBLP_Insert_Query = """
            prefix dblp:<https://www.dblp.org/>
            prefix kgnet:<https://www.kgnet.com/>
            Insert into <kgnet>
@@ -139,6 +140,7 @@ if __name__ == '__main__':
                    "LabelPredicate":"https://dblp.org/rdf/schema#publishedInJournal",
                    "named_graph_uri":"http://dblp.org",
                    "GNN_Method":"G_SAINT",
+                   "dataset_types_path":"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/DBLP_Types.csv",
                    "TOSG":"d2h1",
                    "TargetNodeFilters":{
                 "filter1":["<https://dblp.org/rdf/schema#yearOfPublication>", "?year","filter(xsd:integer(?year)<1960)"]
@@ -149,6 +151,31 @@ if __name__ == '__main__':
                    "MaxTime":"1h",
                    "Priority":"ModelScore"}
                })}"""
+    LinkedIMDB_Insert_Query = """
+               prefix kgnet:<https://www.kgnet.com/>
+               Insert into <kgnet>
+               where{
+                   select * from kgnet.TrainGML(
+                   {
+                   "Name":"LIMDB_Film_Year_lte_1990_Language_Classifer",
+                   "GML-Task":{
+                       "TaskType":"kgnet:NodeClassifier",
+                       "TargetNode":"imdb:Film",
+                       "NodeLabel":"imdb:Language",
+                       "LabelPredicate":"http://data.linkedmdb.org/resource/movie/language",
+                       "named_graph_uri":"https://linkedimdb",
+                       "GNN_Method":"G_SAINT",
+                       "dataset_types_path":"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/LinkedIMDB_Types.csv",
+                       "TOSG":"d1h1",
+                       "TargetNodeFilters":{
+                "filter1":["<http://purl.org/dc/terms/date>", "?year","filter(xsd:integer(?year)<=1990)"]
+                    }
+                       },
+                   "TaskBudget":{
+                       "MaxMemory":"50GB",
+                       "MaxTime":"1h",
+                       "Priority":"ModelScore"}
+                   })}"""
     # Insert_Query="""prefix dblp:<https://www.dblp.org/>
     #     prefix kgnet:<https://www.kgnet.com/>
     #     #Insert {GRAPH <kgnet> {?s ?p ?o}}
@@ -163,11 +190,12 @@ if __name__ == '__main__':
     #         }
     #     }
     #     """
-    kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.98.118:8890/sparql', KGMeta_URI="http://kgnet")
-
+    # kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.98.118:8890/sparql', KGMeta_URI="http://kgnet")
+    kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.99.253:8890/sparql/', KGMeta_URI="http://kgnet")
     # gmlqp = gmlQueryParser(dblp_NC)
     # (dataq,kmetaq)=gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(),kgmeta_govener).rewrite_gml_query()
 
-    insert_task_dict = gmlQueryParser(Insert_Query).extractQueryStatmentsDict()
+    # insert_task_dict = gmlQueryParser(DBLP_Insert_Query).extractQueryStatmentsDict()
+    insert_task_dict = gmlQueryParser(LinkedIMDB_Insert_Query).extractQueryStatmentsDict()
     gml_insert_op=GML_Insert_Operator(kgmeta_govener)
     print(gml_insert_op.executeQuery(insert_task_dict))

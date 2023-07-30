@@ -27,7 +27,7 @@ from sklearn.model_selection import cross_val_score
 import traceback
 import sys
 # sys.path.insert(0, '/media/hussein/UbuntuData/GithubRepos/KGNET/GMLaaS/models/')
-GMLaaS_models_path=sys.path[1]+"/GMLaaS/models"
+GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models"
 sys.path.insert(0,GMLaaS_models_path)
 print("sys.path=",sys.path)
 from ogb.nodeproppred import PygNodePropPredDataset
@@ -485,7 +485,7 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
             print(traceback.format_exc())
             print("dataset_name Exception")
         del train_loader
-    return gsaint_Final_Test
+    return dic_results
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='OGBN-MAG (GraphSAINT)')
