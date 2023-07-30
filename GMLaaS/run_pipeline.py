@@ -55,20 +55,20 @@ def cmd_run_training_pipeline(path_json=None,path_transformation_py='DataTransfo
 def run_training_pipeline(json_args):
     print("################# Start GMLaaS Pipline ###########################")
     print("######### Start PYG Dataset Transformation ##########")
-    transform_tsv_to_PYG(dataset_name=json_args["transformation"]["dataset_name"],
+    transform_results_dict=transform_tsv_to_PYG(dataset_name=json_args["transformation"]["dataset_name"],
                          dataset_name_csv=json_args["transformation"]["dataset_name"],
                          dataset_types=json_args["transformation"]["dataset_types"] ,
                          split_rel="random",
                          target_rel=json_args["transformation"]["target_rel"],
                          similar_target_rels=[],
-                         target_node="rec",
+                         target_node=None,
                          output_root_path=json_args["transformation"]["output_root_path"],
                          MINIMUM_INSTANCE_THRESHOLD=json_args["transformation"]["MINIMUM_INSTANCE_THRESHOLD"],
                          test_size=json_args["transformation"]["test_size"],
                          valid_size=json_args["transformation"]["valid_size"],
                          split_rel_train_value=None,
                          split_rel_valid_value=None)
-    graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5, runs=1, batch_size=20000,
+    train_results_dict=graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5, runs=1, batch_size=20000,
                walk_length=2, num_steps=10, loadTrainedModel=0,
                dataset_name=json_args["training"]["dataset_name"],
                root_path=json_args["training"]["root_path"],
@@ -76,6 +76,7 @@ def run_training_pipeline(json_args):
                include_reverse_edge=True,
                n_classes=1000,
                emb_size=128)
+    return transform_results_dict,train_results_dict
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GMLaaS Pipeline')

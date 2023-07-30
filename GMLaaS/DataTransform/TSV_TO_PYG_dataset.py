@@ -33,8 +33,8 @@ def delete_multiple_element(list_object, indices):
 def define_rel_types(g_tsv_df):
     g_tsv_df["p"]
 
-def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,target_node,output_root_path
-                         ,MINIMUM_INSTANCE_THRESHOLD=9,test_size=0.2,valid_size=0.5,split_rel_train_value=None,split_rel_valid_value=None,Header_row=None):
+def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path
+                         ,MINIMUM_INSTANCE_THRESHOLD=9,test_size=0.1,valid_size=0.1,split_rel_train_value=None,split_rel_valid_value=None,Header_row=None,target_node=None):
     dic_results = {}  # args.dic_results #{}
     start_t = datetime.datetime.now()
     if dataset_types == "":
@@ -172,7 +172,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
                 # lambda x: str(x).split("/")[-1]).unique())
 
     ############################### Obtain Target node if not explicitly given #########
-    if target_node == "":
+    if target_node is None:
         target_node = list(g_tsv_types_df[g_tsv_types_df['ptype'] == target_rel]['stype'])[0]
 
     ############################### Make sure all target nodes have label ###########
@@ -338,15 +338,18 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
 
     ########## Random Splitting ###########
     if split_rel.lower() == 'random':
-        test_size = 1 - (1 - (test_size + valid_size))
+        new_test_size = 1 - (1 - (test_size + valid_size))
         valid_size = (valid_size) / (test_size + valid_size)
+        test_size=new_test_size
         print("Test % ", test_size)
         print("Valid % ", valid_size)
         X_train, X_test, y_train, y_test = train_test_split(split_df["s"].tolist(), split_df["o"].tolist(),
                                                             test_size=test_size, random_state=42,
                                                             stratify=split_df["o"].tolist())
-        X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42,
-                                                            stratify=y_test)
+        try:
+            X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42,stratify=y_test)
+        except:
+            X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42)
         train_df = pd.DataFrame(X_train)
         valid_df = pd.DataFrame(X_valid)
         test_df = pd.DataFrame(X_test)
@@ -445,6 +448,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     dic_results[dataset_name]["csv_to_Hetrog_time"] = (end_t - start_t).total_seconds()
     pd.DataFrame(dic_results).transpose().to_csv(
         output_root_path + dataset_name.split(".")[0] + "_ToHetroG_times.csv", index=False)
+    return dic_results
 
 
 if __name__ == '__main__':
@@ -454,7 +458,6 @@ if __name__ == '__main__':
     #split_data_type
     #size of train # if random then in % else specific value for train and valid split
     #size of valid
-    parser.add_argument('--target_node', type=str, default="rec") # should be in node_types file (obtain using subject of target relation), 'paper'
     parser.add_argument('--dataset_name',type=str, default="DBLP-Springer-Papers") # name of generated zip file
     #parser.add_argument('--dataset_csv',type=str, default="")
     parser.add_argument('--dataset_name_csv',type=str, default="DBLP-Springer-Papers")  # csv/tsv , input dataset name
@@ -480,10 +483,9 @@ if __name__ == '__main__':
     # split_by = args.split_by #{"folder_name": "random"}  # , "split_data_type": "int", "train":2006  ,"valid":2007 , "test":2008 }
     target_rel = args.target_rel  # "https://www.biokg.org/CLASS"  # is in the dataset and is StudiedDrug
     similar_target_rels = args.similar_target_rels  # ["https://www.biokg.org/SUBCLASS", "https://www.biokg.org/SUPERCLASS"]
-    target_node = args.target_node  # "drug"  # to check -> because no labels yet
     Literals2Nodes = args.Literals2Nodes  # False
     output_root_path = args.output_root_path  # "/home/ubuntu/flora_tests/biokg/data/"
-    transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,target_node,output_root_path,args.MINIMUM_INSTANCE_THRESHOLD,args.test_size,args.valid_size,args.split_rel_train_value,args.split_rel_valid_value,Header_row=True)
+    transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path,args.MINIMUM_INSTANCE_THRESHOLD,args.test_size,args.valid_size,args.split_rel_train_value,args.split_rel_valid_value,Header_row=True)
 
 
 
