@@ -36,7 +36,7 @@ class TOSG_Patterns:
     def __init__(self):
        ""
 class KGNET_Config:
-    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets"
+    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
     def __init__(self):
        ""
 
