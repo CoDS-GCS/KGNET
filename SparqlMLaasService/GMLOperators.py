@@ -1,5 +1,7 @@
 import sys
 import os
+
+import Constants
 from Constants import *
 from GMLaaS.run_pipeline import run_training_pipeline
 from KGMeta_Governer import KGMeta_Governer
@@ -68,12 +70,12 @@ class GML_Insert_Operator(GML_Operator):
                 "test_size": 0.1,
                 "valid_size": 0.1,
                 "MINIMUM_INSTANCE_THRESHOLD": 6,
-                "output_root_path": "/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+                "output_root_path": Constants.KGNET_Config.datasets_output_path
             },
             "training":
                 {"dataset_name": query_dict["Insert_JSON_Object"]["Name"],
                  "n_classes": 1000,
-                 "root_path": "/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+                 "root_path":  Constants.KGNET_Config.datasets_output_path
                  }
         }
         return train_pipeline_dict
@@ -155,7 +157,7 @@ if __name__ == '__main__':
                    "LabelPredicate":"https://dblp.org/rdf/schema#publishedInJournal",
                    "named_graph_uri":"http://dblp.org",
                    "GNN_Method":\""""+GNN_Methods.Graph_SAINT+"""\",
-                   "dataset_types_path":"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/DBLP_Types.csv",
+                   "dataset_types_path":\""""+KGNET_Config.datasets_output_path+"""DBLP_Types.csv",
                    "TOSG":\""""+TOSG_Patterns.d1h1+"""\",
                    "TargetNodeFilters":{
                 "filter1":["<https://dblp.org/rdf/schema#yearOfPublication>", "?year","filter(xsd:integer(?year)<1960)"]
@@ -180,7 +182,7 @@ if __name__ == '__main__':
                        "LabelPredicate":"http://data.linkedmdb.org/resource/movie/language",
                        "named_graph_uri":"https://linkedimdb",
                        "GNN_Method":\""""+GNN_Methods.Graph_SAINT+"""\",
-                       "dataset_types_path":"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/LinkedIMDB_Types.csv",
+                       "dataset_types_path":\""""+KGNET_Config.datasets_output_path+"""LinkedIMDB_Types.csv",
                        "TOSG":\""""+TOSG_Patterns.d1h1+"""\",
                        "TargetNodeFilters":{
                 "filter1":["<http://purl.org/dc/terms/date>", "?year","filter(xsd:integer(?year)<=1990)"]
@@ -206,7 +208,7 @@ if __name__ == '__main__':
                            "LabelPredicate":"https://makg.org/property/appearsInJournal",
                            "named_graph_uri":"http://mag.org",
                            "GNN_Method":\""""+GNN_Methods.Graph_SAINT+"""\",
-                           "dataset_types_path":"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/MAG_Types.csv",
+                           "dataset_types_path":\""""+KGNET_Config.datasets_output_path+"""MAG_Types.csv",
                            "TOSG":\""""+TOSG_Patterns.d1h1+"""\",
                            "TargetNodeFilters":{
                     "filter1":["<https://makg.org/publish_year>", "?year","filter(xsd:integer(?year)<=2011)"]
@@ -233,14 +235,14 @@ if __name__ == '__main__':
     #         }
     #     }
     #     """
+
     # kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.98.118:8890/sparql', KGMeta_URI="http://kgnet")
-    # kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.99.253:8890/sparql/', KGMeta_URI="http://kgnet")
-    kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.97.2:8890/sparql/', KGMeta_URI="http://kgnet")
+    kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.99.253:8890/sparql/', KGMeta_URI="http://kgnet")
+    # kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.97.2:8890/sparql/', KGMeta_URI="http://kgnet")
     # gmlqp = gmlQueryParser(dblp_NC)
     # (dataq,kmetaq)=gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(),kgmeta_govener).rewrite_gml_query()
-
     # insert_task_dict = gmlQueryParser(DBLP_Insert_Query).extractQueryStatmentsDict()
-    # insert_task_dict = gmlQueryParser(LinkedIMDB_Insert_Query).extractQueryStatmentsDict()
-    insert_task_dict = gmlQueryParser(MAG_Insert_Query).extractQueryStatmentsDict()
+    insert_task_dict = gmlQueryParser(LinkedIMDB_Insert_Query).extractQueryStatmentsDict()
+    # insert_task_dict = gmlQueryParser(MAG_Insert_Query).extractQueryStatmentsDict()
     gml_insert_op=GML_Insert_Operator(kgmeta_govener)
     print(gml_insert_op.executeQuery(insert_task_dict))
