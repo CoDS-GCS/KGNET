@@ -7,7 +7,7 @@ import  pandas as pd
 from RDFEngineManager.UDF_Manager_Virtuoso import openlinkVirtuosoEndpoint
 # from GMLQueryManager import gmlManager
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
-from embeddingServices.similarityMetrics import cosineSimilarity
+from KGEs.similarityMetrics import cosineSimilarity
 import datetime
 if __name__ == '__main__':
     """ """
