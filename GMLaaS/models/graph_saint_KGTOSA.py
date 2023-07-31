@@ -1,4 +1,5 @@
 from copy import copy
+from Constants import *
 import json
 import argparse
 import shutil
@@ -290,14 +291,14 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
             print(f'searching for dataset at: {root_path+GNN_dataset_name}')
             dataset = PygNodePropPredDataset_hsh(name=GNN_dataset_name, root=root_path,numofClasses=str(n_classes))
             print("dataset_name=",dataset_name)
-            dic_results[dataset_name] = {}
-            dic_results[dataset_name]["GNN_Method"] = "GSaint"
-            dic_results[dataset_name]["to_keep_edge_idx_map"] = to_keep_edge_idx_map        
-            dic_results[dataset_name]["usecase"] = dataset_name
+            dic_results = {}
+            dic_results["GNN_Method"] = GNN_Methods.Graph_SAINT
+            dic_results["to_keep_edge_idx_map"] = to_keep_edge_idx_map
+            dic_results["dataset_name"] = dataset_name
             gnn_hyper_params_dict={"device":device,"num_layers":num_layers,"hidden_channels":hidden_channels,
                 "dropout":dropout,"lr":lr,"epochs":epochs,"runs":runs,"batch_size":batch_size,
                 "walk_length":walk_length,"num_steps":num_steps,"emb_size":emb_size}
-            dic_results[dataset_name]["gnn_hyper_params"] =gnn_hyper_params_dict
+            dic_results["gnn_hyper_params"] =gnn_hyper_params_dict
             print(getrusage(RUSAGE_SELF))
             start_t = datetime.datetime.now()
             data = dataset[0]
@@ -306,7 +307,7 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
             split_idx = dataset.get_idx_split()
             end_t = datetime.datetime.now()
             print("dataset init time=", end_t - start_t, " sec.")
-            dic_results[dataset_name]["GSaint_data_init_time"] = (end_t - start_t).total_seconds()
+            dic_results["dataset_load_time"] = (end_t - start_t).total_seconds()
             evaluator = Evaluator(name='ogbn-mag')
             logger = Logger(runs, gnn_hyper_params_dict)
             start_t = datetime.datetime.now()
@@ -330,7 +331,7 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
             for key in to_remove_subject_object:
                 data.num_nodes_dict.pop(key, None)
 
-            dic_results[dataset_name]["data"] = str(data)
+            dic_results["data_obj"] = str(data)
             ##############add inverse edges ###################
             if include_reverse_edge:
                 edge_index_dict = data.edge_index_dict
@@ -378,8 +379,8 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
                  sample_coverage=0,
                  save_dir=dataset.processed_dir)
             end_t = datetime.datetime.now()
-            print("Sampling time=", end_t - start_t, " sec.")
-            dic_results[dataset_name]["GSaint_Sampling_time"] = (end_t - start_t).total_seconds()
+            # print("Sampling time=", end_t - start_t, " sec.")
+            # dic_results[dataset_name]["GSaint_Sampling_time"] = (end_t - start_t).total_seconds()
             start_t = datetime.datetime.now()
             # Map informations to their canonical type.
             #######################intialize random features ###############################
@@ -398,7 +399,7 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
 
             end_t = datetime.datetime.now()
             print("model init time CPU=", end_t - start_t, " sec.")
-            dic_results[dataset_name]["model init Time"] = (end_t - start_t).total_seconds()
+            # dic_results["model init Time"] = (end_t - start_t).total_seconds()
             device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
             model = RGCN(emb_size, hidden_channels, dataset.num_classes, num_layers,
                          dropout, num_nodes_dict, list(x_dict.keys()),
@@ -409,7 +410,7 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
             optimizer = torch.optim.Adam(model.parameters(), lr=lr)
             model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
             # model_name = dataset_name + "_DBLP_conf_GSAINT_QM.model"
-            model_name = gen_model_name(dataset_name,dic_results[dataset_name]["GNN_Method"])
+            model_name = gen_model_name(dataset_name,dic_results["GNN_Method"])
             if loadTrainedModel == 1:
                 with torch.no_grad():
                     start_t = datetime.datetime.now()
@@ -420,7 +421,7 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
                     y_pred = out.argmax(dim=-1, keepdim=True).cpu()
                     end_t = datetime.datetime.now()
                     print(dataset_name, "Infernce Time=", (end_t - start_t).total_seconds())
-                    dic_results[dataset_name]["InfernceTime="] = (end_t - start_t).total_seconds()
+                    dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
             else:
                 print("start test")
                 test()  # Test if inference on GPU succeeds.
@@ -456,26 +457,25 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
                 gsaint_end_t = datetime.datetime.now()
                 Highest_Train, Highest_Valid, Final_Train, Final_Test = logger.print_statistics()
                 model_trained_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
-                dic_results[dataset_name]["init_ru_maxrss"] = init_ru_maxrss
-                dic_results[dataset_name]["model_ru_maxrss"] = model_loaded_ru_maxrss
-                dic_results[dataset_name]["model_trained_ru_maxrss"] = model_trained_ru_maxrss
-                dic_results[dataset_name]["Highest_Train"] = Highest_Train.item()
-                dic_results[dataset_name]["Highest_Valid"] = Highest_Valid.item()
-                dic_results[dataset_name]["Final_Train"] = Final_Train.item()
+                dic_results["init_ru_maxrss"] = init_ru_maxrss
+                dic_results["model_ru_maxrss"] = model_loaded_ru_maxrss
+                dic_results["model_trained_ru_maxrss"] = model_trained_ru_maxrss
+                dic_results["Highest_Train_Acc"] = Highest_Train.item()
+                dic_results["Highest_Valid_Acc"] = Highest_Valid.item()
+                dic_results["Final_Train_Acc"] = Final_Train.item()
                 gsaint_Final_Test= Final_Test.item()
-                dic_results[dataset_name]["Final_Test"] = Final_Test.item()
-                dic_results[dataset_name]["runs_count"] = runs
-                dic_results[dataset_name]["train_time"] = total_run_t
-                dic_results[dataset_name]["Training_total_time_runs"] = (gsaint_end_t - gsaint_start_t).total_seconds()
-                dic_results[dataset_name]["model_parameters_count"]= sum(p.numel() for p in model.parameters())
-                dic_results[dataset_name]["model_trainable_paramters_count"]=sum(p.numel() for p in model.parameters() if p.requires_grad)
+                dic_results["Final_Test_Acc"] = Final_Test.item()
+                dic_results["Train_Runs_Count"] = runs
+                dic_results["Train_Time"] = total_run_t
+                dic_results["Total_Time"] = (gsaint_end_t - gsaint_start_t).total_seconds()
+                dic_results["Model_Parameters_Count"]= sum(p.numel() for p in model.parameters())
+                dic_results["Model_Trainable_Paramters_Count"]=sum(p.numel() for p in model.parameters() if p.requires_grad)
 
                 # pd.DataFrame(dic_results).transpose().to_csv(output_path+"GSAINT_" + GNN_dataset_name + "_Times.csv", index=False)
                 # shutil.rmtree("/shared_mnt/DBLP/" + dataset_name)
                 logs_path = os.path.join(output_path,'logs')
                 model_path = os.path.join(output_path,'trained_models')        
                 create_dir([logs_path,model_path]) # args: list of paths
-
                 # pd.DataFrame(dic_results).transpose().to_json(os.path.join(logs_path,model_name+'.json') )
                 with open(os.path.join(logs_path, model_name +'_log.json'), "w") as outfile:
                     json.dump(dic_results, outfile)

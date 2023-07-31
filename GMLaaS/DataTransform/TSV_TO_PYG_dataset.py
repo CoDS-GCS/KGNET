@@ -133,7 +133,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         rel_type = rel.split("/")[-1]
         # rel_type = rel
         rel_df = g_tsv_df[g_tsv_df["p"] == rel_type].reset_index(drop=True)
-        print("rel_type ", rel)
+        # print("rel_type ", rel)
         rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
         # print(rel_types.columns)
         # print(len(rel_types))

@@ -45,6 +45,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/Datasets/LinkedIMDB_Types.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/GMLQueryRewriter/cognitive_queries.csv">
           <value>
             <Attribute>
