@@ -3,6 +3,7 @@ from Constants import *
 import json
 import argparse
 import shutil
+from Constants import *
 import pandas as pd
 from tqdm import tqdm
 import datetime
@@ -38,6 +39,7 @@ from resource import *
 from logger import Logger
 import faulthandler
 faulthandler.enable()
+from model import Model
 import pickle
 
 
@@ -101,7 +103,7 @@ class RGCNConv(MessagePassing):
     def message(self, x_j, edge_type: int):
         return self.rel_lins[edge_type](x_j)
 
-class RGCN(torch.nn.Module):
+class RGCN(torch.nn.Module,Model):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
                  dropout, num_nodes_dict, x_types, num_edge_types):
         super(RGCN, self).__init__()
@@ -215,6 +217,189 @@ class RGCN(torch.nn.Module):
             x_dict = out_dict
 
         return x_dict
+    def load_data(self,GNN_dataset_name,dic_results,root_path,n_classes,GA_Index=0,to_remove_pedicates = [], to_remove_subject_object =[], to_keep_edge_idx_map = [],include_reverse_edge=True):
+
+
+        gsaint_start_t = datetime.datetime.now()
+        dir_path = "/shared_mnt/MAG_subsets/" + GNN_dataset_name
+        try:
+            shutil.rmtree(dir_path)
+            print(f"Folder Deleted: {dir_path}")
+        except OSError as e:
+            print("Error Deleting : %s : %s" % (dir_path, e.strerror))
+
+        dataset = PygNodePropPredDataset_hsh(name=GNN_dataset_name, root=root_path,numofClasses=str(n_classes))
+        dataset_name = GNN_dataset_name + "_GA_" + str(GA_Index)
+        print("dataset_name=", dataset_name)
+        dic_results["GNN_Model"] = GNN_Methods.Graph_SAINT
+        dic_results["GA_Index"] = GA_Index
+        dic_results["to_keep_edge_idx_map"] = to_keep_edge_idx_map
+        dic_results["usecase"] = dataset_name
+
+        dic_results["gnn_hyper_params"] = str(args)
+        print(getrusage(RUSAGE_SELF))
+        start_t = datetime.datetime.now()
+
+        data = dataset[0]
+        subject_node = list(data.y_dict.keys())[0]
+        split_idx = dataset.get_idx_split()
+        end_t = datetime.datetime.now()
+        print("dataset init time=", end_t - start_t, " sec.")
+
+        data.node_year_dict = None
+        data.edge_reltype_dict = None
+        to_remove_rels = []
+        for keys, (row, col) in data.edge_index_dict.items():
+            if (keys[2] in to_remove_subject_object) or (keys[0] in to_remove_subject_object):
+                to_remove_rels.append(keys)
+
+        for keys, (row, col) in data.edge_index_dict.items():
+            if (keys[1] in to_remove_pedicates):
+                to_remove_rels.append(keys)
+                to_remove_rels.append((keys[2], '_inv_' + keys[1], keys[0]))
+
+        for elem in to_remove_rels:
+            data.edge_index_dict.pop(elem, None)
+            data.edge_reltype.pop(elem, None)
+
+        for key in to_remove_subject_object:
+            data.num_nodes_dict.pop(key, None)
+
+        dic_results["data_obj"] = str(data)
+        ##############add inverse edges ###################
+
+
+        if include_reverse_edge:
+            edge_index_dict = data.edge_index_dict
+            key_lst = list(edge_index_dict.keys())
+            for key in key_lst:
+                r, c = edge_index_dict[(key[0], key[1], key[2])]
+                edge_index_dict[(key[2], 'inv_' + key[1], key[0])] = torch.stack([c, r])
+
+        out = group_hetero_graph(data.edge_index_dict, data.num_nodes_dict)
+        edge_index, edge_type, node_type, local_node_idx, local2global, key2int = out
+
+        homo_data = Data(edge_index=edge_index, edge_attr=edge_type,
+                         node_type=node_type, local_node_idx=local_node_idx,
+                         num_nodes=node_type.size(0))
+
+        homo_data.y = node_type.new_full((node_type.size(0), 1), -1)
+        homo_data.y[local2global[subject_node]] = data.y_dict[subject_node]
+
+        homo_data.train_mask = torch.zeros((node_type.size(0)), dtype=torch.bool)
+        homo_data.train_mask[local2global[subject_node][split_idx['train'][subject_node]]] = True
+
+
+        print("dataset.processed_dir", dataset.processed_dir)
+        meta_dict = {'processed_dir':dataset.processed_dir,
+                     'edge_index':edge_index,
+                     'edge_type':edge_type,
+                     'node_type':node_type,
+                     'local_node_idx':local_node_idx,
+                     'local2global':local2global,
+                     'key2int':key2int,
+                     'subject_node':subject_node,
+                     'num_classes':dataset.num_classes,
+                     'edge_index_dict':edge_index_dict}
+        return data,homo_data,dic_results,meta_dict
+
+    def sampling_method(self,data,sampler_name=GNN_Samplers.RW,sampler_param={}):
+        if sampler_name == GNN_Samplers.BRW:
+            raise NotImplementedError
+
+        elif sampler_name == GNN_Samplers.RW:
+            batch_size = sampler_param['batch_size']
+            walk_length = sampler_param['walk_length']
+            num_steps = sampler_param['num_steps']
+            sample_coverage = 0
+            save_dir = sampler_param['processed_dir']
+            sampler = GraphSAINTRandomWalkSampler(data,
+                                                  batch_size=batch_size,
+                                                  walk_length=walk_length,
+                                                  num_steps=num_steps,
+                                                  sample_coverage=sample_coverage,
+                                                  save_dir=save_dir
+                                                  )
+            return sampler
+
+        elif sampler_name == GNN_Samplers.PPR:
+            raise NotImplementedError
+
+        elif sampler_name == GNN_Samplers.WRW:
+            raise NotImplementedError
+
+    def train_epoch(self,model,train_loader,epoch_no,num_steps,batch_size,optimizer,x_dict,device=0):
+        model.train()
+        pbar = tqdm(total=num_steps * batch_size)
+        pbar.set_description(f'Epoch {epoch_no:02d}')
+
+        total_loss = total_examples = 0
+        for data in train_loader:
+            data = data.to(device)
+            optimizer.zero_grad()
+            out = model(x_dict, data.edge_index, data.edge_attr, data.node_type,
+                        data.local_node_idx)
+            out = out[data.train_mask]
+            y = data.y[data.train_mask].squeeze()
+            loss = F.nll_loss(out, y)
+            # print("loss=",loss)
+            loss.backward()
+            optimizer.step()
+            num_examples = data.train_mask.sum().item()
+            total_loss += loss.item() * num_examples
+            total_examples += num_examples
+            pbar.update(batch_size)
+
+        # pbar.refresh()  # force print final state
+        pbar.close()
+        # pbar.reset()
+        return total_loss / total_examples
+    #TODO set gnn hyper parameters and initialize logger
+    def train_model(self,device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,runs=1,batch_size=2000,walk_length=2,num_steps=10,loadTrainedModel=0,dataset_name="DBLP-Springer-Papers",root_path="../../Datasets/",output_path="./",include_reverse_edge=True,n_classes=1000,emb_size=128,sampler_name=GNN_Samplers.RW):
+        dic_results = {}
+        data,homo_data,dic_results,meta_dict = self.load_data(dataset_name,dic_results,root_path, n_classes, include_reverse_edge)
+        train_loader = self.sampling_method(homo_data,sampler_name,{'batch_size':batch_size,
+                                                                    'walk_length':walk_length,
+                                                                    'num_steps':num_steps,
+                                                                    'save_dir':meta_dict['processed_dir']})
+
+        start_t = datetime.datetime.now()
+        #######################intialize random features ###############################
+        emb_size = emb_size
+        feat = torch.Tensor(data.num_nodes_dict[meta_dict['subject_node']], emb_size)
+        torch.nn.init.xavier_uniform_(feat)
+        feat_dic = {meta_dict['subject_node']: feat}
+        ################################################################
+        x_dict = {}
+        for key, x in feat_dic.items():
+            x_dict[meta_dict['key2int'][key]] = x
+
+        num_nodes_dict = {}
+        for key, N in data.num_nodes_dict.items():
+            num_nodes_dict[meta_dict['key2int'][key]] = N
+
+        end_t = datetime.datetime.now()
+        print("model init time CPU=", end_t - start_t, " sec.")
+
+        device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
+        model = RGCN(emb_size, hidden_channels, meta_dict['num_classes'], num_layers,
+                     dropout, num_nodes_dict, list(x_dict.keys()),
+                     len(meta_dict['edge_index_dict'].keys())).to(device)
+
+        x_dict = {k: v.to(device) for k, v in x_dict.items()}
+        print("x_dict=", x_dict.keys())
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+        model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
+        # model_name = dataset_name + "_DBLP_conf_GSAINT_QM.model"
+        model_name = gen_model_name(dataset_name, dic_results["GNN_Method"])
+        logger = Logger(runs,gnn_hyper_params_dict)
+
+    def test_model(self):
+        pass
+
+    def inference_model(self):
+        pass
+
 dic_results = {}
 def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,runs=1,batch_size=2000,walk_length=2,num_steps=10,loadTrainedModel=0,dataset_name="DBLP-Springer-Papers",root_path="../../Datasets/",output_path="./",include_reverse_edge=True,n_classes=1000,emb_size=128):
     def train(epoch):
@@ -332,9 +517,9 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
                 data.num_nodes_dict.pop(key, None)
 
             dic_results["data_obj"] = str(data)
+            edge_index_dict = data.edge_index_dict
             ##############add inverse edges ###################
             if include_reverse_edge:
-                edge_index_dict = data.edge_index_dict
                 key_lst = list(edge_index_dict.keys())
                 for key in key_lst:
                     r, c = edge_index_dict[(key[0], key[1], key[2])]
