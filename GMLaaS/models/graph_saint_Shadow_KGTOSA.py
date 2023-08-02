@@ -309,63 +309,14 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
     n_classes=n_classes
     output_path=output_path
     gsaint_Final_Test=0
-    # parser = argparse.ArgumentParser(description='OGBN-MAG (GraphSAINT)')
-    # parser.add_argument('--device', type=int, default=0)
-    # parser.add_argument('--num_layers', type=int, default=2)
-    # parser.add_argument('--hidden_channels', type=int, default=64)
-    # parser.add_argument('--dropout', type=float, default=0.5)
-    # parser.add_argument('--lr', type=float, default=0.005)
-    # # parser.add_argument('--epochs', type=int, default=30)
-    # parser.add_argument('--epochs', type=int, default=30)
-    # parser.add_argument('--runs', type=int, default=2)
-    # parser.add_argument('--batch_size', type=int, default=20000)
-    # parser.add_argument('--walk_length', type=int, default=2)
-    # parser.add_argument('--num_steps', type=int, default=30)
-    # parser.add_argument('--loadTrainedModel', type=int, default=0)
-    # parser.add_argument('--graphsaint_dic_path', type=str, default='none')
-    # parser.add_argument('--dataset_name', type=str, default="DBLP-Springer-Papers")
-    # parser.add_argument('--root_path', type=str, default="../../Datasets/")
-    # parser.add_argument('--output_path', type=str, default="./")
-    # parser.add_argument('--include_reverse_edge', type=bool, default=True)
-    # parser.add_argument('--n_classes', type=int, default=440)
-    # parser.add_argument('--emb_size', type=int, default=128)
 
-    # graphsaint_dic_path='args.graphsaint_dic_path'
     GSAINT_Dic = {}
-    # with open(graphsaint_dic_path, 'rb') as handle:
-    #     GSAINT_Dic = pickle.load(handle)
 
-    # to_remove_pedicates=GSAINT_Dic['to_remove_pedicates']
-    # to_remove_subject_object=GSAINT_Dic['to_remove_subject_object']
-    # to_keep_edge_idx_map=GSAINT_Dic['to_keep_edge_idx_map']
-    # GA_Index=GSAINT_Dic['GA_Index']
     to_remove_pedicates = []
     to_remove_subject_object = []
     to_keep_edge_idx_map = []
     GA_Index = 0
-    # GA_dataset_name="KGTOSA_MAG_StarQuery_10M"
-    # GA_dataset_name="KGTOSA_MAG_StarQuery"
-    # GA_dataset_name = "KGTOSA_MAG_Paper_Discipline_StarQuery"
-    # MAG_datasets=[
-    #               # "ogbn-mag-ReleventSubGraph_Venue",
-    #               # "ogbn-mag-ReleventSubGraph_Discipline", 
-    #               # "KGTOSA_MAG_Paper_Discipline_StarQuery",
-    #               # "KGTOSA_MAG_Paper_Venue_StarQuery",
-    #               # "KGTOSA_MAG_Paper_Venue_BStarQuery",
-    #               # "KGTOSA_MAG_Paper_Discipline_BStarQuery",
-    #               # "KGTOSA_MAG_Paper_Venue_2HOPS_WO_Literals",
-    #               # "KGTOSA_MAG_Paper_Discipline_2HOPS_WO_Literals"
-    #               # "KGTOSA_DBLP_26K",
-    #               # "IMDB12K",
-    #               # "OGBN-MAG_StarQuery_PD",
-    #               # "OGBN-MAG_FM_PD",
-    #               "OGBN-MAG_PV_StarQuery",
-    #               "OGBN-MAG_PV_PathQuery",
-    #               "OGBN-MAG_PV_BStarQuery",
-    #               "OGBN-MAG_PV_BPathQuery",
-    #               "OGBN-MAG_PV_FM",
-    #             ]
-    # print(args)
+
     gsaint_Final_Test = 0
     for GNN_dataset_name in GNN_datasets:
         try:
