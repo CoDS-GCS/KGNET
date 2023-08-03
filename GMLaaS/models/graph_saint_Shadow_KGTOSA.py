@@ -1,6 +1,9 @@
 from copy import copy
+from Constants import *
+import json
 import argparse
 import shutil
+from Constants import *
 import pandas as pd
 from tqdm import tqdm
 import datetime
@@ -10,8 +13,8 @@ from torch.nn import ModuleList, Linear, ParameterDict, Parameter
 from torch_sparse import SparseTensor
 from torch_geometric.utils import to_undirected
 from torch_geometric.data import Data
-from torch_geometric.loader import  GraphSAINTRandomWalkSampler , ShaDowKHopSampler
-#GraphSAINTTaskBaisedRandomWalkSample
+from torch_geometric.loader import  GraphSAINTRandomWalkSampler,ShaDowKHopSampler
+#from KGTOSA_Samplers import GraphSAINTTaskBaisedRandomWalkSampler,GraphSAINTTaskWeightedRandomWalkSampler
 from torch_geometric.utils.hetero import group_hetero_graph
 from torch_geometric.nn import MessagePassing
 import sys
@@ -25,24 +28,40 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import cross_val_score
 import traceback
 import sys
-
-sys.path.insert(0, '/shared_mnt/github_repos/ogb/')
-from ogb.nodeproppred import PygNodePropPredDataset, Evaluator, PygNodePropPredDataset_hsh
+# sys.path.insert(0, '/media/hussein/UbuntuData/GithubRepos/KGNET/GMLaaS/models/')
+GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models"
+sys.path.insert(0,GMLaaS_models_path)
+print("sys.path=",sys.path)
+from ogb.nodeproppred import PygNodePropPredDataset
+from evaluater import Evaluator
+from custome_pyg_dataset import PygNodePropPredDataset_hsh
 from resource import *
 from logger import Logger
 import faulthandler
+faulthandler.enable()
+from model import Model
+import pickle
 
 faulthandler.enable()
 import pickle
 
 torch.multiprocessing.set_sharing_strategy('file_system')
-subject_node = 'Paper'
+# subject_node = 'Paper'
 def print_memory_usage():
     # print("max_mem_GB=",psutil.Process().memory_info().rss / (1024 * 1024*1024))
     # print("get_process_memory=",getrusage(RUSAGE_SELF).ru_maxrss/(1024*1024))
     print('used virtual memory GB:', psutil.virtual_memory().used / (1024.0 ** 3), " percent",
           psutil.virtual_memory().percent)
 
+def gen_model_name(dataset_name,GNN_Method):
+    # timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    # return dataset_name+'_'+model_name+'_'+timestamp
+    return dataset_name
+
+def create_dir(list_paths):
+    for path in list_paths:
+        if not os.path.exists(path):
+            os.mkdir(path)
 
 class RGCNConv(MessagePassing):
     def __init__(self, in_channels, out_channels, num_node_types,
@@ -208,7 +227,7 @@ class RGCN(torch.nn.Module):
 dic_results = {}
 
 
-def graphSaint():
+def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,runs=1,batch_size=2000,walk_length=2,num_steps=10,loadTrainedModel=0,dataset_name="DBLP-Springer-Papers",root_path="../../Datasets/",output_path="./",include_reverse_edge=True,n_classes=1000,emb_size=128):
     def train(epoch):
         model.train()
         # tqdm.monitor_interval = 0
@@ -279,66 +298,33 @@ def graphSaint():
         })['acc']
         return train_acc, valid_acc, test_acc
 
-    parser = argparse.ArgumentParser(description='OGBN-MAG (GraphSAINT)')
-    parser.add_argument('--device', type=int, default=0)
-    parser.add_argument('--num_layers', type=int, default=2)
-    parser.add_argument('--hidden_channels', type=int, default=64)
-    parser.add_argument('--dropout', type=float, default=0.5)
-    parser.add_argument('--lr', type=float, default=0.005)
-    # parser.add_argument('--epochs', type=int, default=30)
-    parser.add_argument('--epochs', type=int, default=30)
-    parser.add_argument('--runs', type=int, default=2)
-    parser.add_argument('--batch_size', type=int, default=20000)
-    parser.add_argument('--walk_length', type=int, default=2)
-    parser.add_argument('--num_steps', type=int, default=30)
-    parser.add_argument('--loadTrainedModel', type=int, default=0)
-    parser.add_argument('--graphsaint_dic_path', type=str, default='none')
     init_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
-    args = parser.parse_args()
-    # graphsaint_dic_path='args.graphsaint_dic_path'
-    GSAINT_Dic = {}
-    # with open(graphsaint_dic_path, 'rb') as handle:
-    #     GSAINT_Dic = pickle.load(handle)
+    dataset_name = dataset_name
+    to_remove_pedicates = []
+    to_remove_subject_object =[]
+    to_keep_edge_idx_map = []
+    GNN_datasets=[dataset_name]
+    root_path=root_path#"/shared_mnt/DBLP/KGTOSA_DBLP_Datasets/"
+    include_reverse_edge=include_reverse_edge
+    n_classes=n_classes
+    output_path=output_path
+    gsaint_Final_Test=0
 
-    # to_remove_pedicates=GSAINT_Dic['to_remove_pedicates']
-    # to_remove_subject_object=GSAINT_Dic['to_remove_subject_object']
-    # to_keep_edge_idx_map=GSAINT_Dic['to_keep_edge_idx_map']
-    # GA_Index=GSAINT_Dic['GA_Index']
+    GSAINT_Dic = {}
+
     to_remove_pedicates = []
     to_remove_subject_object = []
     to_keep_edge_idx_map = []
     GA_Index = 0
-    # GA_dataset_name="KGTOSA_MAG_StarQuery_10M"
-    # GA_dataset_name="KGTOSA_MAG_StarQuery"
-    # GA_dataset_name = "KGTOSA_MAG_Paper_Discipline_StarQuery"
-    MAG_datasets=[
-                  # "ogbn-mag-ReleventSubGraph_Venue",
-                  # "ogbn-mag-ReleventSubGraph_Discipline", 
-                  # "KGTOSA_MAG_Paper_Discipline_StarQuery",
-                  # "KGTOSA_MAG_Paper_Venue_StarQuery",
-                  # "KGTOSA_MAG_Paper_Venue_BStarQuery",
-                  # "KGTOSA_MAG_Paper_Discipline_BStarQuery",
-                  # "KGTOSA_MAG_Paper_Venue_2HOPS_WO_Literals",
-                  # "KGTOSA_MAG_Paper_Discipline_2HOPS_WO_Literals"
-                  # "KGTOSA_DBLP_26K",
-                  # "IMDB12K",
-                  # "OGBN-MAG_StarQuery_PD",
-                  # "OGBN-MAG_FM_PD",
-                  "OGBN-MAG_PV_StarQuery",
-                  "OGBN-MAG_PV_PathQuery",
-                  "OGBN-MAG_PV_BStarQuery",
-                  "OGBN-MAG_PV_BPathQuery",
-                  "OGBN-MAG_PV_FM",
-                ]
-    print(args)
+
     gsaint_Final_Test = 0
-    for GA_dataset_name in MAG_datasets:
+    for GNN_dataset_name in GNN_datasets:
         try:
             gsaint_start_t = datetime.datetime.now()
             ###################################Delete Folder if exist #############################
             # dir_path = "/shared_mnt/KGTOSA_MAG/" + GA_dataset_name
             # dir_path = "/MAG/MAG_2Hops/" + GA_dataset_name            
-            dir_path="/shared_mnt/MAG_subsets/"+GA_dataset_name
+            dir_path=root_path+GNN_dataset_name
             try:
                 shutil.rmtree(dir_path)
                 print("Folder Deleted")
@@ -347,58 +333,38 @@ def graphSaint():
             #         ####################
             # dataset = PygNodePropPredDataset_hsh(name=GA_dataset_name, root='/shared_mnt/KGTOSA_MAG/',
             #                                      numofClasses=str(350))
-            dataset = PygNodePropPredDataset_hsh(name=GA_dataset_name, root='/shared_mnt/MAG_subsets/', numofClasses=str(350))
+            dataset = PygNodePropPredDataset_hsh(name=GNN_dataset_name, root=root_path, numofClasses=str(n_classes))
             # dataset = PygNodePropPredDataset_hsh(name=GA_dataset_name, root='/shared_mnt/github_repos/KG-EaaS/DBLP_Usecase/',numofClasses=str(4))
             # dataset = PygNodePropPredDataset_hsh(name=GA_dataset_name, root='/shared_mnt/github_repos/KG-EaaS/DBLP_Usecase/',numofClasses=str(3))
-            dataset_name = GA_dataset_name + "_GA_" + str(GA_Index)
+            # dataset_name = GA_dataset_name + "_GA_" + str(GA_Index)
             print("dataset_name=", dataset_name)
-            dic_results[dataset_name] = {}
-            dic_results[dataset_name]["GNN_Model"] = "GSaint"
-            dic_results[dataset_name]["GA_Index"] = GA_Index
-            dic_results[dataset_name]["to_keep_edge_idx_map"] = to_keep_edge_idx_map
-            dic_results[dataset_name]["usecase"] = dataset_name
-            dic_results[dataset_name]["gnn_hyper_params"] = str(args)
+            dic_results = {}
+            dic_results["GNN_Method"] = GNN_Methods.Graph_SAINT
+            dic_results["to_keep_edge_idx_map"] = to_keep_edge_idx_map
+            dic_results["dataset_name"] = dataset_name
+            gnn_hyper_params_dict={"device":device,"num_layers":num_layers,"hidden_channels":hidden_channels,
+                "dropout":dropout,"lr":lr,"epochs":epochs,"runs":runs,"batch_size":batch_size,
+                "walk_length":walk_length,"num_steps":num_steps,"emb_size":emb_size}
+            dic_results["gnn_hyper_params"] = gnn_hyper_params_dict
 
             print(getrusage(RUSAGE_SELF))
             start_t = datetime.datetime.now()
             data = dataset[0]
-            global subject_node
+            # global subject_node
             subject_node = list(data.y_dict.keys())[0]
             split_idx = dataset.get_idx_split()
             # split_idx = dataset.get_idx_split('random')
             end_t = datetime.datetime.now()
             print("dataset init time=", end_t - start_t, " sec.")
-            dic_results[dataset_name]["GSaint_data_init_time"] = (end_t - start_t).total_seconds()
+            dic_results["dataset_load_time"] = (end_t - start_t).total_seconds()
             evaluator = Evaluator(name='ogbn-mag')
-            logger = Logger(args.runs, args)
+            logger = Logger(runs, gnn_hyper_params_dict)
 
             start_t = datetime.datetime.now()
             # We do not consider those attributes for now.
             data.node_year_dict = None
             data.edge_reltype_dict = None
 
-            # remove_subject_object = [
-            #     # 'doi',
-            #     # 'sameAs',
-            #     # 'rdf',
-            #     # 'net',
-            #     # 'differentFrom',
-            #     # 'otherHomepage',
-            #     # 'primaryElectronicEdition',
-            #     # 'otherElectronicEdition',
-            #     # 'archivedElectronicEdition',
-            #     # 'entity',
-            #     # 'db'
-            # ]
-            # remove_pedicates = [
-            #     # 'schema#awardWebpage',
-            #     # 'schema#webpage',
-            #     # 'schema#archivedWebpage',
-            #     # 'schema#primaryHomepage',
-            #     # 'schema#wikipedia',
-            #     # 'schema#orcid',
-            #     # 'schema#publishedAsPartOf'
-            # ]
             to_remove_rels = []
             for keys, (row, col) in data.edge_index_dict.items():
                 if (keys[2] in to_remove_subject_object) or (keys[0] in to_remove_subject_object):
@@ -418,17 +384,18 @@ def graphSaint():
             for key in to_remove_subject_object:
                 data.num_nodes_dict.pop(key, None)
 
-            dic_results[dataset_name]["data"] = str(data)
-            ##############add inverse edges ###################
+            dic_results["data_obj"] = str(data)
             edge_index_dict = data.edge_index_dict
-            key_lst = list(edge_index_dict.keys())
-            for key in key_lst:
-                r, c = edge_index_dict[(key[0], key[1], key[2])]
-                edge_index_dict[(key[2], 'inv_' + key[1], key[0])] = torch.stack([c, r])
+            ##############add inverse edges ###################
+            if include_reverse_edge:
+                key_lst = list(edge_index_dict.keys())
+                for key in key_lst:
+                    r, c = edge_index_dict[(key[0], key[1], key[2])]
+                    edge_index_dict[(key[2], 'inv_' + key[1], key[0])] = torch.stack([c, r])
 
             # print("data after filter=",str(data))
             # print_memory_usage()
-            print("data=",data)
+            # print("data=",data)
             out = group_hetero_graph(data.edge_index_dict, data.num_nodes_dict)
             edge_index, edge_type, node_type, local_node_idx, local2global, key2int = out
             # print_memory_usage()
@@ -445,20 +412,20 @@ def graphSaint():
             print(homo_data)
             start_t = datetime.datetime.now()
             print("dataset.processed_dir", dataset.processed_dir)
-            kwargs = {'batch_size': 16384, 'num_workers': 64, 'persistent_workers': True}
-            print("homo_data.train_mask=",len(homo_data.train_mask==False))
+            kwargs = {'batch_size': batch_size, 'num_workers': 64, 'persistent_workers': True}
+            # print("homo_data.train_mask=",len(homo_data.train_mask==False))
             train_loader = ShaDowKHopSampler(homo_data, depth=2, num_neighbors=3,
                                              node_idx=homo_data.train_mask,
                                              # node_idx = None,
                                              # node_idx=local2global[subject_node]
                                               **kwargs)
             end_t = datetime.datetime.now()
-            print("Sampling time=", end_t - start_t, " sec.")
-            dic_results[dataset_name]["GSaint_Sampling_time"] = (end_t - start_t).total_seconds()
+            # print("Sampling time=", end_t - start_t, " sec.")
+            # dic_results[dataset_name]["GSaint_Sampling_time"] = (end_t - start_t).total_seconds()
             start_t = datetime.datetime.now()
             # Map informations to their canonical type.
             #######################intialize random features ###############################
-            feat = torch.Tensor(data.num_nodes_dict[subject_node], 128)
+            feat = torch.Tensor(data.num_nodes_dict[subject_node], emb_size)
             torch.nn.init.xavier_uniform_(feat)
             feat_dic = {subject_node: feat}
             ################################################################
@@ -473,39 +440,45 @@ def graphSaint():
 
             end_t = datetime.datetime.now()
             print("model init time CPU=", end_t - start_t, " sec.")
-            dic_results[dataset_name]["model init Time"] = (end_t - start_t).total_seconds()
-            device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
-            model = RGCN(128, args.hidden_channels, dataset.num_classes, args.num_layers,
-                         args.dropout, num_nodes_dict, list(x_dict.keys()),
+            # dic_results[dataset_name]["model init Time"] = (end_t - start_t).total_seconds()
+            device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
+            model = RGCN(emb_size, hidden_channels, dataset.num_classes, num_layers,
+                         dropout, num_nodes_dict, list(x_dict.keys()),
                          len(edge_index_dict.keys())).to(device)
 
             x_dict = {k: v.to(device) for k, v in x_dict.items()}
             y_true = data.y_dict[subject_node]
             print("x_dict=", x_dict.keys())
-            optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+            optimizer = torch.optim.Adam(model.parameters(), lr=lr)
             model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
-            if args.loadTrainedModel == 1:
-                model.load_state_dict(torch.load("ogbn-DBLP-FM-GSaint.model"))
+            model_name = gen_model_name(dataset_name,dic_results["GNN_Method"])
+
+            if loadTrainedModel == 1:
+                start_t = datetime.datetime.now()
+                model.load_state_dict(torch.load(output_path +model_name))
                 model.eval()
                 out = model.inference(x_dict, edge_index_dict, key2int)
                 out = out[key2int[subject_node]]
                 y_pred = out.argmax(dim=-1, keepdim=True).cpu()
-                y_true = data.y_dict[subject_node]
+                # y_true = data.y_dict[subject_node]
+                end_t = datetime.datetime.now()
+                print(dataset_name, "Infernce Time=", (end_t - start_t).total_seconds())
+                dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
 
-                out_lst = torch.flatten(y_true).tolist()
-                pred_lst = torch.flatten(y_pred).tolist()
-                out_df = pd.DataFrame({"y_pred": pred_lst, "y_true": out_lst})
+                # out_lst = torch.flatten(y_true).tolist()
+                # pred_lst = torch.flatten(y_pred).tolist()
+                # out_df = pd.DataFrame({"y_pred": pred_lst, "y_true": out_lst})
                 # print(y_pred, data.y_dict[subject_node])
                 # print(out_df)
-                out_df.to_csv("GSaint_DBLP_conf_output.csv", index=None)
+                # out_df.to_csv("GSaint_DBLP_conf_output.csv", index=None)
             else:
                 print("start test")
                 test()  # Test if inference on GPU succeeds.
                 total_run_t = 0
-                for run in range(args.runs):
+                for run in range(runs):
                     start_t = datetime.datetime.now()
                     model.reset_parameters()
-                    for epoch in range(1, 1 + args.epochs):
+                    for epoch in range(1, 1 + epochs):
                         loss = train(epoch)
                         ##############
                         if loss == -1:
@@ -527,25 +500,33 @@ def graphSaint():
                     total_run_t = total_run_t + (end_t - start_t).total_seconds()
                     print("model run ", run, " train time CPU=", end_t - start_t, " sec.")
                     print(getrusage(RUSAGE_SELF))
-                total_run_t = (total_run_t + 0.00001) / args.runs
+                total_run_t = (total_run_t + 0.00001) / runs
                 gsaint_end_t = datetime.datetime.now()
                 Highest_Train, Highest_Valid, Final_Train, Final_Test = logger.print_statistics()
                 model_trained_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
-                dic_results[dataset_name]["init_ru_maxrss"] = init_ru_maxrss
-                dic_results[dataset_name]["model_ru_maxrss"] = model_loaded_ru_maxrss
-                dic_results[dataset_name]["model_trained_ru_maxrss"] = model_trained_ru_maxrss
-                dic_results[dataset_name]["Highest_Train"] = Highest_Train.item()
-                dic_results[dataset_name]["Highest_Valid"] = Highest_Valid.item()
-                dic_results[dataset_name]["Final_Train"] = Final_Train.item()
+                dic_results["init_ru_maxrss"] = init_ru_maxrss
+                dic_results["model_ru_maxrss"] = model_loaded_ru_maxrss
+                dic_results["model_trained_ru_maxrss"] = model_trained_ru_maxrss
+                dic_results["Highest_Train_Acc"] = Highest_Train.item()
+                dic_results["Highest_Valid_Acc"] = Highest_Valid.item()
+                dic_results["Final_Train_Acc"] = Final_Train.item()
                 gsaint_Final_Test = Final_Test.item()
-                dic_results[dataset_name]["Final_Test"] = Final_Test.item()
-                dic_results[dataset_name]["runs_count"] = args.runs
-                dic_results[dataset_name]["avg_train_time"] = total_run_t
-                dic_results[dataset_name]["rgcn_total_time"] = (gsaint_end_t - gsaint_start_t).total_seconds()
-                pd.DataFrame(dic_results).transpose().to_csv(
-                    "/shared_mnt/KGTOSA_MAG/ShadowSAINT_" + GA_dataset_name + "_Times.csv", index=False)
+                dic_results["Final_Test_Acc"] = Final_Test.item()
+                dic_results["Train_Runs_Count"] = runs
+                dic_results["Train_Time"] = total_run_t
+                dic_results["Total_Time"] = (gsaint_end_t - gsaint_start_t).total_seconds()
+                dic_results["Model_Parameters_Count"]= sum(p.numel() for p in model.parameters())
+                dic_results["Model_Trainable_Paramters_Count"]=sum(p.numel() for p in model.parameters() if p.requires_grad)
+                logs_path = os.path.join(output_path,'logs')
+                model_path = os.path.join(output_path,'trained_models')        
+                create_dir([logs_path,model_path]) 
+                # pd.DataFrame(dic_results).transpose().to_csv(
+                    # "/shared_mnt/KGTOSA_MAG/ShadowSAINT_" + GA_dataset_name + "_Times.csv", index=False)
                 # shutil.rmtree("/shared_mnt/DBLP/" + dataset_name)
                 # torch.save(model.state_dict(), "/shared_mnt/DBLP/" + dataset_name + "_DBLP_conf__GSAINT_QM.model")
+                with open(os.path.join(logs_path, model_name +'_log.json'), "w") as outfile:
+                    json.dump(dic_results, outfile)
+                torch.save(model.state_dict(), os.path.join(model_path , model_name)+".model")
         except Exception as e:
             print(e)
             print(traceback.format_exc())
@@ -555,7 +536,27 @@ def graphSaint():
 
 
 if __name__ == '__main__':
-    print(graphSaint())
+    parser = argparse.ArgumentParser(description='OGBN-MAG (GraphShadowSAINT)')
+    parser.add_argument('--device', type=int, default=0)
+    parser.add_argument('--num_layers', type=int, default=2)
+    parser.add_argument('--hidden_channels', type=int, default=64)
+    parser.add_argument('--dropout', type=float, default=0.5)
+    parser.add_argument('--lr', type=float, default=0.005)
+    parser.add_argument('--epochs', type=int, default=2)
+    parser.add_argument('--runs', type=int, default=1)
+    parser.add_argument('--batch_size', type=int, default=2000)
+    parser.add_argument('--walk_length', type=int, default=2)
+    parser.add_argument('--num_steps', type=int, default=10)
+    parser.add_argument('--loadTrainedModel', type=int, default=0)
+    parser.add_argument('--dataset_name', type=str, default="DBLP-Springer-Papers")
+    parser.add_argument('--root_path', type=str, default="../../Datasets/")
+    parser.add_argument('--output_path', type=str, default="./")
+    parser.add_argument('--include_reverse_edge', type=bool, default=True)
+    parser.add_argument('--n_classes', type=int, default=440)
+    parser.add_argument('--emb_size', type=int, default=128)
+    args = parser.parse_args()
+    print(args)
+    print(graphShadowSaint(args.device,args.num_layers,args.hidden_channels,args.dropout,args.lr,args.epochs,args.runs,args.batch_size,args.walk_length,args.num_steps,args.loadTrainedModel,args.dataset_name,args.root_path,args.output_path,args.include_reverse_edge,args.n_classes,args.emb_size))
 
 
 

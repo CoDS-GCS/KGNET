@@ -35,8 +35,15 @@ class TOSG_Patterns:
     d2h2 = "d2h2"
     def __init__(self):
        ""
+class GNN_Samplers:
+    BRW = "BRW"
+    RW = "RW"
+    WRW = "WRW"
+    PPR = "PPR"
+    def __init__(self):
+       ""
 class KGNET_Config:
-    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
     def __init__(self):
        ""
 
