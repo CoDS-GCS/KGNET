@@ -147,7 +147,7 @@ class gmlQueryParser:
                                                                   where_part['limitoffset'].keys() else None
         return self.query_statments
     def parse_insert(self):
-        self.query_statments["query_type"] = 'InsertQuery'
+        self.query_statments["queryType"] = 'insertQuery'
         prefix_dic={}
         prefixes_str_lst=re.findall("\s+prefix\s+.*:<.*>\s*\n",self.gmlquery.lower())
         insert_command_str=re.findall("\n\s*insert\s+into\s+<kgnet>\s*\n", self.gmlquery.lower())[0]
@@ -160,7 +160,7 @@ class gmlQueryParser:
             print("TrainGML JSON Str:",train_gml_json_str)
             raise Exception("TrainGML JSON Object not correctly formatted")
 
-        self.query_statments["Insert_JSON_Object"]=gml_json_dict
+        self.query_statments["insertJSONObject"]=gml_json_dict
 
         for pref in prefixes_str_lst:
             prefix_parts=re.split('\s|:<|>', pref)
@@ -169,10 +169,10 @@ class gmlQueryParser:
         self.query_statments["prefixes"]=prefix_dic
         return self.query_statments
     def parse_delete(self):
-        self.query_statments["query_type"] = 'DeleteQuery'
+        self.query_statments["queryType"] = 'deleteQuery'
         return self.query_statments
     def getQueryType(self):
-        return self.query_statments["query_type"] if "query_type" in self.query_statments.keys() else None
+        return self.query_statments["queryType"] if "queryType" in self.query_statments.keys() else None
     def extractQueryStatmentsDict (self):
         """ The extract() function takes the raw SPARQL query and prases it using the function provided by rdf
             and returns a dictionary containing different modules of the SPAEQL query"""

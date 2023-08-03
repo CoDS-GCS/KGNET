@@ -8,6 +8,46 @@ from threading import Thread
 import threading
 
 
+def get_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
+    query1="""select distinct ?s as ?subject ?p as ?predicate ?o as ?object  
+           where
+           {
+                select ?s ?p ?o
+                from <"""+graph_uri+""">
+                where 
+                {
+                ?s <"""+target_rel_uri+"""> ?o2.
+                ?s ?p ?o.
+                filter(!isBlank(?o)).\n"""
+    if tragetNode_filter_statments:
+        query1+=tragetNode_filter_statments
+
+    query1+="""}
+                limit ?limit 
+                offset ?offset
+           } 
+        """
+
+    query2 = """select distinct ?s as ?subject ?p as ?predicate ?o as ?object  
+               where
+               {
+                    select ?o as ?s ?p ?o2 as ?o
+                    from <""" + graph_uri + """>
+                    where 
+                    {
+                    ?s <""" + target_rel_uri + """> ?o.
+                    ?o ?p ?o2.
+                    filter(!isBlank(?o2)).\n"""
+    if tragetNode_filter_statments:
+        query2 += tragetNode_filter_statments
+
+    query2 += """}
+                    limit ?limit 
+                    offset ?offset
+               } 
+            """
+    return [query1,query2]
+
 def write_entites_rels_dict(train_ds, valid_ds, test_ds,data_path):
     all_triples_df = pd.concat([train_ds, valid_ds, test_ds])
     relations_lst = all_triples_df["p"].unique().tolist()
