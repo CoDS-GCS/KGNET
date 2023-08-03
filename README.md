@@ -67,7 +67,7 @@ knoweldge graph dataset /
 python kgnet_data_transformer.py --KG DBLP --splittingEdge  https://dblp.org/rdf/schema-yearOfEvent --labelsEdge https://dblp.org/rdf/schema-publishedIn
 ```
 
-3. Run your GML-Queries [GML Queries](/GMLOperators)
+3. Run your GML-Queries [GML Queries](/GMLOperators_old)
      - GML **Insert (Model Train)** Query
        ```python
        gml_query=""" prefix dblp:<https://www.dblp.org/>

@@ -279,7 +279,6 @@ def rgcn(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,
         data.edge_index_dict = None
 
         print(data)
-        dic_results["data_obj"] = str(data)
         edge_types = list(data.adj_t_dict.keys())
         start_t = datetime.datetime.now()
         # x_types = list(data.x_dict.keys())
@@ -365,9 +364,11 @@ def rgcn(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,
         logs_path = os.path.join(output_path,'logs')
         model_path = os.path.join(output_path,'trained_models')        
         create_dir([logs_path,model_path]) 
-        with open(os.path.join(logs_path, model_name +'_log.json'), "w") as outfile:
+        with open(os.path.join(logs_path, model_name +'_log.metadata'), "w") as outfile:
             json.dump(dic_results, outfile)
         torch.save(model.state_dict(), os.path.join(model_path , model_name)+".model")
+        dic_results["data_obj"] = data.to_dict()
+    return dic_results
 
 # def main():
 
@@ -421,5 +422,4 @@ if __name__ == "__main__":
     parser.add_argument('--emb_size', type=int, default=128)
     args = parser.parse_args()
     print(args)
-
     print(rgcn(args.device,args.num_layers,args.hidden_channels,args.dropout,args.lr,args.epochs,args.runs,args.batch_size,args.walk_length,args.num_steps,args.loadTrainedModel,args.dataset_name,args.root_path,args.output_path,args.include_reverse_edge,args.n_classes,args.emb_size))

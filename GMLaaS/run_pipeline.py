@@ -3,11 +3,14 @@ import pandas as pd
 import subprocess
 import argparse
 import sys
+
+import Constants
+
 sys.path.append('..')
 from GMLaaS.DataTransform.TSV_TO_PYG_dataset  import transform_tsv_to_PYG
 from GMLaaS.models.graph_saint_KGTOSA  import graphSaint
-from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.rgcn_KGTOSA import rgcn
+from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.evaluater import Evaluator
 
 def load_args(path_json):
@@ -70,14 +73,33 @@ def run_training_pipeline(json_args):
                          valid_size=json_args["transformation"]["valid_size"],
                          split_rel_train_value=None,
                          split_rel_valid_value=None)
-    train_results_dict=rgcn(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5, runs=1, batch_size=20000,
-               walk_length=2, num_steps=10, loadTrainedModel=0,
-               dataset_name=json_args["training"]["dataset_name"],
-               root_path=json_args["training"]["root_path"],
-               output_path=json_args["training"]["root_path"],
-               include_reverse_edge=True,
-               n_classes=1000,
-               emb_size=128)
+    if json_args["training"]["GNN_Method"]==Constants.GNN_Methods.Graph_SAINT:
+        train_results_dict=graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5, runs=1, batch_size=20000,
+                   walk_length=2, num_steps=10, loadTrainedModel=0,
+                   dataset_name=json_args["training"]["dataset_name"],
+                   root_path=json_args["training"]["root_path"],
+                   output_path=json_args["training"]["root_path"],
+                   include_reverse_edge=True,
+                   n_classes=1000,
+                   emb_size=128)
+    elif json_args["training"]["GNN_Method"]==Constants.GNN_Methods.RGCN:
+        train_results_dict=rgcn(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5, runs=1, batch_size=20000,
+                   walk_length=2, num_steps=10, loadTrainedModel=0,
+                   dataset_name=json_args["training"]["dataset_name"],
+                   root_path=json_args["training"]["root_path"],
+                   output_path=json_args["training"]["root_path"],
+                   include_reverse_edge=True,
+                   n_classes=1000,
+                   emb_size=128)
+    if json_args["training"]["GNN_Method"]==Constants.GNN_Methods.ShaDowGNN:
+        train_results_dict=graphShadowSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5, runs=1, batch_size=20000,
+                   walk_length=2, num_steps=10, loadTrainedModel=0,
+                   dataset_name=json_args["training"]["dataset_name"],
+                   root_path=json_args["training"]["root_path"],
+                   output_path=json_args["training"]["root_path"],
+                   include_reverse_edge=True,
+                   n_classes=1000,
+                   emb_size=128)
     return transform_results_dict,train_results_dict
 
 if __name__ == '__main__':

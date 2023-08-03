@@ -392,7 +392,7 @@ class RGCN(torch.nn.Module,Model):
         model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
         # model_name = dataset_name + "_DBLP_conf_GSAINT_QM.model"
         model_name = gen_model_name(dataset_name, dic_results["GNN_Method"])
-        logger = Logger(runs,gnn_hyper_params_dict)
+        # logger = Logger(runs,gnn_hyper_params_dict)
 
     def test_model(self):
         pass
@@ -516,7 +516,7 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
             for key in to_remove_subject_object:
                 data.num_nodes_dict.pop(key, None)
 
-            dic_results["data_obj"] = str(data)
+            # dic_results["data_obj"] = data.to_dict()
             edge_index_dict = data.edge_index_dict
             ##############add inverse edges ###################
             if include_reverse_edge:
@@ -662,9 +662,11 @@ def graphSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epo
                 model_path = os.path.join(output_path,'trained_models')        
                 create_dir([logs_path,model_path]) # args: list of paths
                 # pd.DataFrame(dic_results).transpose().to_json(os.path.join(logs_path,model_name+'.json') )
-                with open(os.path.join(logs_path, model_name +'_log.json'), "w") as outfile:
+                with open(os.path.join(logs_path, model_name +'_log.metadata'), "w") as outfile:
+                    # dic_results["data_obj"]=str(dic_results["data_obj"])
                     json.dump(dic_results, outfile)
                 torch.save(model.state_dict(), os.path.join(model_path , model_name)+".model")
+                dic_results["data_obj"] = data.to_dict()
         except Exception as e:
             print(e)
             print(traceback.format_exc())

@@ -17,11 +17,18 @@ class KGE_Methods:
     def __init__(self):
         ""
 class GML_Operator_Types:
-    NodeClassification = "NC"
-    LinkPrediction = "LP"
+    NodeClassification = "NodeClassifier"
+    LinkPrediction = "LinkPredictor"
     GraphClassification = "GC"
     def __init__(self):
         ""
+class GNN_Samplers:
+    BRW = "BRW"
+    RW = "RW"
+    WRW = "WRW"
+    PPR = "PPR"
+    def __init__(self):
+       ""
 class GML_Query_Types:
     Inference = "Select"
     Insert = "Insert"
@@ -35,15 +42,11 @@ class TOSG_Patterns:
     d2h2 = "d2h2"
     def __init__(self):
        ""
-class GNN_Samplers:
-    BRW = "BRW"
-    RW = "RW"
-    WRW = "WRW"
-    PPR = "PPR"
-    def __init__(self):
-       ""
 class KGNET_Config:
-    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
+    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+    GML_API_URL = "http://127.0.0.1:64646/"
+    KGMeta_IRI = "http://kgnet/"
+    KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
     def __init__(self):
        ""
 
