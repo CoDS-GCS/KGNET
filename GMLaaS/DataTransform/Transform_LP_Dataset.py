@@ -6,50 +6,63 @@ import sys
 import argparse
 from threading import Thread
 import threading
+import os
+import shutil
 
+from sklearn.model_selection import train_test_split
+def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_size=0.1,test_size=0.1,delm='\t',containHeader=False,split_rel=None):
+    start_t = datetime.datetime.now()
+    dic_results={}
+    if containHeader:
+        full_ds = pd.read_csv(data_path + ds_name + ".tsv", dtype=str, sep=file_sep)
+    else:
+        full_ds= pd.read_csv(data_path + ds_name+".tsv", dtype=str, sep=delm, header=None)
+    full_ds.columns=["s","p","o"]
+    dic_results["TriplesCount"] = len(full_ds)
+    ##############################
+    path = os.path.join(data_path, ds_name)
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    os.mkdir(path)
+    print("Directory '% s' created" % path)
+    #############################
+    relations_lst = full_ds["p"].unique().tolist()
+    relations_lst.sort()
+    pd.DataFrame(relations_lst).to_csv(path + "/relations.dict", sep="\t", header=None)
+    entities_lst = list(set(full_ds["s"].unique().tolist() + full_ds["o"].unique().tolist()))
+    entities_lst=[str(elem) for elem in entities_lst]
+    entities_lst.sort()
+    pd.DataFrame(entities_lst).to_csv(path + "/entities.dict", sep="\t", header=None)
 
-def get_LP_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
-    query1="""select distinct ?s as ?subject ?p as ?predicate ?o as ?object  
-           where
-           {
-                select ?s ?p ?o
-                from <"""+graph_uri+""">
-                where 
-                {
-                ?s <"""+target_rel_uri+"""> ?o2.
-                ?s ?p ?o.
-                filter(!isBlank(?o)).\n"""
-    if tragetNode_filter_statments:
-        query1+=tragetNode_filter_statments
+    split_df=full_ds[full_ds["p"].isin([target_rel])].reset_index(drop=True)
+    full_ds=full_ds[~full_ds["p"].isin([target_rel])]
+    test_size=test_size+valid_size
+    if split_rel is None:
+        try:
+            X_train, X_test, y_train, y_test = train_test_split(split_df.index.tolist(), split_df["o"].tolist(),test_size=test_size, random_state=42,stratify=split_df["o"].tolist())
+        except:
+            X_train, X_test, y_train, y_test = train_test_split(split_df.index.tolist(), split_df["o"].tolist(),test_size=test_size, random_state=42)
 
-    query1+="""}
-                limit ?limit 
-                offset ?offset
-           } 
-        """
+        test_size = test_size/(test_size + valid_size)
+        try:
+            X_valid,X_test, y_valid, y_test = train_test_split(X_test,y_test,test_size=test_size, random_state=42,stratify=X_test["o"].tolist())
+        except:
+            X_valid,X_test, y_valid, y_test = train_test_split(X_test, y_test,test_size=test_size, random_state=42)
+    else:
+        dic_results["splitEdge"] =split_rel
 
-    query2 = """select distinct ?s as ?subject ?p as ?predicate ?o as ?object  
-               where
-               {
-                    select ?o as ?s ?p ?o2 as ?o
-                    from <""" + graph_uri + """>
-                    where 
-                    {
-                    ?s <""" + target_rel_uri + """> ?o.
-                    ?o ?p ?o2.
-                    filter(!isBlank(?o2)).\n"""
-    if tragetNode_filter_statments:
-        query2 += tragetNode_filter_statments
+    split_df.iloc[X_valid].to_csv(path + "/valid.txt", sep="\t", header=None)
+    split_df.iloc[X_test].to_csv(path + "/test.txt", sep="\t", header=None)
 
-    query2 += """}
-                    limit ?limit 
-                    offset ?offset
-               } 
-            """
-    return [query1,query2]
-def get_LP_d2h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
-    return get_LP_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments)
-
+    X_train = pd.concat([full_ds, split_df.iloc[X_train]])
+    X_train.to_csv(path + "/train.txt", sep="\t", header=None)
+    end_t = datetime.datetime.now()
+    dic_results["testSize"] = test_size
+    dic_results["validSize"] = valid_size
+    dic_results["trainSize"] = 1 - (valid_size + test_size)
+    dic_results["csv_to_Hetrog_time"] = (end_t - start_t).total_seconds()
+    return dic_results
+###############################################################################################################################################
 def write_entites_rels_dict(train_ds, valid_ds, test_ds,data_path):
     all_triples_df = pd.concat([train_ds, valid_ds, test_ds])
     relations_lst = all_triples_df["p"].unique().tolist()

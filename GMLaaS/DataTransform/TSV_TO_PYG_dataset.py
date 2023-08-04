@@ -320,8 +320,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     o_label_type = o_type
     label_type = s_label_type
 
-    split_df["s"] = split_df["s"].astype(
-        "str").apply(lambda x: entites_dic[label_type + "_dic"][str(x)] if x in entites_dic[
+    split_df["s"] = split_df["s"].astype("str").apply(lambda x: entites_dic[label_type + "_dic"][str(x)] if x in entites_dic[
         label_type + "_dic"] else -1)
 
     split_df = split_df[split_df["s"] != -1]

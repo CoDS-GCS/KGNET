@@ -139,7 +139,7 @@ def execute_sparql_multithreads(start_offset,sparql_endpoint_url,batch_size,quer
         rows_count=ExecQuery(sparql_endpoint_url,rows_count_query)
         rows_count_lst.append(int(rows_count))
     q_end_t = datetime.datetime.now()
-    print("rows_count=", sum(rows_count_lst), "Query Time=",q_end_t - q_start_t, " sec.")
+    print("triples_count=", sum(rows_count_lst), "Query Time=",q_end_t - q_start_t, " sec.")
     #######################
     q_start_t = datetime.datetime.now()
     with open(out_file, 'w') as f:
