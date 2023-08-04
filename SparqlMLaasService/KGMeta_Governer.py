@@ -41,6 +41,17 @@ class KGMeta_Governer(sparqlEndpoint):
             return int(task_df["tid"].values[0])
         else:
             return 1
+    def getGMLTaskByID(self,tid):
+        tid_query = """PREFIX kgnet: <https://www.kgnet.com/>  
+                        select ?s ?p ?o 
+                        from <""" + Constants.KGNET_Config.KGMeta_IRI + """> where { ?s <kgnet:GMLTask/id> """+str(tid)+" . \n ?s ?p ?o .}"
+        return self.executeSparqlquery(tid_query)
+    def getGMLModelByID(self,mid):
+        mid_query = """PREFIX kgnet: <https://www.kgnet.com/>  
+                        select ?s ?p ?o
+                        from <""" + Constants.KGNET_Config.KGMeta_IRI + """> where { ?s <kgnet:GMLModel/id> """+str(mid)+" . \n ?s ?p ?o .}"
+        return self.executeSparqlquery(mid_query)
+
     def getGraphUriByPrefix(self,prefix="MAG"):
         next_mid_query = """PREFIX kgnet: <https://www.kgnet.com/>  
                           select ?g 
@@ -52,13 +63,21 @@ class KGMeta_Governer(sparqlEndpoint):
             return None
     def getGMLTaskID(self,query_dict):
         task_query = ""
+        operator_type = query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1]
         for pref in query_dict["prefixes"]:
             task_query += "PREFIX " + pref + ":<" + query_dict["prefixes"][pref] + "> \n"
-        task_query+= """select ?tid  from <""" + Constants.KGNET_Config.KGMeta_IRI + """> where {
+        if operator_type==Constants.GML_Operator_Types.NodeClassification:
+            task_query+= """select ?tid  from <""" + Constants.KGNET_Config.KGMeta_IRI + """> where {
                               ?task	<kgnet:GMLTask/taskType>	<kgnet:type/nodeClassification> .
                               ?task	<kgnet:GMLTask/labelNode>	""" + query_dict["insertJSONObject"]["GMLTask"]["labelNode"] + ". \n"
-        task_query += "?task <kgnet:GMLTask/targetNode>	" + query_dict["insertJSONObject"]["GMLTask"]["targetNode"] + ". \n"
-        task_query += "?task <kgnet:GMLTask/id>	?tid. \n} limit 1"
+            task_query += "?task <kgnet:GMLTask/targetNode>	" + query_dict["insertJSONObject"]["GMLTask"]["targetNode"] + ". \n"
+            task_query += "?task <kgnet:GMLTask/id>	?tid. \n} limit 1"
+        elif operator_type==Constants.GML_Operator_Types.LinkPrediction:
+            task_query += """select ?tid  from <""" + Constants.KGNET_Config.KGMeta_IRI + """> where {
+                                        ?task	<kgnet:GMLTask/taskType>	<kgnet:type/linkPrediction> . \n"""
+            task_query += "?task <kgnet:GMLTask/targetEdge>	\"" + query_dict["insertJSONObject"]["GMLTask"]["targetEdge"] + "\" . \n"
+            task_query += "?task <kgnet:GMLTask/id>	?tid. \n} limit 1"
+
         task_df = self.executeSparqlquery(task_query)
         if len(task_df) > 0:
             return task_df["tid"].values[0]

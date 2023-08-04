@@ -1,9 +1,44 @@
 import Constants
+import pandas as pd
 from Constants import *
-from GMLOperators import gmlInsertOperator
-from KGMeta_Governer import KGMeta_Governer
-from gmlRewriter import gmlQueryParser,gmlQueryRewriter
+from SparqlMLaasService.GMLOperators import gmlInsertOperator
+from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
+from SparqlMLaasService.gmlRewriter import gmlQueryParser,gmlQueryRewriter
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
+class KGNET():
+    def __init__(self,KG_endpointUrl,KGMeta_endpointUrl="", KGMeta_KG_URI=Constants.KGNET_Config.KGMeta_IRI):
+        self.KGMeta_Governer = KGMeta_Governer(endpointUrl=KGMeta_endpointUrl, KGMeta_URI=KGMeta_KG_URI)
+        self.KG_sparqlEndpoint = sparqlEndpoint(endpointUrl=KG_endpointUrl)
+        self.gml_insert_op = gmlInsertOperator(self.KGMeta_Governer,  self.KG_sparqlEndpoin)
+    def train_GML(self,sparql_ml_insert_query):
+        insert_task_dict = gmlQueryParser(sparql_ml_insert_query).extractQueryStatmentsDict()
+        model_info, transform_info, train_info = self.gml_insert_op.executeQuery(insert_task_dict)
+        return model_info, transform_info, train_info
+    def train_GML(self,operatorType,targetNodeType,labelNodeType,GNNMethod):
+        kg_types_path=Constants.KGNET_Config.datasets_output_path+targetNodeType.split(":")[1]+"_Types.tsv"
+        kg_types_ds=pd.read_csv(kg_types_path,header=None,sep="\t")
+        target_edge_df=kg_types_ds[(kg_types_ds[0].str().lower()==targetNodeType.split(":")[1].lower()) & (kg_types_ds[2].str().lower()==labelNodeType.split(":")[1].lower())]
+        target_edge=target_edge_df[1].values()[0]
+        sparql_ml_insert_query= """
+           prefix dblp:<https://www.dblp.org/>
+           prefix kgnet:<https://www.kgnet.com/>
+           Insert into <kgnet>
+           where{
+               select * from kgnet.TrainGML(
+               {\n"""
+        sparql_ml_insert_query+="\"name\":\""+operatorType+"_",targetNodeType+"_"+labelNodeType+"_"+GNNMethod+"\",\n"
+        sparql_ml_insert_query+="\"GMLTask\":{\"taskType\":\""+operatorType+"\",\"targetNode\":\""+targetNodeType+"\","
+        sparql_ml_insert_query+="\"labelNode\":\""+labelNodeType+"\",\"namedGraphURI\":\"http://dblp.org\","
+        sparql_ml_insert_query+="\"targetEdge\":\""+target_edge+"\",\"GNNMethod\":\""+GNNMethod+"\","
+        sparql_ml_insert_query+="\"datasetTypesFilePath\":\""+kg_types_path+"\","
+        sparql_ml_insert_query+="\"TOSG\":\""+TOSG_Patterns.d1h1+"\","
+        sparql_ml_insert_query += """ "targetNodeFilters":{
+                "filter1":["<https://dblp.org/rdf/schema#yearOfPublication>", "?year","filter(xsd:integer(?year)<=1950)"]
+                    }
+                   })}"""
+        insert_task_dict = gmlQueryParser(sparql_ml_insert_query).extractQueryStatmentsDict()
+        model_info, transform_info, train_info = self.gml_insert_op.executeQuery(insert_task_dict)
+        return model_info, transform_info, train_info
 if __name__ == '__main__':
     dblp_LP = """
        prefix dblp:<https://dblp.org/rdf/schema#>

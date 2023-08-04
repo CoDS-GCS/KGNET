@@ -8,11 +8,12 @@ import Constants
 
 sys.path.append('..')
 from GMLaaS.DataTransform.TSV_TO_PYG_dataset  import transform_tsv_to_PYG
+from GMLaaS.DataTransform.Transform_LP_Dataset import transform_LP_train_valid_test_subsets
 from GMLaaS.models.graph_saint_KGTOSA  import graphSaint
 from GMLaaS.models.rgcn_KGTOSA import rgcn
 from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.evaluater import Evaluator
-
+from Constants import *
 def load_args(path_json):
     with open (path_json) as json_file:
         json_args = json.load(json_file)
@@ -60,19 +61,26 @@ def cmd_run_training_pipeline(path_json=None,path_transformation_py='DataTransfo
 def run_training_pipeline(json_args):
     print("################# Start GMLaaS Pipline ###########################")
     print("######### Start PYG Dataset Transformation ##########")
-    transform_results_dict=transform_tsv_to_PYG(dataset_name=json_args["transformation"]["dataset_name"],
-                         dataset_name_csv=json_args["transformation"]["dataset_name"],
-                         dataset_types=json_args["transformation"]["dataset_types"] ,
-                         split_rel="random",
-                         target_rel=json_args["transformation"]["target_rel"],
-                         similar_target_rels=[],
-                         target_node=None,
-                         output_root_path=json_args["transformation"]["output_root_path"],
-                         MINIMUM_INSTANCE_THRESHOLD=json_args["transformation"]["MINIMUM_INSTANCE_THRESHOLD"],
-                         test_size=json_args["transformation"]["test_size"],
-                         valid_size=json_args["transformation"]["valid_size"],
-                         split_rel_train_value=None,
-                         split_rel_valid_value=None)
+    if json_args["transformation"]["operatorType"]== Constants.GML_Operator_Types.NodeClassification:
+        transform_results_dict=transform_tsv_to_PYG(dataset_name=json_args["transformation"]["dataset_name"],
+                             dataset_name_csv=json_args["transformation"]["dataset_name"],
+                             dataset_types=json_args["transformation"]["dataset_types"] ,
+                             split_rel="random",
+                             target_rel=json_args["transformation"]["target_rel"],
+                             similar_target_rels=[],
+                             target_node=None,
+                             output_root_path=json_args["transformation"]["output_root_path"],
+                             MINIMUM_INSTANCE_THRESHOLD=json_args["transformation"]["MINIMUM_INSTANCE_THRESHOLD"],
+                             test_size=json_args["transformation"]["test_size"],
+                             valid_size=json_args["transformation"]["valid_size"],
+                             split_rel_train_value=None,
+                             split_rel_valid_value=None)
+    elif json_args["transformation"]["operatorType"] == Constants.GML_Operator_Types.LinkPrediction:
+        transform_results_dict=transform_LP_train_valid_test_subsets(data_path=json_args["transformation"]["output_root_path"],
+                                                                     ds_name=json_args["transformation"]["dataset_name"],
+                                                                     target_rel=json_args["transformation"]["target_rel"],
+                                                                     valid_size=0.1, test_size=0.1,
+                                                                     delm='\t',containHeader=False)
     if json_args["training"]["GNN_Method"]==Constants.GNN_Methods.Graph_SAINT:
         train_results_dict=graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5, runs=1, batch_size=20000,
                    walk_length=2, num_steps=10, loadTrainedModel=0,

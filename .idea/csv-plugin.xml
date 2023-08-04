@@ -45,21 +45,21 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/Datasets/DBLP_Year_lt_1950_Paper_Venue_Classifer/mapping/rec_entidx2name.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/DBLP_Year_lt_1950_Paper_Venue_Classifer/split/rec/train.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="/Datasets/LinkedIMDB_Types.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/Datasets/MAG_Types.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/Datasets/lmdb_Types.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -74,20 +74,6 @@
           </value>
         </entry>
         <entry key="/GMLWebServiceApis/test_results.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/GMLaaS/Datasets/DBLP-Springer-Papers_ToHetroG_times.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/pickle/forbes/Forbes2018.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
