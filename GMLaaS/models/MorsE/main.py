@@ -1,7 +1,9 @@
 import argparse
 import sys
-import os
-sys.path.append(sys.path.append(os.getcwd()+'/MorsE'))
+# import os
+GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/MorsE"
+sys.path.insert(0,GMLaaS_models_path)
+# sys.path.append(sys.path.append(os.getcwd()+'/MorsE'))
 # print('current dir is '+os.getcwd())
 print(sys.path)
 
@@ -17,6 +19,9 @@ from utils import Log
 from Constants import *
 
 def morse(dataset_name,root_path,args,step='meta_train',seed=100,):
+
+    init_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
+
     dict_results = {}
     args.ent_dim = args.emb_dim
     args.rel_dim = args.emb_dim
@@ -56,21 +61,34 @@ def morse(dataset_name,root_path,args,step='meta_train',seed=100,):
             print('meta_train')
             start_train = datetime.datetime.now()
             meta_trainer = MetaTrainer(args, logger)
+            model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
             # logger.info("BGP="+str(BGP))
             best_eval_rst = meta_trainer.train(datetime.datetime.now())
+            print(f'best_eval_rst {best_eval_rst} type : {type(best_eval_rst)}')
             # end_t = datetime.datetime.now()
             train_time = str( (datetime.datetime.now() - start_train).total_seconds())
             total_time = str((datetime.datetime.now() - start_t).total_seconds())
             logger.info("Train Time Sec=" + train_time)
             logger.info("Total Time Sec=" + total_time)
-            dict_results['Sampling_Time'] = sample_time
-            dict_results['Train_Time'] = train_time
-            dict_results['Total_Time'] = total_time
-            dict_results['Results'] = dict(best_eval_rst)
+
+
+            # dict_results["Model_Parameters_Count"] = sum(p.numel() for p in model.parameters())
+            # dict_results["Model_Trainable_Paramters_Count"] = sum( p.numel() for p in model.parameters() if p.requires_grad)
         elif step == 'fine_tune':
             print('fine_tune')
             post_trainer = PostTrainer(args)
             post_trainer.train()
+    model_trained_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
+    dict_results["Final_Test_MRR"] = best_eval_rst['mrr']
+    dict_results["Final_Test_Hits@10"] = best_eval_rst['hits@10']
+
+    dict_results['Sampling_Time'] = sample_time
+    dict_results['Train_Time'] = train_time
+    dict_results['Total_Time'] = total_time
+    dict_results['Results'] = dict(best_eval_rst)
+    dict_results["init_ru_maxrss"] = init_ru_maxrss
+    dict_results["model_ru_maxrss"] = model_loaded_ru_maxrss
+    dict_results["model_trained_ru_maxrss"] = model_trained_ru_maxrss
     print('Done')
     return dict_results
 

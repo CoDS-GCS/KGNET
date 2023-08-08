@@ -51,11 +51,11 @@ def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_siz
     else:
         dic_results["splitEdge"] =split_rel
 
-    split_df.iloc[X_valid].to_csv(path + "/valid.txt", sep="\t", header=None)
-    split_df.iloc[X_test].to_csv(path + "/test.txt", sep="\t", header=None)
+    split_df.iloc[X_valid].to_csv(path + "/valid.txt", sep="\t", header=None, index=None)
+    split_df.iloc[X_test].to_csv(path + "/test.txt", sep="\t", header=None, index=None)
 
     X_train = pd.concat([full_ds, split_df.iloc[X_train]])
-    X_train.to_csv(path + "/train.txt", sep="\t", header=None)
+    X_train.to_csv(path + "/train.txt", sep="\t", header=None, index=None)
     end_t = datetime.datetime.now()
     dic_results["testSize"] = test_size
     dic_results["validSize"] = valid_size
