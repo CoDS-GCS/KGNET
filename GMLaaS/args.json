@@ -1,17 +1,17 @@
 {
   "transformation":{
   "target_rel": "https://dblp.org/rdf/schema#publishedIn",
-  "dataset_name": "DBLP-Springer-Papers",
-  "dataset_name_csv": "DBLP-Springer-Papers",
-  "dataset_types": "/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/DBLP_Types.csv",
+  "dataset_name": "DBLP_Year_lte_1970_Paper_Venue_Classifer",
+  "dataset_name_csv": "DBLP_Year_lte_1970_Paper_Venue_Classifer",
+  "dataset_types": "/home/afandi/GitRepos/KGNET/Datasets/DBLP_Year_lte_1970_Paper_Venue_Classifer_types.csv",
   "test_size": 0.1,
   "valid_size": 0.1,
   "MINIMUM_INSTANCE_THRESHOLD":9,
-  "output_root_path":"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+  "output_root_path":"/home/afandi/GitRepos/KGNET/Datasets/"
   },
   "training":
-  {"dataset_name":"DBLP-Springer-Papers",
+  {"dataset_name":"DBLP_Year_lte_1970_Paper_Venue_Classifer",
   "n_classes":440,
-   "root_path":"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+   "root_path":"/home/afandi/GitRepos/KGNET/Datasets/"
   }
 }

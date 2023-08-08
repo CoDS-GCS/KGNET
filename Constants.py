@@ -43,7 +43,7 @@ class TOSG_Patterns:
     def __init__(self):
        ""
 class KGNET_Config:
-    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
     GML_API_URL = "http://127.0.0.1:64646/"
     KGMeta_IRI = "http://kgnet/"
     KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
