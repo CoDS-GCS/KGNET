@@ -3,7 +3,7 @@ import rdflib
 import re
 from rdflib.plugins.sparql.parser import parseQuery as rdflibParseQuery
 """ Production """
-from KGMeta_Governer import KGMeta_Governer
+from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
 """ DEBUG """
 # import KGMetaG as KGMetaG
 

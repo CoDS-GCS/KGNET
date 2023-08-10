@@ -43,10 +43,18 @@ class TOSG_Patterns:
     def __init__(self):
        ""
 class KGNET_Config:
-    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
+    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
     GML_API_URL = "http://127.0.0.1:64646/"
     KGMeta_IRI = "http://kgnet/"
     KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
     def __init__(self):
        ""
 
+KGs_prefixs_dic={"dblp":"https://www.dblp.org/",
+             "lkmdb":"https://www.lkmdb.org/",
+             "mag":"https://www.mag.org/",
+             "aifb":"http://www.aifb.uni-karlsruhe.de/"}
+namedGraphURI_dic={"dblp":"http://dblp.org",
+             "lkmdb":"https://www.lkmdb.org/",
+             "mag":"https://www.mag.org/",
+             "aifb":"http://www.aifb.uni-karlsruhe.de"}
