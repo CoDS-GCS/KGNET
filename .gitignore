@@ -20,3 +20,8 @@ Makefile
 *.png
 *.txt
 *.pickle
+*.pkl
+*.log
+*.iml
+*.log0
+*.mdb

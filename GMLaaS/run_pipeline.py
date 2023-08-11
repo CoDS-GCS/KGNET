@@ -80,7 +80,7 @@ def run_training_pipeline(json_args):
         if json_args["training"]["GNN_Method"] == Constants.GNN_Methods.Graph_SAINT:
             train_results_dict = graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5,
                                             runs=1, batch_size=20000,
-                                            walk_length=2, num_steps=10, loadTrainedModel=0,
+                                            walk_length=2, num_steps=10, loadTrainedModel=1,
                                             dataset_name=json_args["training"]["dataset_name"],
                                             root_path=json_args["training"]["root_path"],
                                             output_path=json_args["training"]["root_path"],
@@ -100,7 +100,7 @@ def run_training_pipeline(json_args):
         elif json_args["training"]["GNN_Method"] == Constants.GNN_Methods.ShaDowGNN:
             train_results_dict = graphShadowSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005,
                                                   epochs=5, runs=1, batch_size=20000,
-                                                  walk_length=2, num_steps=10, loadTrainedModel=0,
+                                                  walk_length=2, num_steps=10, loadTrainedModel=1,
                                                   dataset_name=json_args["training"]["dataset_name"],
                                                   root_path=json_args["training"]["root_path"],
                                                   output_path=json_args["training"]["root_path"],
