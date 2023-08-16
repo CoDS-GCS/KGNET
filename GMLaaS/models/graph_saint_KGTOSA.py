@@ -31,7 +31,7 @@ import sys
 # sys.path.insert(0, '/media/hussein/UbuntuData/GithubRepos/KGNET/GMLaaS/models/')
 GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models"
 sys.path.insert(0,GMLaaS_models_path)
-print("sys.path=",sys.path)
+# print("sys.path=",sys.path)
 from ogb.nodeproppred import PygNodePropPredDataset
 from evaluater import Evaluator
 from custome_pyg_dataset import PygNodePropPredDataset_hsh

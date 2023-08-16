@@ -30,15 +30,15 @@ def run_morse(dataset_name,root_path):
     parser.add_argument('--num_sample_cand', default=5, type=int)
 
     # params for meta-train
-    parser.add_argument('--metatrain_num_neg', default=16)
-    parser.add_argument('--metatrain_num_epoch', default=2)
+    parser.add_argument('--metatrain_num_neg', default=32)
+    parser.add_argument('--metatrain_num_epoch', default=5)
     parser.add_argument('--metatrain_bs', default=32, type=int)
     parser.add_argument('--metatrain_lr', default=0.01, type=float)
     parser.add_argument('--metatrain_check_per_step', default=4, type=int)
     parser.add_argument('--indtest_eval_bs', default=512, type=int)
 
     # params for fine-tune
-    parser.add_argument('--posttrain_num_neg', default=16, type=int)
+    parser.add_argument('--posttrain_num_neg', default=32, type=int)
     parser.add_argument('--posttrain_bs', default=64, type=int)
     parser.add_argument('--posttrain_lr', default=0.001, type=int)
     parser.add_argument('--posttrain_num_epoch', default=2, type=int)
@@ -48,7 +48,7 @@ def run_morse(dataset_name,root_path):
     parser.add_argument('--num_layers', default=3, type=int)
     parser.add_argument('--num_bases', default=4, type=int)
     #parser.add_argument('--emb_dim', default=32, type=int)
-    parser.add_argument('--emb_dim', default=32, type=int)
+    parser.add_argument('--emb_dim', default=128, type=int)
 
      # params for KGE
     parser.add_argument('--kge', default='TransE', type=str, choices=['TransE', 'DistMult', 'ComplEx', 'RotatE'])

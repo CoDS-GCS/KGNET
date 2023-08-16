@@ -1,4 +1,5 @@
 from rdflib import Graph
+import datetime
 import rdflib
 import os
 import pandas as pd
@@ -25,9 +26,49 @@ def append_triple(Insert_Triples,model_model_uri,triple,insert_dict,key):
     return Insert_Triples
 
 class KGMeta_Governer(sparqlEndpoint):
-    def __init__(self,endpointUrl,KGMeta_URI="http://kgnet"):
+    def __init__(self,endpointUrl=Constants.KGNET_Config.KGMeta_endpoint_url,KGMeta_URI="http://kgnet"):
         sparqlEndpoint.__init__(self, endpointUrl)
         self.KGMeta_URI = KGMeta_URI
+    def insertKGMetadata(self,sparqlendpoint,prefix,namedGraphURI):
+        max_g_query="select max(?gid)+1 from <"+Constants.KGNET_Config.KGMeta_IRI+">\n where {"
+        max_g_query+="?g	a	<kgnet:type/graph>. ?g  <kgnet:graph/id> ?gid.}"""
+        max_gid=self.ExecScalarQuery(max_g_query)
+        insertQuery="Insert into <"+Constants.KGNET_Config.KGMeta_IRI+">\n"
+        insertQuery+="""
+            { 	 
+                <kgnet:graph/gid-0000005>	a	<kgnet:type/graph> 	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/id>	?max_gid	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/createdby>	<kgnet:user/uid-0000001> 	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/domain>	"academic" 	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/name>	?prefix 	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/nodeCount>	0 	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/nodeType>    0 	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/prefix> ?prefix	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/sparqlendpoint>	?sparqlendpoint .
+                <kgnet:graph/gid-0000005>	<kgnet:user/datecreated>  "" 	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/description> "" 	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/edgeCount>	0 	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/edgeTypes>   0 	 .
+                <kgnet:graph/gid-0000005>	<kgnet:graph/namedGraphURI>  ?namedGraphURI" 	 .
+            }
+            """
+        insertQuery=insertQuery.replace("?sparqlendpoint","\""+sparqlendpoint+"\"")
+        insertQuery = insertQuery.replace("?namedGraphURI", "\"" + namedGraphURI + "\"")
+        insertQuery = insertQuery.replace("?prefix", "\"" + prefix + "\"")
+        insertQuery = insertQuery.replace("?max_gid", max_gid)
+        res=self.executeSparqlquery(query)
+        return res[res.columns[0]].values[0].split(",")[1]
+    def getModelKGMetadata(self, mid):
+        kg_metadata_query = """PREFIX kgnet: <https://www.kgnet.com/>  
+                            select ?g ?p ?o
+                            from <""" + Constants.KGNET_Config.KGMeta_IRI + """> 
+                            where { ?m <kgnet:GMLModel/id> """+str(mid)+""" .
+                            ?t <kgnet:GMLTask/modelID> ?m .
+                            ?t <kgnet:GMLTask/appliedOnGraph> ?g .
+                            ?g ?p ?o. 
+                            }"""
+        kg_df = self.executeSparqlquery(kg_metadata_query)
+        return kg_df
     def getNextGMLModelID(self):
         next_tid_query = """PREFIX kgnet: <https://www.kgnet.com/>  
                             select max(?mid)+1 as ?mid
@@ -98,16 +139,18 @@ class KGMeta_Governer(sparqlEndpoint):
             Insert_Triples+="<"+task_uri +"> a <kgnet:type/GMLTask> . \n"
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/id> "+str(int(task_uri.split("tid-")[1]))+" . \n"
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/createdBy> <kgnet:user/uid-0000001> . \n"
-            Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/dateCreated> \"\" . \n"
-            if "targetNode" in query_dict["insertJSONObject"]["GMLTask"]:
-                graph_uri=self.getGraphUriByPrefix(query_dict["insertJSONObject"]["GMLTask"]["targetNode"].split(":")[0])
-            elif "targetEdge" in query_dict["insertJSONObject"]["GMLTask"]:
-                graph_uri = self.getGraphUriByPrefix(
-                    query_dict["insertJSONObject"]["GMLTask"]["targetEdge"].split(":")[0])
-
+            Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/dateCreated> \""+ datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S") +"\" . \n"
+            if "namedGraphPrefix" in query_dict["insertJSONObject"]["GMLTask"]:
+                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/KGPrefix> \"" + query_dict["insertJSONObject"]["GMLTask"]["namedGraphPrefix"] + "\" . \n"
+                graph_uri=self.getGraphUriByPrefix(query_dict["insertJSONObject"]["GMLTask"]["namedGraphPrefix"])
             if graph_uri:
                 Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/appliedOnGraph> <"+ graph_uri.replace("\"","")+"> . \n"
-            Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/taskType> <kgnet:type/nodeClassification> . \n"
+
+            if query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1].strip().lower()==Constants.GML_Operator_Types.NodeClassification.strip().lower():
+                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/taskType> <kgnet:type/nodeClassification> . \n"
+            elif query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1].strip().lower()==Constants.GML_Operator_Types.LinkPrediction.strip().lower():
+                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/taskType> <kgnet:type/linkPrediction> . \n"
+
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/name> \""+query_dict["insertJSONObject"]["name"]+"\" . \n"
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/description>	\"\" . \n"
             if "labelNode" in query_dict["insertJSONObject"]["GMLTask"]:
@@ -121,15 +164,18 @@ class KGMeta_Governer(sparqlEndpoint):
         Insert_Triples += "<" + model_model_uri + ">  <kgnet:GMLTask/description>	 \""+query_dict["insertJSONObject"]["name"]+"\" . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/id> " + str(next_model_id) + " . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/createBy> <kgnet:user/uid-0000001> . \n"
-        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/dateCreated> \"\" . \n"
+        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/dateCreated> \""+datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S") +"\". \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/GNNMethod> \""+query_dict["insertJSONObject"]["GMLTask"]["GNNMethod"]+"\" . \n"
-        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/classifierType> \"MCSL\" . \n"
-        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/linkPredictionType> \"missingObject\" . \n"
-        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/inferenceTime> 10 . \n"
 
+        if query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1].strip().lower() == Constants.GML_Operator_Types.NodeClassification.strip().lower():
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/classifierType> \"MCSL\" . \n"
+        elif query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1].strip().lower() == Constants.GML_Operator_Types.LinkPrediction.strip().lower():
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/linkPredictionType> \"missingObject\" . \n"
+
+        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/inferenceTime> 0 . \n"
+        #################################################### train_results_dict #######################################
         # Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/modelParametersSize> " + str(train_results_dict["Model_Trainable_Paramters_Count"]) + " . \n"
         Insert_Triples = append_triple(Insert_Triples, model_model_uri, '<kgnet:GMLModel/modelParametersSize>', train_results_dict, "Model_Trainable_Paramters_Count")
-
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/modelFileSize> 0 . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/modelFileCheckSum> \"" +"" + "\" . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/id-SHA-25> \"\" . \n"
@@ -137,30 +183,34 @@ class KGMeta_Governer(sparqlEndpoint):
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/trainingTime> "+ str(train_results_dict["Train_Time"])+" . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/trainingMemory> "+ str(train_results_dict["model_ru_maxrss"])+" . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/trainingMachineCount> 1 . \n"
-        ################
-        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/testF1> 0 . \n"
-        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/trainF1> 0 . \n"
-        if "Final_Test_Acc" in query_dict["insertJSONObject"]["GMLTask"]:
+
+        ####################################################### Metrics ############################################
+        if "Final_Test_F1" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/testF1> "+ str(train_results_dict["Final_Test_F1"])+" . \n"
+        if "Final_Valid_F1" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/validF1> "+ str(train_results_dict["Final_Valid_F1"])+" . \n"
+        if "Final_Train_F1" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/trainF1> "+ str(train_results_dict["Final_Test_F1"])+" . \n"
+        if "Final_Test_Acc" in train_results_dict:
             Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/testAccuracy> "+ str(train_results_dict["Final_Test_Acc"])+" . \n"
-        elif "Final_Test_MRR" in query_dict["insertJSONObject"]["GMLTask"]:
-            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/testMRR> " + str(
-                train_results_dict["Final_Test_MRR"]) + " . \n"
-
-        if "Final_Train_Acc" in query_dict["insertJSONObject"]["GMLTask"]:
+        if "Final_Valid_Acc" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/validAccuracy> "+ str(train_results_dict["Final_Valid_Acc"])+" . \n"
+        if "Final_Train_Acc" in train_results_dict:
             Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/trainAccuracy> "+ str(train_results_dict["Final_Train_Acc"])+" . \n"
-        elif "Final_Valid_MRR" in query_dict["insertJSONObject"]["GMLTask"]:
-            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/validMRR> " + str(
-                train_results_dict["Final_Valid_MRR"]) + " . \n"
+        if "Final_Valid_MRR" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/validMRR> " + str(train_results_dict["Final_Valid_MRR"]) + " . \n"
+        if "Final_Test_MRR" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/testMRR> " + str(train_results_dict["Final_Test_MRR"]) + " . \n"
+        if "Final_Train_MRR" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/trainMRR> " + str(train_results_dict["Final_Train_MRR"]) + " . \n"
+        if "Final_Train_Hits@10" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/train_Hits@10> " + str(train_results_dict["Final_Train_Hits@10"]) + " . \n"
+        if "Final_Test_Hits@10" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/test_Hits@10> " + str(train_results_dict["Final_Test_Hits@10"]) + " . \n"
+        if "Final_Valid_Hits@10" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/valid_Hits@10> " + str(train_results_dict["Final_Valid_Hits@10"]) + " . \n"
 
-        if "Final_Test_Hits@10" in query_dict["insertJSONObject"]["GMLTask"]:
-            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/train_Hits@10> " + str(
-                train_results_dict["Final_Test_Hits@10"]) + " . \n"
-
-        if "Final_Valid_Hits@10" in query_dict["insertJSONObject"]["GMLTask"]:
-            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/train_Hits@10> " + str(
-                train_results_dict["Final_Valid_Hits@10"]) + " . \n"
-
-        #################
+        #################################################### train_results_dict hyperparameter #######################################
         if 'gnn_hyper_params' in train_results_dict:
             # Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/hyperparameter/lr> "+ str(train_results_dict["gnn_hyper_params"]["lr"])+" . \n"
             Insert_Triples = append_triple(Insert_Triples,model_model_uri,'<kgnet:GMLModel/hyperparameter/lr>',train_results_dict["gnn_hyper_params"],"lr")
@@ -196,31 +246,19 @@ class KGMeta_Governer(sparqlEndpoint):
         #################
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/GNNSampler/method> \"RW\" . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/GNNSampler/level> \"subgraph\" . \n"
-        # Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/GNNSampler/batchSize> "+ str(train_results_dict["gnn_hyper_params"]["batch_size"] )+ " . \n"
-
-        # Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/GNNSampler/walkLength> "+ str(train_results_dict["gnn_hyper_params"]["walk_length"]) + " . \n"
-
-        #################
-        # Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/edgeCount> "+ str(transform_results_dict["TriplesCount"])+" . \n"
+        #################################################### transform_results_dict  #######################################
+        print("transform_results_dict=",transform_results_dict)
         Insert_Triples = append_triple(Insert_Triples, model_model_uri, '<kgnet:GMLModel/taskSubgraph/edgeCount>',transform_results_dict, "TriplesCount")
-
-        if 'data_obj' in train_results_dict:
-            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/nodeCount> "+str(sum(list(train_results_dict['data_obj']['num_nodes_dict'].values())))+" . \n"
-            # Insert_Triples = append_triple(Insert_Triples, model_model_uri, '<kgnet:GMLModel/taskSubgraph/nodeCount>',transform_results_dict['data_obj'], "TriplesCount")
-
-            if 'edge_reltype' in train_results_dict['data_obj']:
-                Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/edgeTypeCount> "+str(len(train_results_dict['data_obj']['edge_reltype'].keys()))+" . \n"
-
-            if 'num_nodes_dict' in train_results_dict['data_obj']:
-                Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/nodeTypeCount> "+str(len(train_results_dict['data_obj']['num_nodes_dict'].keys()))+" . \n"
-
-            if 'y_dict' in train_results_dict['data_obj']:
-                Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/targetNodeCount> "+str(train_results_dict['data_obj']['y_dict'][list(train_results_dict['data_obj']['y_dict'].keys())[0]].shape[0])+" . \n"
-        # Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/labelCount> "+str(transform_results_dict["ClassesCount"])+" . \n"
+        if 'data_obj' in transform_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/nodeCount> "+str(sum(list(transform_results_dict['data_obj']['num_nodes_dict'].values())))+" . \n"
+            if 'edge_reltype' in transform_results_dict['data_obj']:
+                Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/edgeTypeCount> "+str(len(transform_results_dict['data_obj']['edge_reltype'].keys()))+" . \n"
+            if 'num_nodes_dict' in transform_results_dict['data_obj']:
+                Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/nodeTypeCount> "+str(len(transform_results_dict['data_obj']['num_nodes_dict'].keys()))+" . \n"
+            if 'y_dict' in transform_results_dict['data_obj']:
+                Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/targetNodeCount> "+str(transform_results_dict['data_obj']['y_dict'][list(transform_results_dict['data_obj']['y_dict'].keys())[0]].shape[0])+" . \n"
         Insert_Triples = append_triple(Insert_Triples, model_model_uri, '<kgnet:GMLModel/taskSubgraph/labelCount>',transform_results_dict, "ClassesCount")
-
-
-        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/TOSG> \"d1h1\" . \n"
+        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/TOSG> \""+query_dict["insertJSONObject"]["GMLTask"]["TOSG"]+"\" . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/targetEdge> \""+ query_dict["insertJSONObject"]["GMLTask"]["targetEdge"] + "\". \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/transformationTime>  20 . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/transformationMemory>  2 . \n"
@@ -243,18 +281,49 @@ class KGMeta_OntologyManger(sparqlEndpoint):
     def deleteTriples(self,triples_lst):
         """not implemented yet"""
 if __name__ == '__main__':
+    ""
     # kgmeta_govener = KGMeta_Governer_rdflib(ttl_file_path ='KGNET_MetaGraph.ttl')
-    kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.98.118:8890/sparql',KGMeta_URI="http://kgnet")
-    query = """ 
-        SELECT distinct ?LinkPredictor ?gmlModel ?mID ?apiUrl
-        WHERE
+    # kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.98.118:8890/sparql',KGMeta_URI="http://kgnet")
+    # query = """
+    #     SELECT distinct ?LinkPredictor ?gmlModel ?mID ?apiUrl
+    #     WHERE
+    #     {
+    #         ?LinkPredictor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <kgnet:types/LinkPredictor> .
+    #         ?LinkPredictor <kgnet:GML/SourceNode> <dblp:author> .
+    #         ?LinkPredictor <kgnet:GML/DestinationNode> <dblp:Affiliation> .
+    #         ?LinkPredictor <kgnet:term/uses> ?gmlModel .
+    #         ?gmlModel <kgnet:GML_ID> ?mID .
+    #         ?mID <kgnet:API_URL> ?apiUrl .
+    #     }"""
+    # res_df = kgmeta_govener.executeSparqlquery(query)
+    # print(res_df)
+    kgmeta_govener = KGMeta_Governer(endpointUrl=Constants.KGNET_Config.KGMeta_endpoint_url,KGMeta_URI=Constants.KGNET_Config.KGMeta_IRI)
+    query="""prefix kgnet:<http://kgnet/>
+        select * where
         {
-            ?LinkPredictor <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <kgnet:types/LinkPredictor> .
-            ?LinkPredictor <kgnet:GML/SourceNode> <dblp:author> .
-            ?LinkPredictor <kgnet:GML/DestinationNode> <dblp:Affiliation> .
-            ?LinkPredictor <kgnet:term/uses> ?gmlModel .
-            ?gmlModel <kgnet:GML_ID> ?mID .
-            ?mID <kgnet:API_URL> ?apiUrl .   
-        }"""
-    res_df = kgmeta_govener.executeSparqlquery(query)
+            {
+                select ?t as ?s  ?p as ?p  ?o as ?o
+                from <http://kgnet/>
+                where
+                {
+                #?s ?p ?o.
+                ?t ?p ?o.
+                ?t ?tp ?s.
+                ?s <kgnet:GMLModel/id> 47.
+                }
+            }        
+            union
+            {
+                select ?m as ?s ?p as ?p  ?o as ?o
+                from <http://kgnet/>
+                where
+                {
+                ?m ?p ?o.
+                ?m <kgnet:GMLModel/id> 47.
+                }
+            }        
+        }
+        limit 100
+        """
+    res_df=kgmeta_govener.executeSparqlquery(query)
     print(res_df)
