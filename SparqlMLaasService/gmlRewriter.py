@@ -2,6 +2,9 @@ import json
 import rdflib
 import re
 from rdflib.plugins.sparql.parser import parseQuery as rdflibParseQuery
+
+import Constants
+
 """ Production """
 from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
 """ DEBUG """
@@ -53,18 +56,19 @@ NODECLASSIFIER = 'nodeclassifier'
 LINKPREDICTOR = 'linkpredictor'
 GRAPHCLASSIFIER = 'graphclassifier'
 MISC = 'MISC'
-lis_classTypes = ['nodeclassifier','linkprediction','kgnet:types/nodeclassifier','kgnet:types/linkpredictor']
+lis_classTypes = ['nodeclassifier','linkpredictor','kgnet:types/nodeclassifier','kgnet:types/linkpredictor']
 dict_classifTypes = {NODECLASSIFIER:['nodeclassifier','kgnet:types/nodeclassifier',],
-                   LINKPREDICTOR:['linkprediction','linkpredictor','kgnet:types/linkpredictor'],
+                   LINKPREDICTOR:['linkpredictor','kgnet:types/linkpredictor'],
                    GRAPHCLASSIFIER:['graphclassifier']}
 
-lis_targetTypes = ['classifiertarget','kgnet:gml/targetnode','sourcenode','kgnet:gml/sourcenode']
-lis_labelTypes = ['classifierlabel','kgnet:gml/nodelabel','targetnode','kgnet:gml/targetnode','sourcenode','kgnet:gml/destinationnode']
+lis_targetNodeTypes = ['kgnet:targetnode']
+lis_labelTypes = ['kgnet:labelnode']
+lis_targetEdgeTypes = ['kgnet:targetedge']
 
 clf_fxn = {#'nodeclassifier':'getNodeClass',
             'nodeclassifier':'getNodeClass_v2',
             'types/nodeclassifier':'getNodeClass_v2',
-            'kgnet:types/NodeClassifier':'getNodeClass_v2'
+            'kgnet:types/nodeClassifier':'getNodeClass_v2'
           }
 
 class gmlQueryParser:
@@ -131,9 +135,10 @@ class gmlQueryParser:
             if not isinstance(object_, (
             rdflib.term.Variable, rdflib.term.URIRef, rdflib.term.Literal)):  # if object is not a URI or Variabel
                 # object_prefix = str(object_['prefix'])
-                object_prefix = object_['prefix']
-                object_lName = object_['localname']
-                object_ = (object_prefix, object_lName)
+                if "prefix" in object_:
+                    object_prefix = object_['prefix']
+                    object_lName = object_['localname']
+                    object_ = (object_prefix, object_lName)
 
             triples['subject'] = subject
             triples['predicate'] = predicate
@@ -211,11 +216,11 @@ class gmlQueryRewriter:
         data_triples, gml_triples = self.filter_triples()
         dict_gml_var_dict,prep_gml_vars = self.prep_gml_vars(gml_triples)
         string_gml += self.get_KGMeta_gmlOperatorQuery(dict_gml_var_dict, data_triples)
-        gml_query_res_df=self.kgmeta_govener.executeSparqlquery(string_gml)
+        gml_query_res_df=self.KGMeta_Governer.executeSparqlquery(string_gml)
         #dict_gml_var_dict['$m'] = gml_query_res_df[' modelURI if modelURI is not None else 'http://127.0.0.1:64646/all'
-        dict_gml_var_dict['$m']=gml_query_res_df['apiUrl'].values[0].replace('"', "")
-        string_q = self.get_data_query(dict_gml_var_dict, data_triples)
-        return (string_q, string_gml)
+        dict_gml_var_dict['$m']=Constants.KGNET_Config.GML_API_URL+"gml_inference/mid/"+gml_query_res_df['mID'].values[0].replace('"', "")
+        string_infer_q,string_data_q = self.get_data_query(dict_gml_var_dict, data_triples)
+        return (string_infer_q, string_data_q, string_gml)
 
     def filter_triples(self):
         KGNET_LOOKUP = ['kgnet', '<kgnet']
@@ -253,14 +258,18 @@ class gmlQueryRewriter:
         if gml_operator_type == NODECLASSIFIER:
             for triple in gml_dict:
                 if isinstance(triple['object'], rdflib.term.URIRef) and triple['object'].lower() in lis_classTypes:
-                    dict_vars['gml_operator']= triple#['object']
-                    continue
+                    dict_vars['gml_operator_class']={'subject': triple["subject"],"predicate":triple["predicate"],"object":rdflib.term.URIRef('kgnet:type/GMLTask')}
+                    dict_vars['gml_operator_type'] = {'subject': triple["subject"], "predicate": rdflib.term.URIRef('kgnet:GMLTask/taskType'),"object": rdflib.term.URIRef('kgnet:type/nodeClassification')}
 
-                if isinstance(triple['predicate'], str) and triple['predicate'].lower() in lis_targetTypes:
+
+                    continue
+                if isinstance(triple['predicate'], str) and triple['predicate'].lower() in lis_targetNodeTypes:
+                    triple['predicate']=rdflib.term.URIRef('kgnet:GMLTask/targetNode')
                     dict_vars['target'] = triple  # ['object']         # if the triple is the target type
                     continue
 
                 elif isinstance(triple['predicate'], str) and triple['predicate'].lower() in lis_labelTypes:
+                    triple['predicate'] = rdflib.term.URIRef('kgnet:GMLTask/labelNode')
                     dict_vars['label'] = triple  # ['object']          # if the triple is the label
                     continue
                 else:
@@ -273,17 +282,20 @@ class gmlQueryRewriter:
             for triple in gml_dict:
                 # print(triple)
                 if isinstance(triple['object'], rdflib.term.URIRef) and triple['object'].lower() in lis_classTypes:
-                    dict_vars['gml_operator']= triple#['object']
+                    dict_vars['gml_operator_class'] = {'subject': triple["subject"], "predicate": triple["predicate"],"object": rdflib.term.URIRef('kgnet:type/GMLTask')}
+                    dict_vars['gml_operator_type'] = {'subject': triple["subject"],"predicate": rdflib.term.URIRef('kgnet:GMLTask/taskType'),"object": rdflib.term.URIRef('kgnet:type/linkPrediction')}
+                    # dict_vars['gml_operator']= triple#['object']
                     continue
 
-                if isinstance(triple['predicate'], str) and triple['predicate'].lower() in lis_targetTypes:
-                    dict_vars['target'] = triple  # ['object']         # if the triple is the target type
+                if isinstance(triple['predicate'], str) and triple['predicate'].lower() in lis_targetEdgeTypes:
+                    triple['predicate'] = rdflib.term.URIRef('kgnet:GMLTask/targetEdge')
+                    dict_vars['targetEdge'] = triple  # ['object']         # if the triple is the target type
                     continue
-
-                elif isinstance(triple['predicate'], str) and triple['predicate'].lower() in lis_labelTypes:
-                    dict_vars['label'] = triple  # ['object']          # if the triple is the label
+                elif isinstance(triple['predicate'], str) and triple['predicate'].lower() in ["kgnet:gnnmethod"]:
+                    triple['subject'] = rdflib.term.Variable('gmlModel')
+                    triple['predicate'] = rdflib.term.URIRef('kgnet:GMLModel/GNNMethod')
+                    dict_vars['GNNMethod'] = triple  # ['object']         # if the triple is the target type
                     continue
-
                 else:
                     if MISC not in dict_vars.keys():
                         dict_vars[MISC] = []
@@ -302,27 +314,32 @@ class gmlQueryRewriter:
         # if isinstance(var,str) and var[:4].lower()=="http": # return with angular brackets <> if the var is a URI
         if isinstance (var,str) and ('http' in var or ':' in var):
             return f'<{var}>'
-        elif isinstance(var,rdflib.term.Literal):
+        elif isinstance(var,rdflib.term.Literal) :
             return str(var)
+        elif 'string' in var  and isinstance(var.string, rdflib.term.Literal):
+             return "\""+str(var.string)+"\""
+
         return '?'+var if not isinstance(var,tuple) else f'{var[0]}:{var[1]}' # return with '?' apended to it if its a single term else return with prefix:postfix notation
 
     def get_rdfType (self,list_data_T,var,rdf_type='http://www.w3.org/1999/02/22-rdf-syntax-ns#type'):
         """ The get_rdfType () function takes inputs a list of triples and a subject variable
                 and traverses through the triples to identiy the rdf type of the subject """
         rdf_type = rdf_type.lower()
+        var_string=  var.string.lower() if isinstance(var,rdflib.plugins.sparql.parserutils.CompValue)  else var.lower()
         for t in list_data_T:
-            if str(t['subject']).lower() == var.lower() and str(t['predicate']).lower() == rdf_type:
+            if  str(t['subject']).lower() == var_string and str(t['predicate']).lower() == rdf_type:
                 return self.set_syntax(t['object'])
 
     def get_KGMeta_gmlOperatorQuery (self,dict_vars,data_vars):
         """ The function takes dictionary of variables required for the generation of GML operator query and returns the the query """
         # SELECT {self.set_syntax(dict_vars['gml_operator']['subject'])}
         string_Q = f"""
-        SELECT distinct ?apiUrl ?gmlModel ?mID
+        SELECT max(?mID) as ?mID
+        from <"""+Constants.KGNET_Config.KGMeta_IRI+""">
         WHERE
         """
         try :
-            target_type = dict_vars['target']['object']
+            target_type = dict_vars['target']['object'] if 'target' in dict_vars else dict_vars['targetEdge']['object']  if 'targetEdge' in dict_vars else None
             target_type = self.set_syntax(self.get_rdfType(data_vars, target_type.split(':')[1]) if (isinstance(target_type,str) and self.get_rdfType(data_vars, target_type.split(':')[1]) is not None) else target_type)
 
             string_Q+="{"
@@ -333,20 +350,22 @@ class gmlQueryRewriter:
                     string_temp = f"{self.set_syntax(dict_vars[key]['subject'])} {self.set_syntax(dict_vars[key]['predicate'])} {self.set_syntax(dict_vars[key]['object'])} .\n"
                     string_Q+=string_temp
                     continue
+                elif key == 'targetEdge':
+                    string_temp = f"{self.set_syntax(dict_vars[key]['subject'])} {self.set_syntax(dict_vars[key]['predicate'])} {self.set_syntax(dict_vars[key]['object'])} .\n"
+                    string_Q += string_temp
+                    continue
 
                 elif isinstance(dict_vars[key],list):
                     for list_triple in dict_vars[key]:
                         string_temp=f"{self.set_syntax(list_triple['subject'])} {self.set_syntax(list_triple['predicate'])} {self.set_syntax(list_triple['object'])} .\n"
                         string_Q+=string_temp
                     continue
-
                 else:
                     string_temp = f"{self.set_syntax(dict_vars[key]['subject'])} {self.set_syntax(dict_vars[key]['predicate'])} {self.set_syntax(dict_vars[key]['object'])} .\n"
                     string_Q+=string_temp
 
-            string_Q+=f"{self.set_syntax(dict_vars['gml_operator']['subject'])} <kgnet:term/uses> ?gmlModel .\n"
-            string_Q+="""?gmlModel <kgnet:GML_ID> ?mID .
-                         ?mID <kgnet:API_URL> ?apiUrl .   """
+            string_Q+=f"{self.set_syntax(dict_vars['gml_operator_class']['subject'])} <kgnet:GMLTask/modelID> ?gmlModel .\n"
+            string_Q+="""?gmlModel <kgnet:GMLModel/id> ?mID .  """
             string_Q +="}"
         except Exception as e :
             print(e)
@@ -354,28 +373,27 @@ class gmlQueryRewriter:
 
         return string_Q
 
-    def format_data_query(self,query,target_classifier,target_label,target_node,list_data_T,model_uri):
+    def get_target_label_variables(self,query,userDefinedPredicate):
+        for triple in query['triples']:
+            if triple['predicate']==userDefinedPredicate:
+                return triple['subject'],triple['object']
+        return None
+
+    def format_data_query(self,query,gmlOperatorType,userDefinedPredicate,target_node,list_data_T,model_uri):
         string_q = ""
+        string_q_dataonly=""
         string_gml = ""
-        # target_label = dict_gml_var['label']['object'] if not isinstance(dict_gml_var['label']['object'], tuple) else dict_gml_var['label']['object'][1]
-        # target_label = target_label.split(':')[1] if ':' in target_label else target_label
         target_label_mod = '_dic'
-
-
-        # target_node =  dict_gml_var['target']['object'] if not isinstance(dict_gml_var['target']['object'], tuple) else dict_gml_var['target']['object'][1]
+        #################################################
         target_node = target_node.split(':')[1] if ':' in target_node else target_node
 
-        # target_classifier =  dict_gml_var['classifier']['object'] if not isinstance(dict_gml_var['classifier']['object'], (tuple,list)) else dict_gml_var['classifier']['object'][1]
-        # target_classifier = target_classifier.split(':')[1] if ':' in target_classifier else target_classifier
-
         clf_fxn = {#'nodeclassifier':'getNodeClass',
-                   'nodeclassifier':'getNodeClass_v2',
-                   'types/nodeclassifier':'getNodeClass_v2',
-                   'kgnet:types/NodeClassifier':'getNodeClass_v2',
-                   'kgnet:types/LinkPredictor':'getLinkPred',
-                   'kgnet:types/linkpredictor':'getLinkPred',
-                   'linkpredictor':'getLinkPred'
-                        }
+                   'nodeclassification':'getNodeClass_v2',
+                   'type/nodeclassification':'getNodeClass_v2',
+                   'kgnet:type/nodeclassification':'getNodeClass_v2',
+                   'type/linkprediction':'getLinkPred',
+                   'kgnet:type/linkprediction':'getLinkPred',
+                   'linkprediction':'getLinkPred'}
 
         if len(query['prefixes']) >0:
             for prefix,uri in query['prefixes'].items():
@@ -383,21 +401,29 @@ class gmlQueryRewriter:
                 # string_q.join(s)
                 string_q+=s
                 string_gml+=s
+                string_q_dataonly+=s
+
+        string_q_dataonly +="""SELECT ?s ?p ?o
+                             from <http://www.aifb.uni-karlsruhe.de>
+                             where { ?s ?p ?o { \n"""
+        target_variable,label_variable=self.get_target_label_variables(query,userDefinedPredicate)
+        target_label=label_variable
         if len(query['select'])>0:
             string_q+='SELECT'
+            string_q_dataonly+='SELECT'
             for item in query['select']:
-                if item.lower() in target_label.lower():
+                if item.lower() == str(label_variable).lower():
                     target_label += target_label_mod
-                    string_q+= f'\n sql:getKeyValue_v2({self.set_syntax(target_node)},{self.set_syntax(target_label)}) as {self.set_syntax(item)} \n'
+                    string_q+= f'\n sql:getKeyValue_v2({self.set_syntax(target_variable)},{self.set_syntax(target_label)}) as {self.set_syntax(item)} \n'
                     continue
-                s = f" ?{item},"
+                s = f" ?{item} "
                 string_q+=s
+                string_q_dataonly+=s
 
         string_q+= "\n WHERE { \n"
+        string_q_dataonly += "\n WHERE { \n"
         for triple in list_data_T:
             string_t = ""
-
-
             s = triple['subject'] #if not isinstance(triple['subject'], tuple) else triple['subject'][1]
             p = triple['predicate'] #if not isinstance(triple['predicate'], tuple) else triple['predicate'][1]
             o = triple['object'] #if not isinstance(triple['object'], tuple) else triple['object'][1]
@@ -406,11 +432,12 @@ class gmlQueryRewriter:
             p = self.set_syntax(p)
             o = self.set_syntax(o)
 
-            if p.replace('?','').lower() in self.set_syntax(target_classifier).lower():
+            if p.lower() in self.set_syntax(userDefinedPredicate).lower():
+            # if p.replace('?','').lower() in self.set_syntax(userDefinedPredicate).lower():
                 # target_type = get_rdfType(list_data_T, target_node)
                 target_type = self.get_rdfType(list_data_T, target_node) if self.get_rdfType(list_data_T, target_node) is not None else target_node
                 sub_query='{'
-                sub_query+=f"SELECT sql:{clf_fxn[target_classifier.lower()]}('{model_uri}','{target_type}') \n as {self.set_syntax(target_label)}"
+                sub_query+=f"SELECT sql:{clf_fxn[gmlOperatorType.lower()]}(\"{model_uri}\",?API_JSON) \n as {self.set_syntax(target_label)}"
                 sub_query+=' WHERE {} '
                 string_q+=sub_query
                 continue
@@ -418,113 +445,111 @@ class gmlQueryRewriter:
             # p=set_syntax(p)
             string_t += f"{s} {p} {o} .\n"
             string_q +=string_t
+            string_q_dataonly +=string_t
 
         string_q+="}" # for SELECT
         string_q+="}" # for WHERE
-        string_q+= f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
-        return string_q
+        string_q_dataonly += "} "  # for WHERE
+        if "limit" in query:
+            string_q+= f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
+            string_q_dataonly += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
+        if "offset" in query:
+            string_q += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
+            string_q_dataonly += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
+
+        string_q_dataonly += "\n}}"
+
+        ####################### create inference API-JSON object #####################
+        kg_df=self.KGMeta_Governer.getModelKGMetadata(mid=str(int(model_uri.split("/")[-1])))
+        kg_df_p_list=kg_df["p"].tolist()
+        API_JSON = "\"\"\"{\"modelId\" : " + str(int(model_uri.split("/")[-1])) + ", "
+        if "\"kgnet:graph/namedGraphURI\"" in kg_df_p_list:
+            API_JSON+= "\"namedGraphURI\" : \""+kg_df[kg_df["p"] == "\"kgnet:graph/namedGraphURI\""]["o"].values[0].replace("\"","")+"\", "
+        if "\"kgnet:graph/sparqlendpoint\"" in  kg_df_p_list:
+            API_JSON += "\"sparqlEndpointURL\" : \"" + kg_df[kg_df["p"] == "\"kgnet:graph/sparqlendpoint\""]["o"].values[0].replace("\"","") + "\", "
+        API_JSON += "\"topk\" : 1, "
+        API_JSON += "\"data_query\" : \"" + string_q_dataonly.replace("\"", "'").replace("\n", " ") + "\" "
+        API_JSON+="}\"\"\""
+
+        string_q=string_q.replace("?API_JSON",API_JSON)
+        string_q = string_q.replace(self.set_syntax(target_variable), "?s")
+        string_q_dataonly=string_q_dataonly.replace(self.set_syntax(target_variable), "?s")
+        return string_q ,string_q_dataonly
 
     def get_data_query(self,dict_gml_var,list_data_T):
-        # string_q = ""
-        # string_gml = ""
-        target_label = dict_gml_var['label']['object'] if not isinstance(dict_gml_var['label']['object'], tuple) else dict_gml_var['label']['object'][1]
-        target_label = target_label.split(':')[1] if ':' in target_label else target_label
-        # target_label_mod = '_dic'
 
-        target_node =  dict_gml_var['target']['object'] if not isinstance(dict_gml_var['target']['object'], tuple) else dict_gml_var['target']['object'][1]
-        #target_node = target_node.split(':')[1] if ':' in target_node else target_node
+        gmlOperatorType =  dict_gml_var['gml_operator_type']['object'] if not isinstance(dict_gml_var['gml_operator_type']['object'], (tuple,list)) else dict_gml_var['gml_operator_type']['object'][1]
+        userDefinedPredicate = dict_gml_var['gml_operator_type']['subject'] if not isinstance(dict_gml_var['gml_operator_type']['object'], (tuple, list)) else  dict_gml_var['gml_operator_type']['object'][1]
 
-        target_classifier =  dict_gml_var['gml_operator']['object'] if not isinstance(dict_gml_var['gml_operator']['object'], (tuple,list)) else dict_gml_var['gml_operator']['object'][1]
-        target_classifier = target_classifier.split(':')[1] if ':' in target_classifier else target_classifier
-        target_classifier = target_classifier.split('/')[1] if '/' in target_classifier else target_classifier
-
-        if target_classifier.lower() == NODECLASSIFIER.lower():
-            data_query = self.format_data_query(self.query_dict, target_classifier, target_label, target_node, list_data_T, dict_gml_var['$m'])
-            return data_query
-
-        elif target_classifier.lower() == LINKPREDICTOR.lower():
-            data_query = self.format_data_query(self.query_dict, target_classifier, target_label, target_node, list_data_T, dict_gml_var['$m'])
-            return data_query
+        if gmlOperatorType.lower() == "kgnet:type/nodeclassification":
+            target_label = dict_gml_var['label']['object'] if not isinstance(dict_gml_var['label']['object'],tuple) else dict_gml_var['label']['object'][1]
+            target_label = target_label.split(':')[1] if ':' in target_label else target_label
+            target_node = dict_gml_var['target']['object'] if not isinstance(dict_gml_var['target']['object'],tuple) else  dict_gml_var['target']['object'][1]
+            data_infer_query,data_query = self.format_data_query(self.query_dict, gmlOperatorType,userDefinedPredicate, target_node, list_data_T, dict_gml_var['$m'])
+            return data_infer_query, data_query
+        elif gmlOperatorType.lower() == "kgnet:type/linkprediction":
+            target_edge = dict_gml_var['targetEdge']['object'] if not isinstance(dict_gml_var['targetEdge']['object'],tuple) else  dict_gml_var['targetEdge']['object'][1]
+            data_infer_query,data_query = self.format_data_query(self.query_dict,gmlOperatorType, userDefinedPredicate,target_node=target_edge, list_data_T=list_data_T, model_uri=dict_gml_var['$m'])
+            return data_infer_query ,data_query
 
     def rewrite_gml_query (self):
-        print("gml_query_type=",self.query_dict["query_type"])
+        # print("gml_query_type=",self.query_dict["query_type"])
         return self.rewrite_gml_select_queries(self.query_dict)
 
 if __name__ == '__main__':
+    aifb_NC="""  
+            prefix aifb:<http://swrc.ontoware.org/>
+            prefix kgnet:<http://kgnet/>
+            select ?person ?aff
+            from <http://www.aifb.uni-karlsruhe.de>
+            where {
+            ?person a aifb:ontology#Person.
+            ?person ?NodeClassifier ?aff.
+            ?NodeClassifier a <kgnet:types/NodeClassifier>.
+            ?NodeClassifier <kgnet:targetNode> <dblp:ontology#Person>.
+            ?NodeClassifier <kgnet:labelNode> <dblp:ontology#ResearchGroup>.
+            }
+            limit 100 
+            """
+
     dblp_LP="""
-    prefix dblp:<https://dblp.org/rdf/schema#>
-    prefix kgnet: <https://www.kgnet.ai/>
+    prefix dblp:<https://dblp.org/>
+    prefix kgnet:<https://kgnet/>
     select ?author ?affiliation
     where {
     ?author a dblp:Person.    
     ?author ?LinkPredictor ?affiliation.    
     ?LinkPredictor  a <kgnet:types/LinkPredictor>.
-    ?LinkPredictor  <kgnet:GML/SourceNode> <dblp:author>.
-    ?LinkPredictor  <kgnet:GML/DestinationNode> <dblp:Affiliation>.
-    ?LinkPredictor <kgnet:term/uses> ?gmlModel .
-    ?gmlModel <kgnet:GML_ID> ?mID .
-    ?mID <kgnet:API_URL> ?apiUrl.
-    ?mID <kgnet:GMLMethod> <kgnet:GML/Method/MorsE>.
+    ?LinkPredictor  <kgnet:targetEdge> "http://swrc.ontoware.org/ontology#publication".
+    ?LinkPredictor <kgnet:GNNMethod> "MorsE" .
     }
     limit 10
     offset 0
     """
     dblp_NC = """
-       prefix dblp:<https://dblp.org/rdf/schema#>
-       prefix kgnet: <https://www.kgnet.ai/>
-       select ?paper ?title ?venue 
+       prefix dblp:<https://dblp.org/>
+       prefix kgnet: <https://kgnet/>
+       select ?Publication ?title ?venue 
        where {
-       ?paper a dblp:Publication.
-       ?paper dblp:title ?title.
-       ?paper <https://dblp.org/rdf/schema#publishedIn> ?o.
-       ?paper <https://dblp.org/has_gnn_model> 1.
-       ?paper ?NodeClassifier ?venue.
+       ?Publication a dblp:Publication.
+       ?Publication dblp:title ?title.
+       ?Publication <https://dblp.org/rdf/schema#publishedIn> ?o.
+       ?Publication ?NodeClassifier ?venue.
        ?NodeClassifier a <kgnet:types/NodeClassifier>.
-       ?NodeClassifier <kgnet:GML/TargetNode> <dblp:Publication>.
-       ?NodeClassifier <kgnet:GML/NodeLabel> <dblp:venue>.
+       ?NodeClassifier <kgnet:targetNode> <dblp:Publication>.
+       ?NodeClassifier <kgnet:labelNode> <dblp:venue>.
        }
        limit 100
        """
 
-    Insert_Query = """
-        prefix dblp:<https://www.dblp.org/>
-        prefix kgnet:<https://www.kgnet.com/>
-        Insert into <kgnet>
-        where{
-            select * from kgnet.TrainGML(
-            {
-            "Name":"MAG_Paper-Venue_Classifer",
-            "GML-Task":{
-                "TaskType":"kgnet:NodeClassifier",
-                "TargetNode":"dblp:Publication",
-                "NodeLabel":"dblp:venue",
-                "GNN_Method":"G_SAINT"
-                },
-            "TaskBudget":{
-                "MaxMemory":"50GB",
-                "MaxTime":"1h",
-                "Priority":"ModelScore"}
-            })}"""
-    # Insert_Query="""prefix dblp:<https://www.dblp.org/>
-    #     prefix kgnet:<https://www.kgnet.com/>
-    #     #Insert {GRAPH <kgnet> {?s ?p ?o}}
-    #     select *
-    #     where
-    #     {
-    #         GRAPH <http://dblp.org>
-    #         {
-    #             SELECT ?s ?p ?o
-    #             { ?s ?p ?o.}
-    #             limit 1
-    #         }
-    #     }
-    #     """
     kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.98.118:8890/sparql', KGMeta_URI="http://kgnet")
+    gmlqp = gmlQueryParser(dblp_NC)
+    (dataInferq,dataOnlyq,kmetaq)=gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(),kgmeta_govener).rewrite_gml_query()
+    # print(dataInferq)
+    # print(dataOnlyq)
+    # print(kmetaq)
 
-    # gmlqp = gmlQueryParser(dblp_NC)
-    # (dataq,kmetaq)=gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(),kgmeta_govener).rewrite_gml_query()
-
-    insert_task_dict = gmlQueryParser(Insert_Query).extractQueryStatmentsDict()
+    # insert_task_dict = gmlQueryParser(Insert_Query).extractQueryStatmentsDict()
     ieeecis_NC = """
     prefix ieeecis:<https://ieee-cis-fraud-detection/>
     select  ?Transaction ?is_fraud

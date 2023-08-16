@@ -38,27 +38,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/Datasets/DBLP_Types.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/LinkedIMDB_Types.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/MAG_Types.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="/Datasets/aifb_Types.csv">
           <value>
             <Attribute>

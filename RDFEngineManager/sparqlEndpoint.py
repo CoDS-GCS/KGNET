@@ -123,6 +123,7 @@ class sparqlEndpoint:
         print("total time ", q_end_t - q_start_t, " sec.")
         return q_end_t - q_start_t, sum(rows_count_lst)
 if __name__ == '__main__':
-    e=sparqlEndpoint(endpointUrl="http://206.12.98.118:8890/sparql")
-    res_df=e.executeSparqlQuery_dopost("select ?s ?p ?o from <https://linkedmdb.org> where {?s ?p ?o} limit 10")
-    print(res_df)
+    ""
+    # e=sparqlEndpoint(endpointUrl="http://206.12.98.118:8890/sparql")
+    # res_df=e.executeSparqlQuery_dopost("select ?s ?p ?o from <https://linkedmdb.org> where {?s ?p ?o} limit 10")
+    # print(res_df)

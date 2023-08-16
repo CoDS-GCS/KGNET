@@ -2,6 +2,7 @@ import os
 import os.path as osp
 from typing import Callable, List, Optional
 
+import pandas as pd
 import torch
 
 from torch_geometric.data import Data, InMemoryDataset, download_url
@@ -56,7 +57,7 @@ class RelLinkPredDataset(InMemoryDataset):
 
     @property
     def num_relations(self) -> int:
-        return int(self._data.edge_type.max()) + 1
+        return int(self.data.edge_type.max()) + 1
 
     @property
     def raw_dir(self) -> str:
@@ -87,24 +88,21 @@ class RelLinkPredDataset(InMemoryDataset):
 
     def process(self):
 
-        with open(osp.join(self.raw_dir, 'entities.dict'), 'r') as f:
-            lines = [row.split('\t') for row in f.read().split('\n')[:-1]]
-            entities_dict = {key: int(value) for value, key in lines}
+        entities_df=pd.read_csv(osp.join(self.raw_dir, 'entities.dict'),header=None,sep="\t")
+        entities_dict=dict(zip(entities_df[1], entities_df[0]))
 
-        with open(osp.join(self.raw_dir, 'relations.dict'), 'r') as f:
-            lines = [row.split('\t') for row in f.read().split('\n')[:-1]]
-            relations_dict = {key: int(value) for value, key in lines}
+        relations_df = pd.read_csv(osp.join(self.raw_dir, 'relations.dict'), header=None, sep="\t")
+        relations_dict = dict(zip(relations_df[1], relations_df[0]))
 
         kwargs = {}
         for split in ['train', 'valid', 'test']:
-            with open(osp.join(self.raw_dir, f'{split}.txt'), 'r') as f:
-                lines = [row.split('\t') for row in f.read().split('\n')[:-1] if row.split('\t')[2]!='' ]
-                 
-                src = [entities_dict[row[0]] for row in lines]
-                rel = [relations_dict[row[1]] for row in lines]
-                dst = [entities_dict[row[2]] for row in lines]
-                kwargs[f'{split}_edge_index'] = torch.tensor([src, dst])
-                kwargs[f'{split}_edge_type'] = torch.tensor(rel)
+            df = pd.read_csv(osp.join(self.raw_dir, f'{split}.txt'), header=None, sep="\t")
+            df=df[(df[0].isin(entities_dict.keys())) & (df[2].isin(entities_dict.keys())) &  (df[1].isin(relations_dict.keys())) ]
+            src= df[0].apply(lambda x:entities_dict[x]).tolist()
+            rel= df[1].apply(lambda x: relations_dict[x]).tolist()
+            dst= df[2].apply(lambda x: entities_dict[x]).tolist()
+            kwargs[f'{split}_edge_index'] = torch.tensor([src, dst])
+            kwargs[f'{split}_edge_type'] = torch.tensor(rel)
 
 
         # For message passing, we add reverse edges and types to the graph:
@@ -122,5 +120,39 @@ class RelLinkPredDataset(InMemoryDataset):
 
         torch.save((self.collate([data])), self.processed_paths[0])
 
+    def process_txt(self):
+        with open(osp.join(self.raw_dir, 'entities.dict'), 'r') as f:
+            lines = [row.split('\t') for row in f.read().split('\n')[:-1]]
+            entities_dict = {key: int(value) for value, key in lines}
+
+        with open(osp.join(self.raw_dir, 'relations.dict'), 'r') as f:
+            lines = [row.split('\t') for row in f.read().split('\n')[:-1]]
+            relations_dict = {key: int(value) for value, key in lines}
+
+        kwargs = {}
+        for split in ['train', 'valid', 'test']:
+            with open(osp.join(self.raw_dir, f'{split}.txt'), 'r') as f:
+                lines = [row.split('\t') for row in f.read().split('\n')[:-1] if row.split('\t')[2]!='' ]
+
+                src = [entities_dict[row[0]] for row in lines]
+                rel = [relations_dict[row[1]] for row in lines]
+                dst = [entities_dict[row[2]] for row in lines]
+                kwargs[f'{split}_edge_index'] = torch.tensor([src, dst])
+                kwargs[f'{split}_edge_type'] = torch.tensor(rel)
+
+        # For message passing, we add reverse edges and types to the graph:
+        row, col = kwargs['train_edge_index']
+        edge_type = kwargs['train_edge_type']
+        row, col = torch.cat([row, col], dim=0), torch.cat([col, row], dim=0)
+        edge_index = torch.stack([row, col], dim=0)
+        edge_type = torch.cat([edge_type, edge_type + len(relations_dict)])
+
+        data = Data(num_nodes=len(entities_dict), edge_index=edge_index,
+                    edge_type=edge_type, **kwargs)
+
+        if self.pre_transform is not None:
+            data = self.pre_transform(data)
+
+        torch.save((self.collate([data])), self.processed_paths[0])
     def __repr__(self) -> str:
         return f'{self.name}()'

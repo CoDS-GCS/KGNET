@@ -20,6 +20,7 @@ class GML_Operator_Types:
     NodeClassification = "NodeClassifier"
     LinkPrediction = "LinkPredictor"
     GraphClassification = "GC"
+
     def __init__(self):
         ""
 class GNN_Samplers:
@@ -44,7 +45,7 @@ class TOSG_Patterns:
        ""
 class KGNET_Config:
     datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
-    GML_API_URL = "http://127.0.0.1:64646/"
+    GML_API_URL = "http://206.12.98.118:8895/"
     KGMeta_IRI = "http://kgnet/"
     KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
     def __init__(self):

@@ -5,12 +5,16 @@ import pyodbc
 import wget as wget
 
 from sparqlEndpoint import sparqlEndpoint
-
-class UDF_Manager_Virtuoso(sparqlEndpoint):
+class UDFManager(sparqlEndpoint):
     def __init__(self,host='localhost',port=1111,username='dba', password='dba'):
         sparqlEndpoint.__init__(self,endpointUrl="http://"+host+":8890/sparql")
-        self.version="vos 7.5.2"  
-        self.VirtuosoConn="DRIVER=/usr/local/virtuoso-opensource/lib/virtodbc.so;HOST="+host+":"+str(port)+";UID="+username+";PWD="+password
+class VirtuosoUDFManager(UDFManager):
+    def __init__(self,host='localhost',port=1111,username='dba', password='dba'):
+        super(VirtuosoUDFManager, self).__init__(host,port,username, password)
+        self.version = "vos 7.5.2"
+        self.VirtuosoConn = "DRIVER=/usr/local/virtuoso-opensource/lib/virtodbc.so;HOST=" + host + ":" + str(
+            port) + ";UID=" + username + ";PWD=" + password
+
     def executeInteractiveSQL(self,SQL):
         conn = pyodbc.connect(self.VirtuosoConn)
         conn.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
@@ -173,5 +177,5 @@ class UDF_Manager_Virtuoso(sparqlEndpoint):
         """
         return self.executeSparqlQuery_dopost(Query),Query
 if __name__ == '__main__':
-    udfm=UDF_Manager_Virtuoso(host="206.12.98.118",port=1111,username='dba', password='dba')
+    udfm=VirtuosoUDFManager(host="206.12.98.118",port=1111,username='dba', password='dba')
     print(udfm.getKGList())

@@ -35,9 +35,9 @@ class gmlOperator():
 
                 s_types_df = self.KG_sparqlEndpoint.executeSparqlquery(s_type_query)
                 o_types_df = self.KG_sparqlEndpoint.executeSparqlquery(o_type_query)
-                KG_types_lst.append([s_types_df["s_type"].values[0].replace("\"","").split("/")[-1],edgeType.split("/")[-1],o_types_df["o_type"].values[0].replace("\"","").split("/")[-1]])
+                KG_types_lst.append([s_types_df["s_type"].values[0].replace("\"","").split("/")[-1].split("#")[-1],edgeType.split("/")[-1].split("#")[-1],o_types_df["o_type"].values[0].replace("\"","").split("/")[-1].split("#")[-1]])
             else:
-                KG_types_lst.append(["entity", edgeType.split("/")[-1],"type"])
+                KG_types_lst.append(["entity", edgeType.split("/")[-1].split("#")[-1],"type"])
         kg_types_df=pd.DataFrame(KG_types_lst)
         kg_types_df.to_csv(Constants.KGNET_Config.datasets_output_path+ (namedGraphURI.split(".")[1] if prefix is None else prefix) +"_Types.csv",header=None, index=None)
         return kg_types_df
@@ -125,8 +125,9 @@ class gmlInsertOperator(gmlOperator):
     def executeQuery(self,query_dict):
         train_pipline_json = self.create_train_pipline_json(query_dict)
         print("################# TOSG Sampling ###########################")
-        self.sample_Task_Subgraph(query_dict,
-                                  train_pipline_json["transformation"]["output_root_path"]+train_pipline_json["transformation"]["dataset_name"]+".tsv",
+        KG_PrimePath=train_pipline_json["transformation"]["output_root_path"]+train_pipline_json["transformation"]["dataset_name"]+".tsv"
+        print("KG' path=",KG_PrimePath)
+        self.sample_Task_Subgraph(query_dict,KG_PrimePath,
                                   query_dict["insertJSONObject"]["GMLTask"]["TOSG"])
         print("################# Start GNN Task Training  ###########################")
         transform_results_dict,train_results_dict=run_training_pipeline(json_args=train_pipline_json)
@@ -139,9 +140,17 @@ class gmlDeleteOperator(gmlOperator):
         self.GML_Query_Type=GML_Query_Types.Delete
 
 class gmlInferenceOperator(gmlOperator):
-    def __init__(self,KGMeta_Governer_obj ):
+    def __init__(self,KGMeta_Governer_obj,KG_sparqlEndpoint):
         self.KGMeta_Governer_obj = KGMeta_Governer_obj
+        self.KG_sparqlEndpoint = KG_sparqlEndpoint
         self.GML_Query_Type = GML_Query_Types.Inference
+    def executeQuery(self, query):
+        gmlqp = gmlQueryParser(query)
+        dataInferQ,dataQ, kmetaq = gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(), self.KGMeta_Governer_obj).rewrite_gml_query()
+        # print("KGMeta task select query= \n",kmetaq)
+        # print("SPARQL candidate query form 2= \n",dataInferQ)
+        # print("SPARQLdata only Query=\n", dataQ)
+        return dataInferQ,dataQ,kmetaq
 
 if __name__ == '__main__':
     ""

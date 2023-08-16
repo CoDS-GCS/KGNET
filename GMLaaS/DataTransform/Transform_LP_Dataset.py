@@ -36,7 +36,12 @@ def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_siz
 
     split_df=full_ds[full_ds["p"].isin([target_rel])].reset_index(drop=True)
     full_ds=full_ds[~full_ds["p"].isin([target_rel])]
-    test_size=test_size+valid_size
+
+    dic_results["testSize"] = test_size
+    dic_results["validSize"] = valid_size
+    dic_results["trainSize"] = 1 - (valid_size + test_size)
+
+    test_size = test_size + valid_size
     if split_rel is None:
         try:
             X_train, X_test, y_train, y_test = train_test_split(split_df.index.tolist(), split_df["o"].tolist(),test_size=test_size, random_state=42,stratify=split_df["o"].tolist())
@@ -57,9 +62,6 @@ def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_siz
     X_train = pd.concat([full_ds, split_df.iloc[X_train]])
     X_train.to_csv(path + "/train.txt", sep="\t", header=None, index=None)
     end_t = datetime.datetime.now()
-    dic_results["testSize"] = test_size
-    dic_results["validSize"] = valid_size
-    dic_results["trainSize"] = 1 - (valid_size + test_size)
     dic_results["csv_to_Hetrog_time"] = (end_t - start_t).total_seconds()
     return dic_results
 ###############################################################################################################################################

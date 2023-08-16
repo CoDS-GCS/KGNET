@@ -140,8 +140,17 @@ See the full list of supported GML-Operators [here](docs/kgnet_gml_operators.md)
 
 ## Citing Our Work
 If you find our work useful, please cite it in your research:
+<br>
+@INPROCEEDINGS{10184515,
+  author={Abdallah, Hussein and Mansour, Essam},
+  booktitle={2023 IEEE 39th International Conference on Data Engineering (ICDE)}, 
+  title={Towards a GML-Enabled Knowledge Graph Platform}, 
+  year={2023},
+  volume={},
+  number={},
+  pages={2946-2954},
+  doi={10.1109/ICDE55515.2023.00225}}
 
-"Abdallah, Hussein, and Essam Mansour. Towards a GML-Enabled Knowledge Graph Platform  arXiv preprint arXiv:2303.02166 (ICDE-2023)."
 ## Publicity
 This repository is part of our submission to CIDR-2023. We will make it available to the public research community upon acceptance. 
 

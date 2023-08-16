@@ -5,7 +5,7 @@ GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/MorsE"
 sys.path.insert(0,GMLaaS_models_path)
 # sys.path.append(sys.path.append(os.getcwd()+'/MorsE'))
 # print('current dir is '+os.getcwd())
-print(sys.path)
+# print(sys.path)
 
 from utils import init_dir, set_seed, get_num_rel
 from meta_trainer import MetaTrainer
