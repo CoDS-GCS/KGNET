@@ -1,5 +1,4 @@
 from copy import copy
-from Constants import *
 import json
 import argparse
 import shutil
@@ -229,7 +228,7 @@ class RGCN(torch.nn.Module):
 dic_results = {}
 
 
-def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,runs=1,batch_size=2000,walk_length=2,num_steps=10,loadTrainedModel=0,dataset_name="DBLP-Springer-Papers",root_path="../../Datasets/",output_path="./",include_reverse_edge=True,n_classes=1000,emb_size=128):
+def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,runs=1,batch_size=2000,walk_length=2,num_steps=10,loadTrainedModel=0,dataset_name="DBLP-Springer-Papers",root_path="../../Datasets/",output_path="./",include_reverse_edge=True,n_classes=1000,emb_size=128,label_mapping={}):
     def train(epoch):
         model.train()
         # tqdm.monitor_interval = 0
@@ -344,23 +343,20 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
         dic_results["GNN_Method"] = GNN_Methods.Graph_SAINT
         dic_results["to_keep_edge_idx_map"] = to_keep_edge_idx_map
         dic_results["dataset_name"] = dataset_name
-        gnn_hyper_params_dict={"device":device,"num_layers":num_layers,"hidden_channels":hidden_channels,
-            "dropout":dropout,"lr":lr,"epochs":epochs,"runs":runs,"batch_size":batch_size,
-            "walk_length":walk_length,"num_steps":num_steps,"emb_size":emb_size}
-        dic_results["gnn_hyper_params"] = gnn_hyper_params_dict
+
 
         print(getrusage(RUSAGE_SELF))
         start_t = datetime.datetime.now()
         data = dataset[0]
         # global subject_node
         subject_node = list(data.y_dict.keys())[0]
-        split_idx = dataset.get_idx_split()
+        if loadTrainedModel == 0:
+            split_idx = dataset.get_idx_split()
         # split_idx = dataset.get_idx_split('random')
         end_t = datetime.datetime.now()
         print("dataset init time=", end_t - start_t, " sec.")
         dic_results["dataset_load_time"] = (end_t - start_t).total_seconds()
         evaluator = Evaluator(name='ogbn-mag')
-        logger = Logger(runs, gnn_hyper_params_dict)
 
         start_t = datetime.datetime.now()
         # We do not consider those attributes for now.
@@ -409,18 +405,19 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
         homo_data.y = node_type.new_full((node_type.size(0), 1), -1)
         homo_data.y[local2global[subject_node]] = data.y_dict[subject_node]
 
-        homo_data.train_mask = torch.zeros((node_type.size(0)), dtype=torch.bool)
-        homo_data.train_mask[local2global[subject_node][split_idx['train'][subject_node]]] = True
-        print(homo_data)
-        start_t = datetime.datetime.now()
-        print("dataset.processed_dir", dataset.processed_dir)
-        kwargs = {'batch_size': batch_size, 'num_workers': 64, 'persistent_workers': True}
-        # print("homo_data.train_mask=",len(homo_data.train_mask==False))
-        train_loader = ShaDowKHopSampler(homo_data, depth=2, num_neighbors=3,
-                                         node_idx=homo_data.train_mask,
-                                         # node_idx = None,
-                                         # node_idx=local2global[subject_node]
-                                          **kwargs)
+        if loadTrainedModel == 0:
+            homo_data.train_mask = torch.zeros((node_type.size(0)), dtype=torch.bool)
+            homo_data.train_mask[local2global[subject_node][split_idx['train'][subject_node]]] = True
+            print(homo_data)
+            start_t = datetime.datetime.now()
+            print("dataset.processed_dir", dataset.processed_dir)
+            kwargs = {'batch_size': batch_size, 'num_workers': 64, 'persistent_workers': True}
+            # print("homo_data.train_mask=",len(homo_data.train_mask==False))
+            train_loader = ShaDowKHopSampler(homo_data, depth=2, num_neighbors=3,
+                                             node_idx=homo_data.train_mask,
+                                             # node_idx = None,
+                                             # node_idx=local2global[subject_node]
+                                              **kwargs)
         end_t = datetime.datetime.now()
         # print("Sampling time=", end_t - start_t, " sec.")
         # dic_results[dataset_name]["GSaint_Sampling_time"] = (end_t - start_t).total_seconds()
@@ -455,37 +452,31 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
         model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
         model_name = gen_model_name(dataset_name,dic_results["GNN_Method"])
 
-        if loadTrainedModel == 9:
-            start_t = datetime.datetime.now()
-            trained_model_path = r'/home/afandi/GitRepos/KGNET/Datasets/trained_models/mid-0000047.model'
-            model.load_state_dict(torch.load(trained_model_path))
-            print('Loaded Shadow Saint Model!')
-            model.eval()
-            #out = model.inference(x_dict, edge_index_dict, key2int)
-            out = model(x_dict, edge_index, edge_type, node_type,
-                        local_node_idx)
-            out = out[key2int[subject_node]]
-            y_pred = out.argmax(dim=-1, keepdim=True).cpu()
-            # y_true = data.y_dict[subject_node]
-            end_t = datetime.datetime.now()
-            print(dataset_name, "Infernce Time=", (end_t - start_t).total_seconds())
-            print('predictions : ',y_pred)
-            dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
-            dic_results['y_pred'] = y_pred
+        if loadTrainedModel == 1:
+            with torch.no_grad():
+                start_t = datetime.datetime.now()
+                trained_model_path = r'/home/afandi/GitRepos/KGNET/Datasets/trained_models/mid-0000047.model'
+                model.load_state_dict(torch.load(trained_model_path))
+                print('Loaded Shadow Saint Model!')
+                model.eval()
+                out = model.inference(x_dict, edge_index_dict, key2int)
+                # out = model(x_dict, edge_index, edge_type, node_type,
+                #             local_node_idx)
+                out = out[key2int[subject_node]]
+                y_pred = out.argmax(dim=-1, keepdim=True).cpu()
+                y_true = data.y_dict[subject_node]
+                end_t = datetime.datetime.now()
+                # y_pred = torch.index_select(out, 0, data.root_n_id)
+                print(dataset_name, "Infernce Time=", (end_t - start_t).total_seconds())
+                print('predictions : ',y_pred)
+                dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
 
-            int2key = {v: k for k, v in key2int.items()}
-            predicted_node_labels = y_pred.squeeze().tolist()
-            predicted_node_name = int2key[predicted_node_labels]
+                #dic_results['y_pred'] = pd.DataFrame({int(pred) : label_mapping[pred] for pred in y_pred.flatten().tolist()})
+                dic_results['y_pred'] = pd.DataFrame({'ent id':y_pred.flatten().tolist(),
+                                         'ent name': [label_mapping[pred] for pred in y_pred.flatten().tolist()]})
+                print(dic_results['y_pred'])
 
-
-            print('predicted_node_names ',predicted_node_name)
-            # out_lst = torch.flatten(y_true).tolist()
-            # pred_lst = torch.flatten(y_pred).tolist()
-            # out_df = pd.DataFrame({"y_pred": pred_lst, "y_true": out_lst})
-            # print(y_pred, data.y_dict[subject_node])
-            # print(out_df)
-            # out_df.to_csv("GSaint_DBLP_conf_output.csv", index=None)
-            return
+            return dic_results
         else:
             print("start test")
             test()  # Test if inference on GPU succeeds.
@@ -519,6 +510,13 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
             gsaint_end_t = datetime.datetime.now()
             Highest_Train, Highest_Valid, Final_Train, Final_Test = logger.print_statistics()
             model_trained_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
+            gnn_hyper_params_dict = {"device": device, "num_layers": num_layers, "hidden_channels": hidden_channels,
+                                     "dropout": dropout, "lr": lr, "epochs": epochs, "runs": runs,
+                                     "batch_size": batch_size, "walk_length": walk_length, "num_steps": num_steps,
+                                     "emb_size": emb_size, "num_layers":dataset.num_classes,}
+            logger = Logger(runs, gnn_hyper_params_dict)
+
+            dic_results["gnn_hyper_params"] = gnn_hyper_params_dict
             dic_results["init_ru_maxrss"] = init_ru_maxrss
             dic_results["model_ru_maxrss"] = model_loaded_ru_maxrss
             dic_results["model_trained_ru_maxrss"] = model_trained_ru_maxrss

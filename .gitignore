@@ -25,3 +25,14 @@ Makefile
 *.iml
 *.log0
 *.mdb
+/GMLaaS/models/MorsE/tb_log/
+/GMLaaS/models/tb_log/
+/SparqlMLaasService/tb_log/
+/GMLaaS/models/MorsE/.ipynb
+/GMLaaS/models/MorsE/state/
+/GMLaaS/models/MorsE/.ipynb_checkpoints/
+/GMLaaS/models/MorsE/script/metatrain.sh
+/GMLaaS/models/MorsE/README.md
+/GMLaaS/models/MorsE/script/finetune.sh
+/GMLaaS/models/state/FB15K23/FB15K23.best
+/GMLaaS/models/MorsE/.gitignore
