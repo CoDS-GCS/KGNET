@@ -31,7 +31,9 @@ class GNN_Samplers:
        ""
 
 class GNN_KG_HParms:
-    GNN_KG_HP_PREFIX = 'kgnet:GMLModel/hyperparameter/'
+    GNN_KG_PREFIX = 'kgnet:GMLModel/'
+    GNN_Method = GNN_KG_PREFIX + 'GNNMethod'
+    GNN_KG_HP_PREFIX = GNN_KG_PREFIX + 'hyperparameter/'
     Emb_size = GNN_KG_HP_PREFIX + 'embSize'
     HiddenChannels = GNN_KG_HP_PREFIX + 'hiddenChannels'
     Num_Classes = ''
@@ -41,7 +43,7 @@ class GNN_KG_HParms:
     def __init__(self):
        ""
 class GNN_SubG_Parms:
-    GNN_KG_HP_PREFIX = 'kgnet:GMLModel/taskSubgraph/'
+    GNN_KG_HP_PREFIX = GNN_KG_HParms.GNN_KG_PREFIX + 'taskSubgraph/'
     GNN_TASK_PREFIX = 'kgnet:GMLTask/'
     GNN_KG_TASK_PREFIX = 'kgnet:GMLTask/'
     targetEdge = GNN_KG_HP_PREFIX + 'targetEdge'
