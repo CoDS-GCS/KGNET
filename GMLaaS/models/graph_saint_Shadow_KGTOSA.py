@@ -2,6 +2,8 @@ from copy import copy
 import json
 import argparse
 import shutil
+
+import Constants
 from Constants import *
 import pandas as pd
 from tqdm import tqdm
@@ -16,7 +18,7 @@ from torch_geometric.loader import  GraphSAINTRandomWalkSampler,ShaDowKHopSample
 #from KGTOSA_Samplers import GraphSAINTTaskBaisedRandomWalkSampler,GraphSAINTTaskWeightedRandomWalkSampler
 from torch_geometric.utils.hetero import group_hetero_graph
 from torch_geometric.nn import MessagePassing
-import sys
+from Constants import *
 import os
 import psutil
 from pathlib import Path
@@ -228,7 +230,7 @@ class RGCN(torch.nn.Module):
 dic_results = {}
 
 
-def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,runs=1,batch_size=2000,walk_length=2,num_steps=10,loadTrainedModel=0,dataset_name="DBLP-Springer-Papers",root_path="../../Datasets/",output_path="./",include_reverse_edge=True,n_classes=1000,emb_size=128,label_mapping={}):
+def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,runs=1,batch_size=2000,walk_length=2,num_steps=10,loadTrainedModel=0,dataset_name="DBLP-Springer-Papers",root_path="../../Datasets/",output_path="./",include_reverse_edge=True,n_classes=1000,emb_size=128,label_mapping={},target_mapping={},modelID=''):
     def train(epoch):
         model.train()
         # tqdm.monitor_interval = 0
@@ -441,12 +443,14 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
         print("model init time CPU=", end_t - start_t, " sec.")
         # dic_results[dataset_name]["model init Time"] = (end_t - start_t).total_seconds()
         device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
+        # num_nodes_dict = {0: 178, 1: 47, 2: 1207, 3: 178, 4: 25, 5: 48, 6: 178, 7: 84, 8: 115, 9: 7}
         model = RGCN(emb_size, hidden_channels, dataset.num_classes, num_layers,
                      dropout, num_nodes_dict, list(x_dict.keys()),
                      len(edge_index_dict.keys())).to(device)
 
+
         x_dict = {k: v.to(device) for k, v in x_dict.items()}
-        y_true = data.y_dict[subject_node]
+        # y_true = data.y_dict[subject_node]
         print("x_dict=", x_dict.keys())
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
@@ -455,30 +459,53 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
         if loadTrainedModel == 1:
             with torch.no_grad():
                 start_t = datetime.datetime.now()
-                trained_model_path = r'/home/afandi/GitRepos/KGNET/Datasets/trained_models/mid-0000047.model'
+                trained_model_path = Constants.KGNET_Config.trained_model_path + modelID
+                # trained_model_path = r'/home/afandi/GitRepos/KGNET/Datasets/trained_models/mid-0000064.model'
+                model_params_path = trained_model_path.replace('.model','.param')
+
+                with open (model_params_path,'rb') as f:
+                    dict_model_param = pickle.load(f)
+
+                model = RGCN(dict_model_param['emb_size'],
+                             dict_model_param['hidden_channels'],
+                             dict_model_param['dataset.num_classes'],
+                             dict_model_param['num_layers'],
+                             dict_model_param['dropout'],
+                             dict_model_param['num_nodes_dict'],
+                             dict_model_param['list_x_dict_keys'],
+                             dict_model_param['len_edge_index_dict_keys']
+                )
+                label_mapping = dict_model_param['label_mapping']
                 model.load_state_dict(torch.load(trained_model_path))
+                # model= torch.load(trained_model_path)
+
                 print('Loaded Shadow Saint Model!')
                 model.eval()
                 out = model.inference(x_dict, edge_index_dict, key2int)
                 # out = model(x_dict, edge_index, edge_type, node_type,
                 #             local_node_idx)
                 out = out[key2int[subject_node]]
-                y_pred = out.argmax(dim=-1, keepdim=True).cpu()
-                y_true = data.y_dict[subject_node]
+                y_pred = out.argmax(dim=-1, keepdim=True).cpu().flatten().tolist()
                 end_t = datetime.datetime.now()
-                # y_pred = torch.index_select(out, 0, data.root_n_id)
                 print(dataset_name, "Infernce Time=", (end_t - start_t).total_seconds())
                 print('predictions : ',y_pred)
+                dict_pred = {}
+                for i,pred in enumerate(y_pred):
+                    dict_pred[target_mapping[i]] = label_mapping[pred]
+
                 dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
 
+                # for pred in y_pred.flatten
                 #dic_results['y_pred'] = pd.DataFrame({int(pred) : label_mapping[pred] for pred in y_pred.flatten().tolist()})
-                dic_results['y_pred'] = pd.DataFrame({'ent id':y_pred.flatten().tolist(),
-                                         'ent name': [label_mapping[pred] for pred in y_pred.flatten().tolist()]})
+                # dic_results['y_pred'] = pd.DataFrame({'ent id':y_pred.flatten().tolist(),
+                                         # 'ent name': [label_mapping[pred] for pred in y_pred.flatten().tolist()]})
+                dic_results['y_pred'] = dict_pred
                 print(dic_results['y_pred'])
 
             return dic_results
         else:
             print("start test")
+            logger = Logger(runs)
             test()  # Test if inference on GPU succeeds.
             total_run_t = 0
             for run in range(runs):
@@ -513,7 +540,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
             gnn_hyper_params_dict = {"device": device, "num_layers": num_layers, "hidden_channels": hidden_channels,
                                      "dropout": dropout, "lr": lr, "epochs": epochs, "runs": runs,
                                      "batch_size": batch_size, "walk_length": walk_length, "num_steps": num_steps,
-                                     "emb_size": emb_size, "num_layers":dataset.num_classes,}
+                                     "emb_size": emb_size, "dataset_num_classes":dataset.num_classes,}
             logger = Logger(runs, gnn_hyper_params_dict)
 
             dic_results["gnn_hyper_params"] = gnn_hyper_params_dict
@@ -530,6 +557,18 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
             dic_results["Total_Time"] = (gsaint_end_t - gsaint_start_t).total_seconds()
             dic_results["Model_Parameters_Count"]= sum(p.numel() for p in model.parameters())
             dic_results["Model_Trainable_Paramters_Count"]=sum(p.numel() for p in model.parameters() if p.requires_grad)
+            dict_model_param = {}
+            ############### Model Hyper Parameters ###############
+            dict_model_param['emb_size'] = emb_size
+            dict_model_param['hidden_channels'] = hidden_channels  # dataset.num_classes
+            dict_model_param['dataset.num_classes'] = dataset.num_classes
+            dict_model_param['num_layers'] = num_layers
+            dict_model_param['dropout'] = dropout
+            dict_model_param['num_nodes_dict'] = num_nodes_dict
+            dict_model_param['list_x_dict_keys'] = list(x_dict.keys())
+            dict_model_param['len_edge_index_dict_keys'] = len(edge_index_dict.keys())
+            if len(label_mapping) > 0:
+                dict_model_param['label_mapping'] = label_mapping
             logs_path = os.path.join(output_path,'logs')
             model_path = os.path.join(output_path,'trained_models')
             create_dir([logs_path,model_path])
@@ -540,6 +579,8 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
             with open(os.path.join(logs_path, model_name +'_log.json'), "w") as outfile:
                 json.dump(dic_results, outfile)
             torch.save(model.state_dict(), os.path.join(model_path , model_name)+".model")
+            with open (os.path.join(model_path , model_name)+".param",'wb') as f:
+                pickle.dump(dict_model_param,f)
         # except Exception as e:
         #     print(e)
         #     print(traceback.format_exc())
@@ -561,7 +602,7 @@ if __name__ == '__main__':
     parser.add_argument('--walk_length', type=int, default=2)
     parser.add_argument('--num_steps', type=int, default=10)
     parser.add_argument('--loadTrainedModel', type=int, default=0)
-    parser.add_argument('--dataset_name', type=str, default="DBLP-Springer-Papers")
+    parser.add_argument('--dataset_name', type=str, default="aifb")
     parser.add_argument('--root_path', type=str, default="../../Datasets/")
     parser.add_argument('--output_path', type=str, default="./")
     parser.add_argument('--include_reverse_edge', type=bool, default=True)

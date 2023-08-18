@@ -42,9 +42,11 @@ class GNN_KG_HParms:
        ""
 class GNN_SubG_Parms:
     GNN_KG_HP_PREFIX = 'kgnet:GMLModel/taskSubgraph/'
+    GNN_TASK_PREFIX = 'kgnet:GMLTask/'
     GNN_KG_TASK_PREFIX = 'kgnet:GMLTask/'
     targetEdge = GNN_KG_HP_PREFIX + 'targetEdge'
     prefix = GNN_KG_TASK_PREFIX + 'KGPrefix'
+    modelId = GNN_TASK_PREFIX + 'modelID'
 
 
 
@@ -66,7 +68,8 @@ class TOSG_Patterns:
 class KGNET_Config:
     datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
-    GML_API_URL = "http://127.0.0.1:64646/"
+    trained_model_path = datasets_output_path + 'trained_models/'
+    GML_API_URL = "http://206.12.98.118:8895/"
     GML_Inference_PORT = "64647"
     KGMeta_IRI = "http://kgnet/"
     KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"

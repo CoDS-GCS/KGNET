@@ -49,9 +49,11 @@ def get_MetaData(model_id):
     # print(query)
     res_df = kgmeta_govener.executeSparqlquery(query)
     res_df = res_df.applymap(lambda x: x.strip('"'))
+    dict_params['model']['modelID'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.modelId]['o'].item()).split('/')[-1] + '.model'
     dict_params['model']['embSize'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Emb_size]['o'].item())
     dict_params['model']['hiddenChannels'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.HiddenChannels]['o'].item())
     dict_params['model']['Num_Layers'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Num_Layers]['o'].item())
+
 
     dict_params['subG']['targetEdge'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.targetEdge]['o'].item())
     dict_params['subG']['graphPrefix'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.prefix]['o'].item())
@@ -61,8 +63,11 @@ def get_MetaData(model_id):
 def generate_subgraph(named_graph_uri,target_rel_uri,targetNode_filter_statements,sparqlEndpointURL):
 
 
-    query = [get_NC_d1h1_query(graph_uri=named_graph_uri, target_rel_uri=target_rel_uri,
-                               tragetNode_filter_statments=targetNode_filter_statements)]
+    # query = [get_NC_d1h1_query(graph_uri=named_graph_uri, target_rel_uri=target_rel_uri,
+    #                            tragetNode_filter_statments=targetNode_filter_statements)]
+    query = ''
+    for statement in targetNode_filter_statements:
+        query += statement
     kg = KGNET(sparqlEndpointURL)
     subgraph_df = kg.KG_sparqlEndpoint.executeSparqlquery(query,)
     subgraph_df = subgraph_df.applymap(lambda x : x.strip('"'))
@@ -97,26 +102,16 @@ def perform_inference(model_id,named_graph_uri,targetNode_filter_statements,spar
                               graphPrefix = meta_dict['subG']['graphPrefix'],
                               sparqlEndpointURL = sparqlEndpointURL)
 
-    inference_transform_tsv_to_PYG(dataset_name='inference',
+    data_dict = inference_transform_tsv_to_PYG(dataset_name='inference',
                                    dataset_name_csv='inference',
                                    dataset_types=rel_types,
                                    target_rel=meta_dict['subG']['targetEdge'],
                                    output_root_path=Constants.KGNET_Config.inference_path,
                                    Header_row=True)
 
-    graphShadowSaint(dataset_name='inference',root_path=Constants.KGNET_Config.inference_path,loadTrainedModel=1)
+    dic_results = graphShadowSaint(dataset_name='inference',root_path=Constants.KGNET_Config.inference_path,loadTrainedModel=1,target_mapping=data_dict['target_mapping'],
+                     modelID=meta_dict['model']['modelID'])
 
 
-
-
-
-
-
-
-
-
-
-
-
-    # subgraph.to_csv(Constants.)
+    return dic_results
     print ('pass!')

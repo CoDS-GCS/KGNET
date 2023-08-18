@@ -24,6 +24,8 @@ class InferenceRequest(BaseModel):
     named_graph_uri : str
     sparqlEndpointURL : str
     dataQuery : List[str]
+    topk: int = 1
+
 
 @app.post("/inference/")
 async def run_inference(inference_request: InferenceRequest):
@@ -31,15 +33,17 @@ async def run_inference(inference_request: InferenceRequest):
     named_graph_uri = inference_request.named_graph_uri
     sparqlEndpointURL = inference_request.sparqlEndpointURL
     dataQuery = inference_request.dataQuery
-    perform_inference(model_id = model_id,named_graph_uri = named_graph_uri,
+    dic_results = perform_inference(model_id = model_id,named_graph_uri = named_graph_uri,
                       targetNode_filter_statements = dataQuery,
                       sparqlEndpointURL = sparqlEndpointURL)
-    return {
-        "model_id": model_id,
-        "named_graph_uri": named_graph_uri,
-        "target_rel_uri": sparqlEndpointURL,
-        "targetNode_filter_statements": dataQuery
-    }
+
+    return dic_results['y_pred']
+    # return {
+    #     "model_id": model_id,
+    #     "named_graph_uri": named_graph_uri,
+    #     "target_rel_uri": sparqlEndpointURL,
+    #     "targetNode_filter_statements": dataQuery
+    # }
 
 
 if __name__ == "__main__":
