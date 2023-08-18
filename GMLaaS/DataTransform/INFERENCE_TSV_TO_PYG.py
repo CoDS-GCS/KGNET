@@ -5,10 +5,7 @@ import gzip
 import datetime
 import os
 import shutil
-import itertools
-import random
-from sklearn.metrics import precision_recall_fscore_support as score
-import gc
+
 
 from sklearn.model_selection import train_test_split
 
@@ -33,8 +30,8 @@ def delete_multiple_element(list_object, indices):
 def define_rel_types(g_tsv_df):
     g_tsv_df["p"]
 
-def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path
-                         ,MINIMUM_INSTANCE_THRESHOLD=9,test_size=0.1,valid_size=0.1,split_rel_train_value=None,split_rel_valid_value=None,Header_row=None,target_node=None):
+def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,target_rel,output_root_path
+                         ,Header_row=None,target_node=None):
     dic_results = {}  # args.dic_results #{}
     start_t = datetime.datetime.now()
     if dataset_types == "":
@@ -56,6 +53,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     ##################Check if headers are present in _types file
     if any(col not in g_tsv_types_df.columns for col in ['stype', 'ptype', 'otype']):
         old_columns = g_tsv_types_df.columns
+        g_tsv_types_df = g_tsv_types_df.append(pd.Series(old_columns, index=g_tsv_types_df.columns), ignore_index=True)
         # print('***OLD g_tsv_types df:',g_tsv_types_df.head())
         # print(f'changing "{old_columns[0]}" to stype, "{old_columns[1]}" to ptype , and "{old_columns[2]}" to otype !')
         g_tsv_types_df = g_tsv_types_df.rename(
@@ -80,7 +78,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     unique_p_lst = g_tsv_df["p"].unique().tolist()
     ########################delete non target nodes #####################
     relations_lst = g_tsv_df["p"].unique().astype("str").tolist()
-    relations_lst = [rel for rel in relations_lst if rel not in similar_target_rels]
+    #relations_lst = [rel for rel in relations_lst if rel not in similar_target_rels]
     # print("relations_lst=", relations_lst)
     dic_results["usecase"] = dataset_name
     dic_results["TriplesCount"] = len(g_tsv_df)
@@ -90,9 +88,9 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     #     relations_lst.remove(split_rel)
     if target_rel in relations_lst:
         relations_lst.remove(target_rel)
-    for srel in similar_target_rels:
-        if srel in relations_lst:
-            relations_lst.remove(srel)
+    # for srel in similar_target_rels:
+    #     if srel in relations_lst:
+    #         relations_lst.remove(srel)
     ################################Start Encoding Nodes and edges ########################
     ################################write relations index ########################
     relations_df = pd.DataFrame(relations_lst, columns=["rel name"])
@@ -292,12 +290,14 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     compress_gz(map_folder + "/node-label.csv")
     ###########################################split parts (train/test/validate)#########################
     # split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
-    split_rel = split_rel.split('/')[-1]
-    if split_rel.lower() == 'random':
-        split_df = g_tsv_df[g_tsv_df["p"] == target_rel]
+    # split_rel = split_rel.split('/')[-1]
+    # if split_rel.lower() == 'random':
+    #     split_df = g_tsv_df[g_tsv_df["p"] == target_rel]
 
-    else:
-        split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
+    split_df = g_tsv_df[g_tsv_df["p"] == target_rel]
+
+    # else:
+        # split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
 
     ########## remove drug  with multi labels ################
     target_label_dict = split_df["s"].value_counts().to_dict()
@@ -306,11 +306,11 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     # print("target_nodes_to_keep_lst count=", len(target_nodes_to_keep_lst))
     split_df = split_df[split_df["s"].isin(target_nodes_to_keep_lst)]
     ########## remove labels with less than 9 samples################
-    labels_dict = split_df["o"].value_counts().to_dict()
-    labels_to_keep_lst = list(k for k, v in labels_dict.items() if v >= MINIMUM_INSTANCE_THRESHOLD)  # 9
+    # labels_dict = split_df["o"].value_counts().to_dict()
+    # labels_to_keep_lst = list(k for k, v in labels_dict.items())  # 9
     # print("labels_dict count=", len(labels_dict.keys()))
     # print("labels_to_keep count=", len(labels_to_keep_lst))
-    split_df = split_df[split_df["o"].isin(labels_to_keep_lst)]
+    # split_df = split_df[split_df["o"].isin(labels_to_keep_lst)]
     #############################################################
     # rel = split_rel
     # print("split years=", split_df["o"].unique().tolist())
@@ -335,33 +335,33 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     # test_df = split_df[(split_df["o"] > split_by["valid"])]["s"]
 
     ########## Random Splitting ###########
-    if split_rel.lower() == 'random':
-        dic_results["testSize"] = test_size
-        dic_results["validSize"] = valid_size
-        dic_results["trainSize"] = 1 - (valid_size + test_size)
-        new_test_size =  (test_size + valid_size)
-        valid_size = (valid_size) / (test_size + valid_size)
-        test_size=new_test_size
-        # print("Test % ", test_size)
-        # print("Valid % ", valid_size)
-        X_train, X_test, y_train, y_test = train_test_split(split_df["s"].tolist(), split_df["o"].tolist(),
-                                                            test_size=test_size, random_state=42,
-                                                            stratify=split_df["o"].tolist())
-        try:
-            X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42,stratify=y_test)
-        except:
-            X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42)
-        train_df = pd.DataFrame(X_train)
-        valid_df = pd.DataFrame(X_valid)
-        test_df = pd.DataFrame(X_test)
+    # if split_rel.lower() == 'random':
+    #     dic_results["testSize"] = test_size
+    #     dic_results["validSize"] = valid_size
+    #     dic_results["trainSize"] = 1 - (valid_size + test_size)
+    #     new_test_size =  (test_size + valid_size)
+    #     valid_size = (valid_size) / (test_size + valid_size)
+    #     test_size=new_test_size
+    #     # print("Test % ", test_size)
+    #     # print("Valid % ", valid_size)
+    #     X_train, X_test, y_train, y_test = train_test_split(split_df["s"].tolist(), split_df["o"].tolist(),
+    #                                                         test_size=test_size, random_state=42,
+    #                                                         stratify=split_df["o"].tolist())
+    #     try:
+    #         X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42,stratify=y_test)
+    #     except:
+    #         X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42)
+    #     train_df = pd.DataFrame(X_train)
+    #     valid_df = pd.DataFrame(X_valid)
+    #     test_df = pd.DataFrame(X_test)
 
-    else:
-        # print("SPLIT REL PROVIDED: ", split_rel)
-        dic_results["splitEdge"]=split_rel
-        train_df = split_df[split_df["o"].astype(int) <= split_rel_train_value]["s"]
-        valid_df = split_df[(split_df["o"].astype(int) > split_rel_train_value) & (
-                    split_df["o"].astype(int) <= split_rel_valid_value)]["s"]
-        test_df = split_df[(split_df["o"].astype(int) > split_rel_valid_value)]["s"]
+    # else:
+    #     # print("SPLIT REL PROVIDED: ", split_rel)
+    #     dic_results["splitEdge"]=split_rel
+    #     train_df = split_df[split_df["o"].astype(int) <= split_rel_train_value]["s"]
+    #     valid_df = split_df[(split_df["o"].astype(int) > split_rel_train_value) & (
+    #                 split_df["o"].astype(int) <= split_rel_valid_value)]["s"]
+    #     test_df = split_df[(split_df["o"].astype(int) > split_rel_valid_value)]["s"]
 
     map_folder = output_root_path + dataset_name + "/split/" + label_type  # + split_by[        "folder_name"] + "/"
 
@@ -369,11 +369,11 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         os.stat(map_folder)
     except:
         os.makedirs(map_folder)
-    train_df.to_csv(map_folder + "/train.csv", index=None, header=None)
-    compress_gz(map_folder + "/train.csv")
-    valid_df.to_csv(map_folder + "/valid.csv", index=None, header=None)
-    compress_gz(map_folder + "/valid.csv")
-    test_df.to_csv(map_folder + "/test.csv", index=None, header=None)
+    # train_df.to_csv(map_folder + "/train.csv", index=None, header=None)
+    # compress_gz(map_folder + "/train.csv")
+    # valid_df.to_csv(map_folder + "/valid.csv", index=None, header=None)
+    # compress_gz(map_folder + "/valid.csv")
+    split_df.to_csv(map_folder + "/test.csv", index=None, header=None)
     compress_gz(map_folder + "/test.csv")
     ###################### create nodetype-has-split.csv#####################
     lst_node_has_split = [
@@ -447,7 +447,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
                             root_dir=output_root_path, base_dir=dataset_name)
     end_t = datetime.datetime.now()
     # print(dataset_name.split(".")[0] + "_csv_to_Hetrog_time=", end_t - start_t, " sec.")
-    dic_results['label_mapping'] = {v : k for k,v in label_idx_dic.items()}#{v : k for k,v in entites_dic[target_node+'_dic'].items()}
+    dic_results['target_mapping'] = {v : k for k,v in entites_dic[target_node+'_dic'].items()}
     dic_results["csv_to_Hetrog_time"] = (end_t - start_t).total_seconds()
     print(dic_results)
     # pd.DataFrame(dic_results).to_csv(
@@ -486,10 +486,10 @@ if __name__ == '__main__':
     split_rel = args.split_rel  # "http://purl.org/dc/terms/year"
     # split_by = args.split_by #{"folder_name": "random"}  # , "split_data_type": "int", "train":2006  ,"valid":2007 , "test":2008 }
     target_rel = args.target_rel  # "https://www.biokg.org/CLASS"  # is in the dataset and is StudiedDrug
-    similar_target_rels = args.similar_target_rels  # ["https://www.biokg.org/SUBCLASS", "https://www.biokg.org/SUPERCLASS"]
-    Literals2Nodes = args.Literals2Nodes  # False
+    #similar_target_rels = args.similar_target_rels  # ["https://www.biokg.org/SUBCLASS", "https://www.biokg.org/SUPERCLASS"]
+    # Literals2Nodes = args.Literals2Nodes  # False
     output_root_path = args.output_root_path  # "/home/ubuntu/flora_tests/biokg/data/"
-    transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path,args.MINIMUM_INSTANCE_THRESHOLD,args.test_size,args.valid_size,args.split_rel_train_value,args.split_rel_valid_value,Header_row=True)
+    inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,target_rel,output_root_path,Header_row=True)
 
 
 

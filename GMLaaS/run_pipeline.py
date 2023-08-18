@@ -80,13 +80,14 @@ def run_training_pipeline(json_args):
         if json_args["training"]["GNN_Method"] == Constants.GNN_Methods.Graph_SAINT:
             train_results_dict = graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5,
                                             runs=1, batch_size=20000,
-                                            walk_length=2, num_steps=10, loadTrainedModel=0,
+                                            walk_length=2, num_steps=10, loadTrainedModel=1,
                                             dataset_name=json_args["training"]["dataset_name"],
                                             root_path=json_args["training"]["root_path"],
                                             output_path=json_args["training"]["root_path"],
                                             include_reverse_edge=True,
                                             n_classes=1000,
-                                            emb_size=128)
+                                            emb_size=128
+                                            )
         elif json_args["training"]["GNN_Method"] == Constants.GNN_Methods.RGCN:
             train_results_dict = rgcn(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5,
                                       runs=1, batch_size=20000,
@@ -106,7 +107,8 @@ def run_training_pipeline(json_args):
                                                   output_path=json_args["training"]["root_path"],
                                                   include_reverse_edge=True,
                                                   n_classes=1000,
-                                                  emb_size=128)
+                                                  emb_size=128,
+                                                  label_mapping=transform_results_dict['label_mapping'])
 
     elif json_args["transformation"]["operatorType"] == Constants.GML_Operator_Types.LinkPrediction:
         transform_results_dict=transform_LP_train_valid_test_subsets(data_path=json_args["transformation"]["output_root_path"],

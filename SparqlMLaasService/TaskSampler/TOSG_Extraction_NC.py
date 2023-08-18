@@ -34,23 +34,27 @@ def ExecQuery(endpoint_url,query):
     r = requests.post(endpoint_url, data=body, headers=headers)
     return r.text.split('\n')[1]
 def get_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
-    query="""select distinct ?s as ?subject ?p as ?predicate ?o as ?object  
+    query="""select distinct ?s as ?subject ?p as ?predicate ?o as ?object
            where
            {
                 select ?s ?p ?o
                 from <"""+graph_uri+""">
-                where 
+                where
                 {
                 ?s <"""+target_rel_uri+"""> ?label.
                 ?s ?p ?o.
                 filter(!isBlank(?o)).\n"""
+
     if tragetNode_filter_statments:
-        query+=tragetNode_filter_statments
+        query += tragetNode_filter_statments
+        for statement in tragetNode_filter_statments:
+            query+=statement
+
 
     query+="""}
-                limit ?limit 
                 offset ?offset
-           } 
+                limit ?limit
+           }
         """
     return query
 def get_d2h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):

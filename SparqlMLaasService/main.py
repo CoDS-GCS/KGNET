@@ -127,11 +127,11 @@ if __name__ == '__main__':
                    where{
                        select * from kgnet.TrainGML(
                        {
-                       "Name":"MAG_Year_lte_2011_Paper_Venue_Classifer",
-                       "GML-Task":{
-                           "TaskType":"kgnet:NodeClassifier",
-                           "TargetNode":"mag:Paper",
-                           "NodeLabel":"mag:Venue",
+                       "name":"MAG_Year_lte_2011_Paper_Venue_Classifer",
+                       "GMLTask":{
+                           "taskType":"kgnet:NodeClassifier",
+                           "targetNode":"mag:Paper",
+                           "labelNode":"mag:Venue",
                            "LabelPredicate":"https://makg.org/property/appearsInJournal",
                            "named_graph_uri":"http://mag.org",
                            "GNN_Method":\""""+GNN_Methods.Graph_SAINT+"""\",
@@ -159,7 +159,7 @@ if __name__ == '__main__':
                                "taskType":"kgnet:LinkPredictor",
                                "targetEdge":"http://data.linkedmdb.org/resource/movie/writer",
                                "namedGraphURI":"https://linkedimdb",
-                               "GNNMethod":\"""" + GNN_Methods.MorsE + """\",
+                               "GNNMethod":\"""" + GNN_Methods.RGCN + """\",
                                "datasetTypesFilePath":\"""" + KGNET_Config.datasets_output_path + """lmdb_Types.csv",
                                "TOSG":\"""" + TOSG_Patterns.d2h1 + """\",
                                "targetNodeFilters":{

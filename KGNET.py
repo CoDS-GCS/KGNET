@@ -121,10 +121,13 @@ if __name__ == '__main__':
           }
           limit 100
           """
-    #################################### NC ############################
-    # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de')
-    # model_info, transform_info, train_info=kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification,targetNodeType="aifb:ontology#Publication",labelNodeType="aifb:ontology#ResearchTopic",GNNMethod=Constants.GNN_Methods.Graph_SAINT)
-    # model_info, transform_info, train_info=kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification,targetNodeType="aifb:ontology#Person",labelNodeType="aifb:ontology#ResearchGroup",GNNMethod=Constants.GNN_Methods.Graph_SAINT)
+
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',)
+    kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',
+                  KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de')
+
+    model_info, transform_info, train_info=kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification,targetNodeType="aifb:Person",labelNodeType="aifb:ResearchGroup",GNNMethod=Constants.GNN_Methods.ShaDowGNN)
+
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql')
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="dblp:Publication",
     #     labelNodeType="dblp:venue", GNNMethod=Constants.GNN_Methods.Graph_SAINT)
@@ -167,6 +170,6 @@ if __name__ == '__main__':
                     limit 100
                     offset 0
                 """
-    kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de')
-    dataInferQuery,dataQuery,gmlQuery=kgnet.executeSPARQLMLInferenceQuery(inference_query_LP)
-    print(dataInferQuery,"\n\n\n\n##################\n",dataQuery,"\n\n\n\n##################\n",gmlQuery)
+    # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de')
+    # dataInferQuery,dataQuery,gmlQuery=kgnet.executeSPARQLMLInferenceQuery(inference_query_NC)
+    # print(dataInferQuery,"\n\n\n\n##################\n",dataQuery,"\n\n\n\n##################\n",gmlQuery)

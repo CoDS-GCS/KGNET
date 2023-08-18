@@ -21,7 +21,7 @@ class KGMeta_Governer_rdflib():
 
 
 def append_triple(Insert_Triples,model_model_uri,triple,insert_dict,key):
-    if key in insert_dict:
+    if isinstance(insert_dict,dict) and str(key) in insert_dict:
         Insert_Triples += "<" + model_model_uri + "> "+triple+" "+ str(insert_dict[key])+" . \n"
     return Insert_Triples
 
