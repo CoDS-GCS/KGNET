@@ -384,7 +384,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
         for key in to_remove_subject_object:
             data.num_nodes_dict.pop(key, None)
 
-        dic_results["data_obj"] = str(data)
+        # dic_results["data_obj"] = str(data)
         edge_index_dict = data.edge_index_dict
         ##############add inverse edges ###################
         if include_reverse_edge:
@@ -581,12 +581,14 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
             torch.save(model.state_dict(), os.path.join(model_path , model_name)+".model")
             with open (os.path.join(model_path , model_name)+".param",'wb') as f:
                 pickle.dump(dict_model_param,f)
+
+            dic_results["data_obj"] = data.to_dict()
         # except Exception as e:
         #     print(e)
         #     print(traceback.format_exc())
         #     print("dataset_name Exception")
         del train_loader
-    return gsaint_Final_Test
+    return dic_results
 
 
 if __name__ == '__main__':
