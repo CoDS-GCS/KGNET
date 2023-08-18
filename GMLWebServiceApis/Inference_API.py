@@ -27,9 +27,9 @@ class InferenceRequest(BaseModel):
     topk: int = 1
 
 
-@app.post("/inference/")
-async def run_inference(inference_request: InferenceRequest):
-    model_id = inference_request.model_id
+@app.post("/gml_inference/mid/{mid}")
+async def run_inference(mid:int,inference_request: InferenceRequest):
+    model_id = inference_request.model_id if inference_request.model_id is not None else mid
     named_graph_uri = inference_request.named_graph_uri
     sparqlEndpointURL = inference_request.sparqlEndpointURL
     dataQuery = inference_request.dataQuery
