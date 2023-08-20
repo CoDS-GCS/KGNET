@@ -485,6 +485,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
                 # out = model(x_dict, edge_index, edge_type, node_type,
                 #             local_node_idx)
                 out = out[key2int[subject_node]]
+                out = out[:, :len(label_mapping)]  # TODO
                 y_pred = out.argmax(dim=-1, keepdim=True).cpu().flatten().tolist()
                 end_t = datetime.datetime.now()
                 print(dataset_name, "Infernce Time=", (end_t - start_t).total_seconds())
