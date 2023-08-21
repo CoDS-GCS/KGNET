@@ -1,4 +1,6 @@
 import json
+import os.path
+
 import pandas as pd
 import subprocess
 import argparse
@@ -14,6 +16,7 @@ from GMLaaS.models.rgcn_KGTOSA import rgcn
 from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.graph_MorsE import run_morse
 from GMLaaS.models.rgcn.rgcn_link_pred import rgcn_lp
+from GMLaaS.model_manager import uploadModelToServer
 from GMLaaS.models.evaluater import Evaluator
 from Constants import *
 def load_args(path_json):
@@ -49,6 +52,12 @@ def format_args(task,json_args,path_script):
 
 # subprocess.run(list_training)
 
+def uploadModel(model_path):
+    uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,
+                                     model_path + '.model'))
+    uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,
+                                     model_path + '.param'))
+
 def cmd_run_training_pipeline(path_json=None,path_transformation_py='DataTransform/TSV_TO_PYG_dataset.py',path_training_py='models/models/graph_saint/graph_saint_KGTOSA.py',json_args=None):
     if json_args is None:
         json_args = load_args(path_json)
@@ -77,6 +86,7 @@ def run_training_pipeline(json_args):
                              valid_size=json_args["transformation"]["valid_size"],
                              split_rel_train_value=None,
                              split_rel_valid_value=None)
+
         if json_args["training"]["GNN_Method"] == Constants.GNN_Methods.Graph_SAINT:
             train_results_dict = graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5,
                                             runs=1, batch_size=20000,
@@ -89,6 +99,8 @@ def run_training_pipeline(json_args):
                                             emb_size=128,
                                             label_mapping=transform_results_dict['label_mapping']
                                             )
+            uploadModel(train_results_dict['model_name'])
+
         elif json_args["training"]["GNN_Method"] == Constants.GNN_Methods.RGCN:
             train_results_dict = rgcn(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5,
                                       runs=1, batch_size=20000,
@@ -99,6 +111,8 @@ def run_training_pipeline(json_args):
                                       include_reverse_edge=True,
                                       n_classes=1000,
                                       emb_size=128)
+            uploadModel(train_results_dict['model_name'])
+
         elif json_args["training"]["GNN_Method"] == Constants.GNN_Methods.ShaDowGNN:
             train_results_dict = graphShadowSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005,
                                                   epochs=5, runs=1, batch_size=20000,
@@ -110,6 +124,7 @@ def run_training_pipeline(json_args):
                                                   n_classes=1000,
                                                   emb_size=128,
                                                   label_mapping=transform_results_dict['label_mapping'])
+            uploadModel(train_results_dict['model_name'])
 
     elif json_args["transformation"]["operatorType"] == Constants.GML_Operator_Types.LinkPrediction:
         transform_results_dict=transform_LP_train_valid_test_subsets(data_path=json_args["transformation"]["output_root_path"],

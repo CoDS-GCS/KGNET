@@ -348,6 +348,7 @@ def rgcn(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,
         rgcn_end_t = datetime.datetime.now()
         Highest_Train, Highest_Valid, Final_Train, Final_Test = logger.print_statistics()
         model_trained_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
+        dic_results["model_name"] = model_name
         dic_results["init_ru_maxrss"] = init_ru_maxrss
         dic_results["model_ru_maxrss"] = model_loaded_ru_maxrss
         dic_results["model_trained_ru_maxrss"] = model_trained_ru_maxrss

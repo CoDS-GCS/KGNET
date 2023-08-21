@@ -73,10 +73,15 @@ class KGNET_Config:
     trained_model_path = datasets_output_path + 'trained_models/'
     GML_API_URL = "http://206.12.98.118:8895/"
     GML_Inference_PORT = "64647"
+    GML_ModelManager_PORT = "64648"
+    GML_ModelManager_URL = "http://206.12.100.114"
     KGMeta_IRI = "http://kgnet/"
     KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
     def __init__(self):
        ""
+
+def getIdWithPaddingZeros(id):
+    return str(int(id)).zfill(7)
 
 KGs_prefixs_dic={"dblp":"https://www.dblp.org/",
              "lkmdb":"https://www.lkmdb.org/",

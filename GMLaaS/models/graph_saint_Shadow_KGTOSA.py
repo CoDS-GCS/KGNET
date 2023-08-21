@@ -545,6 +545,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
             logger = Logger(runs, gnn_hyper_params_dict)
 
             dic_results["gnn_hyper_params"] = gnn_hyper_params_dict
+            dic_results['model_name'] = model_name
             dic_results["init_ru_maxrss"] = init_ru_maxrss
             dic_results["model_ru_maxrss"] = model_loaded_ru_maxrss
             dic_results["model_trained_ru_maxrss"] = model_trained_ru_maxrss
