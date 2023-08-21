@@ -19,7 +19,7 @@ PORT = KGNET_Config.GML_ModelManager_PORT
 
 @app.post("/uploadmodel/")
 async def saveIncomingModel(file: UploadFile = File(...)):
-    filepath = os.path.join(Constants.KGNET_Config.trained_model_path,
+    filepath = os.path.join(KGNET_Config.trained_model_path,
                             file.filename)
     with open(filepath, "wb") as f:
         f.write(file.file.read())
@@ -28,7 +28,7 @@ async def saveIncomingModel(file: UploadFile = File(...)):
 
 @app.get("/downloadmodel/{mid}")
 async def sendTrainedModel(mid:str):
-    filepath = os.path.join(Constants.KGNET_Config.trained_model_path,mid)
+    filepath = os.path.join(KGNET_Config.trained_model_path,mid)
     if not os.path.exists(filepath):
         return {"error": "File not found"}
     return FileResponse(filepath, headers={"Content-Disposition": f"attachment; filename={mid}"})
