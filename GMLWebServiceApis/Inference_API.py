@@ -13,6 +13,7 @@ from fastapi import FastAPI
 from uvicorn import run
 from typing import List
 from pydantic import BaseModel
+import traceback
 
 app = FastAPI()
 HOST = '127.0.0.1'
@@ -27,16 +28,24 @@ class InferenceRequest(BaseModel):
     topk: int = 1
 
 
-@app.post("/inference/")
-async def run_inference(inference_request: InferenceRequest):
-    model_id = inference_request.model_id
+@app.post("/gml_inference/mid/{mid}")
+async def run_inference(mid:int,inference_request: InferenceRequest):
+    model_id = inference_request.model_id if inference_request.model_id is not None else mid
     named_graph_uri = inference_request.named_graph_uri
     sparqlEndpointURL = inference_request.sparqlEndpointURL
     dataQuery = inference_request.dataQuery
-    dic_results = perform_inference(model_id = model_id,named_graph_uri = named_graph_uri,
-                      targetNode_filter_statements = dataQuery,
-                      sparqlEndpointURL = sparqlEndpointURL)
+    # try:
+    #     dic_results = perform_inference(model_id = model_id,named_graph_uri = named_graph_uri,
+    #                   targetNode_filter_statements = dataQuery,
+    #                   sparqlEndpointURL = sparqlEndpointURL)
+    # except  Exception as e :
+    #     print (e)
+    #     print(traceback.print_stack())
+    #     return {"Exception":str(e)}
 
+    dic_results = perform_inference(model_id = model_id,named_graph_uri = named_graph_uri,
+                  targetNode_filter_statements = dataQuery,
+                  sparqlEndpointURL = sparqlEndpointURL)
     return dic_results['y_pred']
     # return {
     #     "model_id": model_id,

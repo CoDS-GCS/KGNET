@@ -126,7 +126,7 @@ if __name__ == '__main__':
     kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',
                   KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de')
 
-    model_info, transform_info, train_info=kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification,targetNodeType="aifb:Person",labelNodeType="aifb:ResearchGroup",GNNMethod=Constants.GNN_Methods.ShaDowGNN)
+    model_info, transform_info, train_info=kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification,targetNodeType="aifb:Person",labelNodeType="aifb:ResearchGroup",GNNMethod=Constants.GNN_Methods.Graph_SAINT)
 
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql')
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="dblp:Publication",

@@ -230,19 +230,20 @@ class RGCN(torch.nn.Module):
 dic_results = {}
 
 
-def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,runs=1,batch_size=2000,walk_length=2,num_steps=10,loadTrainedModel=0,dataset_name="DBLP-Springer-Papers",root_path="../../Datasets/",output_path="./",include_reverse_edge=True,n_classes=1000,emb_size=128,label_mapping={},target_mapping={},modelID=''):
+def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
+                     lr=0.005,epochs=2,runs=1,batch_size=2000,walk_length=2,
+                     num_steps=10,loadTrainedModel=0,dataset_name="DBLP-Springer-Papers",
+                     root_path="../../Datasets/",output_path="./",include_reverse_edge=True,
+                     n_classes=1000,emb_size=128,label_mapping={},target_mapping={},modelID=''):
     def train(epoch):
         model.train()
         # tqdm.monitor_interval = 0
         # pbar = tqdm(total=args.num_steps * args.batch_size)
-        print("len(train_loader)",len(train_loader))
         pbar = tqdm(total=len(train_loader))
         pbar.set_description(f'Epoch {epoch:02d}')
 
         total_loss = total_examples = 0
         for data in train_loader:
-            # print("type(data)=",type(data))
-            # print("homo_data.y=",homo_data.y)
             data = data.to(device)
             optimizer.zero_grad()
             out = model(x_dict, data.edge_index, data.edge_attr, data.node_type,
@@ -410,7 +411,6 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
         if loadTrainedModel == 0:
             homo_data.train_mask = torch.zeros((node_type.size(0)), dtype=torch.bool)
             homo_data.train_mask[local2global[subject_node][split_idx['train'][subject_node]]] = True
-            print(homo_data)
             start_t = datetime.datetime.now()
             print("dataset.processed_dir", dataset.processed_dir)
             kwargs = {'batch_size': batch_size, 'num_workers': 64, 'persistent_workers': True}
@@ -485,6 +485,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
                 # out = model(x_dict, edge_index, edge_type, node_type,
                 #             local_node_idx)
                 out = out[key2int[subject_node]]
+                out = out[:, :len(label_mapping)]  # TODO
                 y_pred = out.argmax(dim=-1, keepdim=True).cpu().flatten().tolist()
                 end_t = datetime.datetime.now()
                 print(dataset_name, "Infernce Time=", (end_t - start_t).total_seconds())
@@ -544,6 +545,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
             logger = Logger(runs, gnn_hyper_params_dict)
 
             dic_results["gnn_hyper_params"] = gnn_hyper_params_dict
+            dic_results['model_name'] = model_name
             dic_results["init_ru_maxrss"] = init_ru_maxrss
             dic_results["model_ru_maxrss"] = model_loaded_ru_maxrss
             dic_results["model_trained_ru_maxrss"] = model_trained_ru_maxrss
@@ -557,8 +559,8 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
             dic_results["Total_Time"] = (gsaint_end_t - gsaint_start_t).total_seconds()
             dic_results["Model_Parameters_Count"]= sum(p.numel() for p in model.parameters())
             dic_results["Model_Trainable_Paramters_Count"]=sum(p.numel() for p in model.parameters() if p.requires_grad)
-            dict_model_param = {}
             ############### Model Hyper Parameters ###############
+            dict_model_param = {}
             dict_model_param['emb_size'] = emb_size
             dict_model_param['hidden_channels'] = hidden_channels  # dataset.num_classes
             dict_model_param['dataset.num_classes'] = dataset.num_classes
@@ -572,11 +574,8 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.0
             logs_path = os.path.join(output_path,'logs')
             model_path = os.path.join(output_path,'trained_models')
             create_dir([logs_path,model_path])
-            # pd.DataFrame(dic_results).transpose().to_csv(
-                # "/shared_mnt/KGTOSA_MAG/ShadowSAINT_" + GA_dataset_name + "_Times.csv", index=False)
-            # shutil.rmtree("/shared_mnt/DBLP/" + dataset_name)
-            # torch.save(model.state_dict(), "/shared_mnt/DBLP/" + dataset_name + "_DBLP_conf__GSAINT_QM.model")
-            with open(os.path.join(logs_path, model_name +'_log.json'), "w") as outfile:
+
+            with open(os.path.join(logs_path, model_name +'_log.metadata'), "w") as outfile:
                 json.dump(dic_results, outfile)
             torch.save(model.state_dict(), os.path.join(model_path , model_name)+".model")
             with open (os.path.join(model_path , model_name)+".param",'wb') as f:

@@ -1,4 +1,5 @@
 import os
+import shutil
 from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_query as get_NC_d1h1_query
 from SparqlMLaasService.GMLOperators import gmlOperator
@@ -6,13 +7,21 @@ from KGNET import KGNET
 from KGNET import Constants
 from GMLaaS.DataTransform.INFERENCE_TSV_TO_PYG import inference_transform_tsv_to_PYG
 from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
+from GMLaaS.models.graph_saint_KGTOSA import graphSaint
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
-
+from model_manager import downloadModel
 
 # output_path = Constants.KGNET_Config.inference_path
-if not os.path.exists(Constants.KGNET_Config.inference_path):
-    os.makedirs(Constants.KGNET_Config.inference_path)
 inference_file = os.path.join(Constants.KGNET_Config.inference_path,'inference.tsv')
+
+def delete_inference_cache(inference_path = Constants.KGNET_Config.inference_path):
+    for entry in os.listdir(inference_path):
+        entry_path = os.path.join(inference_path, entry)
+        if os.path.isfile(entry_path):
+            os.remove(entry_path)
+        elif os.path.isdir(entry_path):
+            shutil.rmtree(entry_path)
+
 def get_MetaData(model_id):
     dict_params = {'model': {}, 'subG': {}}
     kgmeta_govener = KGMeta_Governer(endpointUrl=Constants.KGNET_Config.KGMeta_endpoint_url,
@@ -49,7 +58,8 @@ def get_MetaData(model_id):
     # print(query)
     res_df = kgmeta_govener.executeSparqlquery(query)
     res_df = res_df.applymap(lambda x: x.strip('"'))
-    dict_params['model']['modelID'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.modelId]['o'].item()).split('/')[-1] + '.model'
+    #dict_params['model']['modelID'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.modelId]['o'].item()).split('/')[-1] + '.model'
+    dict_params['model']['GNNMethod'] = str(res_df[res_df['p'] == Constants.GNN_KG_HParms.GNN_Method]['o'].item())
     dict_params['model']['embSize'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Emb_size]['o'].item())
     dict_params['model']['hiddenChannels'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.HiddenChannels]['o'].item())
     dict_params['model']['Num_Layers'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Num_Layers]['o'].item())
@@ -92,7 +102,12 @@ def get_rel_types(named_graph_uri, graphPrefix, sparqlEndpointURL):
 
 
 def perform_inference(model_id,named_graph_uri,targetNode_filter_statements,sparqlEndpointURL):
+
+    if not os.path.exists(Constants.KGNET_Config.inference_path):
+        os.makedirs(Constants.KGNET_Config.inference_path)
+
     meta_dict = get_MetaData(model_id)
+    model_id = 'mid-' + Constants.getIdWithPaddingZeros(model_id)+'.model'
     subgraph = generate_subgraph(named_graph_uri = named_graph_uri,
                                 target_rel_uri = meta_dict['subG']['targetEdge'],
                                 targetNode_filter_statements = targetNode_filter_statements,
@@ -109,9 +124,21 @@ def perform_inference(model_id,named_graph_uri,targetNode_filter_statements,spar
                                    output_root_path=Constants.KGNET_Config.inference_path,
                                    Header_row=True)
 
-    dic_results = graphShadowSaint(dataset_name='inference',root_path=Constants.KGNET_Config.inference_path,loadTrainedModel=1,target_mapping=data_dict['target_mapping'],
-                     modelID=meta_dict['model']['modelID'])
+    # dic_results = graphShadowSaint(dataset_name='inference',root_path=Constants.KGNET_Config.inference_path,loadTrainedModel=1,target_mapping=data_dict['target_mapping'],
+    #                  modelID=meta_dict['model']['modelID'])
 
+    if downloadModel(model_id) and  downloadModel(model_id.replace('.model','.param')):
+        print('Downloaded model successfully!')
+
+        if meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.Graph_SAINT:
+            dic_results = graphSaint(dataset_name='inference',root_path=Constants.KGNET_Config.inference_path,loadTrainedModel=1,target_mapping=data_dict['target_mapping'],
+                             modelID=model_id)
+
+        elif meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.ShaDowGNN:
+            dic_results = graphShadowSaint(dataset_name='inference',root_path=Constants.KGNET_Config.inference_path,loadTrainedModel=1,target_mapping=data_dict['target_mapping'],
+                             modelID=model_id)
+
+    shutil.rmtree(Constants.KGNET_Config.inference_path)
 
     return dic_results
     print ('pass!')
