@@ -51,8 +51,8 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
 
 
     #################### Remove '/' from the predicate of the Graph (tsv) ##############################
-    g_tsv_df["p"] = g_tsv_df["p"].apply(lambda x: x.split('/')[-1].split('#')[-1])
-    target_rel = target_rel.split('/')[-1].split('#')[-1]
+    g_tsv_df["p"] = g_tsv_df["p"].apply(lambda x: x.split('/')[-1].split("#")[-1])
+    target_rel = target_rel.split('/')[-1].split("#")[-1]
     ##################Check if headers are present in _types file
     if any(col not in g_tsv_types_df.columns for col in ['stype', 'ptype', 'otype']):
         old_columns = g_tsv_types_df.columns
@@ -446,10 +446,10 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         shutil.make_archive(output_root_path + dataset_name, 'zip',
                             root_dir=output_root_path, base_dir=dataset_name)
     end_t = datetime.datetime.now()
-    # print(dataset_name.split(".")[0] + "_csv_to_Hetrog_time=", end_t - start_t, " sec.")
-    dic_results['label_mapping'] = {v : k for k,v in label_idx_dic.items()}#{v : k for k,v in entites_dic[target_node+'_dic'].items()}
     dic_results["csv_to_Hetrog_time"] = (end_t - start_t).total_seconds()
     print(dic_results)
+    # print(dataset_name.split(".")[0] + "_csv_to_Hetrog_time=", end_t - start_t, " sec.")
+    dic_results['label_mapping'] = {v: k for k, v in label_idx_dic.items()}  # {v : k for k,v in entites_dic[target_node+'_dic'].items()}
     # pd.DataFrame(dic_results).to_csv(
     #     output_root_path + dataset_name.split(".")[0] + "_PYG_Transformation_times.csv", index=False)
     return dic_results

@@ -101,6 +101,9 @@ class RelLinkPredDataset(InMemoryDataset):
             src= df[0].apply(lambda x:entities_dict[x]).tolist()
             rel= df[1].apply(lambda x: relations_dict[x]).tolist()
             dst= df[2].apply(lambda x: entities_dict[x]).tolist()
+            dst=[int(elem) for elem in dst]
+            src = [int(elem) for elem in src]
+            rel= [int(elem) for elem in rel]
             kwargs[f'{split}_edge_index'] = torch.tensor([src, dst])
             kwargs[f'{split}_edge_type'] = torch.tensor(rel)
 

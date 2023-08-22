@@ -1,22 +1,22 @@
 import argparse
-from Constants import *
 # import sys
 # sys.path.append('..')
 from MorsE.main import morse
 from MorsE.utils import init_dir,Log
+import Constants
 
 def run_morse(dataset_name,root_path):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_name', default='FB15K23')
     parser.add_argument('--name', default='FB15K23', type=str)
-    parser.add_argument('--root_path', type=str, default=KGNET_Config.datasets_output_path)
+    parser.add_argument('--root_path', type=str, default=Constants.KGNET_Config.datasets_output_path)
 
     parser.add_argument('--step', default='meta_train', type=str, choices=['meta_train', 'fine_tune'])
-    parser.add_argument('--metatrain_state', default=KGNET_Config.datasets_output_path+'./state/WikiKG2_LP/WikiKG2_LP_transe.best', type=str)
+    parser.add_argument('--metatrain_state', default=Constants.KGNET_Config.datasets_output_path+'./state/WikiKG2_LP/WikiKG2_LP_transe.best', type=str)
     # parser.add_argument('--Target_rel',type=str,default='isConnectedTo')
 
-    parser.add_argument('--state_dir', '-state_dir', default=KGNET_Config.datasets_output_path+'trained_models/', type=str)
-    parser.add_argument('--log_dir', '-log_dir', default=KGNET_Config.datasets_output_path+'logs/', type=str)
+    parser.add_argument('--state_dir', '-state_dir', default=Constants.KGNET_Config.datasets_output_path+'trained_models/', type=str)
+    parser.add_argument('--log_dir', '-log_dir', default=Constants.KGNET_Config.datasets_output_path+'logs/', type=str)
     parser.add_argument('--tb_log_dir', '-tb_log_dir', default='./tb_log', type=str)
 
     # params for subgraph
@@ -57,6 +57,7 @@ def run_morse(dataset_name,root_path):
 
     parser.add_argument('--gpu', default='cpu', type=str)
     parser.add_argument('--seed', default=1234, type=int)
+    parser.add_argument('-f') ## dummy args
     args = parser.parse_args()
     args.dataset_name = dataset_name
     args.root_path = root_path
@@ -68,14 +69,14 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_name', default='FB15K23')
     parser.add_argument('--name', default='FB15K23', type=str)
-    parser.add_argument('--root_path', type=str, default=KGNET_Config.datasets_output_path)
+    parser.add_argument('--root_path', type=str, default=Constants.KGNET_Config.datasets_output_path)
 
     parser.add_argument('--step', default='meta_train', type=str, choices=['meta_train', 'fine_tune'])
-    parser.add_argument('--metatrain_state', default=KGNET_Config.datasets_output_path+'./state/WikiKG2_LP/WikiKG2_LP_transe.best', type=str)
+    parser.add_argument('--metatrain_state', default=Constants.KGNET_Config.datasets_output_path+'./state/WikiKG2_LP/WikiKG2_LP_transe.best', type=str)
     # parser.add_argument('--Target_rel',type=str,default='isConnectedTo')
 
-    parser.add_argument('--state_dir', '-state_dir', default=KGNET_Config.datasets_output_path+'trained_models/', type=str)
-    parser.add_argument('--log_dir', '-log_dir', default=KGNET_Config.datasets_output_path+'logs/', type=str)
+    parser.add_argument('--state_dir', '-state_dir', default=Constants.KGNET_Config.datasets_output_path+'trained_models/', type=str)
+    parser.add_argument('--log_dir', '-log_dir', default=Constants.KGNET_Config.datasets_output_path+'logs/', type=str)
     parser.add_argument('--tb_log_dir', '-tb_log_dir', default='./tb_log', type=str)
 
     # params for subgraph

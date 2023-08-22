@@ -45,6 +45,20 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/Datasets/inference/mapping/labelidx2labelname.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/Datasets/inference/raw/node-label/Publication/node-label.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/Datasets/lmdb_Types.csv">
           <value>
             <Attribute>
@@ -52,7 +66,28 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/GMLQueryRewriter/cognitive_queries.csv">
+        <entry key="/Datasets/mid-0000052/raw/node-label/Person/node-label.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/Datasets/mid-0000052/raw/triplet-type-list.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/Datasets/mid-0000092/raw/node-label/Publication/node-label.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/GMLQueryRewriter_old/cognitive_queries.csv">
           <value>
             <Attribute>
               <option name="separator" value=":" />
@@ -60,6 +95,13 @@
           </value>
         </entry>
         <entry key="/GMLWebServiceApis/test_results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/GMLaaS/models/training_dataset_mid-0000092_predictions.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

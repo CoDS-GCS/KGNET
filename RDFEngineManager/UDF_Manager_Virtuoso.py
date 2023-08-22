@@ -4,7 +4,7 @@ import pandas as pd
 import pyodbc
 import wget as wget
 
-from sparqlEndpoint import sparqlEndpoint
+from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 class UDFManager(sparqlEndpoint):
     def __init__(self,host='localhost',port=1111,username='dba', password='dba'):
         sparqlEndpoint.__init__(self,endpointUrl="http://"+host+":8890/sparql")
@@ -12,7 +12,7 @@ class VirtuosoUDFManager(UDFManager):
     def __init__(self,host='localhost',port=1111,username='dba', password='dba'):
         super(VirtuosoUDFManager, self).__init__(host,port,username, password)
         self.version = "vos 7.5.2"
-        self.VirtuosoConn = "DRIVER=/usr/local/virtuoso-opensource/lib/virtodbc.so;HOST=" + host + ":" + str(
+        self.VirtuosoConn = "DRIVER=/mnt/virtuoso_endpoints/virtuoso-opensource_qald9/lib/virtodbc.so;HOST=" + host + ":" + str(
             port) + ";UID=" + username + ";PWD=" + password
 
     def executeInteractiveSQL(self,SQL):
@@ -141,7 +141,7 @@ class VirtuosoUDFManager(UDFManager):
         finally:
             conn.close()
         return result
-    def uploadKG_ttl(self,ttlFileUrl):
+    def uploadKG_ttl(self,ttlFileUrl,namedGraphIRI):
 #         url = 'https://raw.githubusercontent.com/frmichel/taxref-ld/13.0/dataset/Taxrefld_static_dcat.ttl'
         a = urlparse(ttlFileUrl)
         # print(a.path)                   
@@ -151,7 +151,7 @@ class VirtuosoUDFManager(UDFManager):
         print('\nfile_full_path=',file_full_path,' d_res=',d_res)
         conn = pyodbc.connect(self.VirtuosoConn)
 #         SQL="""select SPARQL_DAWG_LOAD_REMOTE_DATFILE('"""+ttlFileUrl+"""')"""
-        SQL="""DB.DBA.TTLP_MT (file_to_string_output ('"""+file_full_path+"""'), '', 'http://"""+file_name+"')"""
+        SQL="""DB.DBA.TTLP_MT (file_to_string_output ('"""+file_full_path+"""'), '', '"""+namedGraphIRI+"')"""
         print("SQL="+SQL)
         result="OK"
         try:
