@@ -4399,8 +4399,12 @@ def do_inference(obj:GMLInferObject):
     if obj.modelId==47:
         return aff_dict
     elif obj.modelId==38:
-        uniq_df=pub_df.drop_duplicates(subset=['author'], keep='first')
-        pub_dic=dict(zip(uniq_df["author"].tolist(),uniq_df["publication"].tolist()))
+        if obj.topk==1:
+            res_df=pub_df.drop_duplicates(subset=['author'], keep='first')
+        else:
+            res_df=pub_df.groupby('author')['publication'].apply(list).reset_index(name="publication")
+            res_df["publication"]=res_df["publication"].apply(lambda x: "["+" , ".join(x[0:obj.topk])+"]" if len(x[0:obj.topk]) >1 else x[0] )
+        pub_dic=dict(zip(res_df["author"].tolist(),res_df["publication"].tolist()))
         return pub_dic
     else:
         return {str(i):"pred-"+str(i) for i in range(0,100)}

@@ -49,9 +49,6 @@ class GNN_SubG_Parms:
     targetEdge = GNN_KG_HP_PREFIX + 'targetEdge'
     prefix = GNN_KG_TASK_PREFIX + 'KGPrefix'
     modelId = GNN_TASK_PREFIX + 'modelID'
-
-
-
     def __init__(self):
        ""
 class GML_Query_Types:
@@ -68,10 +65,10 @@ class TOSG_Patterns:
     def __init__(self):
        ""
 class KGNET_Config:
-    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
+    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
     trained_model_path = datasets_output_path + 'trained_models/'
-    GML_API_URL = "http://206.12.98.118:8895/"
+    GML_API_URL = "http://206.12.99.65:64647/"
     GML_Inference_PORT = "64647"
     GML_ModelManager_PORT = "64648"
     GML_ModelManager_URL = "http://206.12.100.114"
@@ -80,8 +77,6 @@ class KGNET_Config:
     def __init__(self):
        ""
 
-def getIdWithPaddingZeros(id):
-    return str(int(id)).zfill(7)
 
 KGs_prefixs_dic={"dblp":"https://www.dblp.org/",
              "lkmdb":"https://www.lkmdb.org/",
@@ -91,3 +86,60 @@ namedGraphURI_dic={"dblp":"http://dblp.org",
              "lkmdb":"https://www.lkmdb.org/",
              "mag":"https://www.mag.org/",
              "aifb":"http://www.aifb.uni-karlsruhe.de"}
+
+
+class colors:
+    green="#A3EBB1"
+    red="#FF5C5C"
+    orange="#ffbd2c"
+    def __init__(self):
+       ""
+class aggregations:
+    min='min'
+    max='max'
+    avg='avg'
+    mean='mean'
+    def __init__(self):
+       ""
+class utils:
+    def __init__(self):
+       ""
+    @staticmethod
+    def highlight_value_in_column(column, color='red', agg='max'):
+        highlight = 'background-color: ' + color + ';'
+        default = ''
+        if agg == 'max':
+            val_in_column = column.max()
+        elif agg == 'min':
+            val_in_column = column.min()
+        if agg == 'avg':
+            val_in_column = column.avg()
+        # must return one string per cell in this column
+        return [highlight if v == val_in_column else default for v in column]
+
+    @staticmethod
+    def highlightRowByIdx(row, idx, bgcolor='palegreen', textcolor='red', fontweight='bold'):
+        highlight = ['background-color:' + bgcolor + ' ;  font-weight:' + fontweight + '; color: ' + textcolor + ';']
+        default = ['']
+        # print(row.name)
+        if row.name == idx:
+            return highlight * len(row)
+        else:
+            return default * len(row)
+    # df.style.apply(lambda row: highlightRowByIdx(row, 0), axis=1)
+
+    @staticmethod
+    def highlightDiferrentRowValues(row, bgcolor='palegreen', textcolor='red', fontweight='bold'):
+        highlight = 'background-color:' + bgcolor + ' ;  font-weight:' + fontweight + '; color: ' + textcolor + ';'
+        default = ''
+        # must return one string per cell in this row
+        if row[0] != row[1]:
+            return [default, highlight]
+        else:
+            return [default, default]
+    # df.style.apply(highlightDiferrentRowValues, subset=['num_children', 'num_pets'], axis=1)
+
+    @staticmethod
+    def getIdWithPaddingZeros(id):
+        return str(int(id)).zfill(7)
+

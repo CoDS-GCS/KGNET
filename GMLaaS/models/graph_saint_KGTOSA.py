@@ -727,16 +727,18 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=2000)
     parser.add_argument('--walk_length', type=int, default=2)
     parser.add_argument('--num_steps', type=int, default=10)
-    parser.add_argument('--loadTrainedModel', type=int, default=0)
-    parser.add_argument('--dataset_name', type=str, default="DBLP-Springer-Papers")
+    parser.add_argument('--loadTrainedModel', type=int, default=1)
+    parser.add_argument('--dataset_name', type=str, default="inference")
     parser.add_argument('--root_path', type=str, default="../../Datasets/")
     parser.add_argument('--output_path', type=str, default="./")
     parser.add_argument('--include_reverse_edge', type=bool, default=True)
     parser.add_argument('--n_classes', type=int, default=440)
     parser.add_argument('--emb_size', type=int, default=128)
+    parser.add_argument('--modelID', type=str, default='mid-0000092.model')
+
     args = parser.parse_args()
     print(args)
-    print(graphSaint(args.device,args.num_layers,args.hidden_channels,args.dropout,args.lr,args.epochs,args.runs,args.batch_size,args.walk_length,args.num_steps,args.loadTrainedModel,args.dataset_name,args.root_path,args.output_path,args.include_reverse_edge,args.n_classes,args.emb_size))
+    print(graphSaint(args.device,args.num_layers,args.hidden_channels,args.dropout,args.lr,args.epochs,args.runs,args.batch_size,args.walk_length,args.num_steps,args.loadTrainedModel,args.dataset_name,args.root_path,args.output_path,args.include_reverse_edge,args.n_classes,args.emb_size,modelID=args.modelID))
 
 
 

@@ -107,7 +107,7 @@ def perform_inference(model_id,named_graph_uri,targetNode_filter_statements,spar
         os.makedirs(Constants.KGNET_Config.inference_path)
 
     meta_dict = get_MetaData(model_id)
-    model_id = 'mid-' + Constants.getIdWithPaddingZeros(model_id)+'.model'
+    model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id)+'.model'
     subgraph = generate_subgraph(named_graph_uri = named_graph_uri,
                                 target_rel_uri = meta_dict['subG']['targetEdge'],
                                 targetNode_filter_statements = targetNode_filter_statements,

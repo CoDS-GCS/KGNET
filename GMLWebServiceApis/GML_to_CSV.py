@@ -6,7 +6,7 @@ Created on Mon Feb 13 10:54:04 2023
 """
 import sys
 import pandas as pd
-# import GMLQueryRewriter.gmlRewriter as qw
+# import GMLQueryRewriter_old.gmlRewriter as qw
 import pandas as pd
 import numpy as np
 from SPARQLWrapper import SPARQLWrapper, JSON

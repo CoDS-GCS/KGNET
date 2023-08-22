@@ -1,4 +1,8 @@
-/Datasets
+/Datasets/logs
+/Datasets/DBLP-Springer-Papers/
+/Datasets/aifb
+/Datasets/trained_models
+/Datasets/mid-*
 /docs
 /doxygen
 *.ttf
@@ -20,6 +24,8 @@ Makefile
 *.png
 *.txt
 *.pickle
+*.metadata
+
 *.pkl
 *.log
 *.iml

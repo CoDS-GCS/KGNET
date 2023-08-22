@@ -2,8 +2,6 @@ from copy import copy
 import json
 import argparse
 import shutil
-
-import Constants
 from Constants import *
 import pandas as pd
 from tqdm import tqdm
@@ -18,7 +16,6 @@ from torch_geometric.loader import  GraphSAINTRandomWalkSampler,ShaDowKHopSample
 #from KGTOSA_Samplers import GraphSAINTTaskBaisedRandomWalkSampler,GraphSAINTTaskWeightedRandomWalkSampler
 from torch_geometric.utils.hetero import group_hetero_graph
 from torch_geometric.nn import MessagePassing
-from Constants import *
 import os
 import psutil
 from pathlib import Path
@@ -459,7 +456,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
         if loadTrainedModel == 1:
             with torch.no_grad():
                 start_t = datetime.datetime.now()
-                trained_model_path = Constants.KGNET_Config.trained_model_path + modelID
+                trained_model_path = KGNET_Config.trained_model_path + modelID
                 # trained_model_path = r'/home/afandi/GitRepos/KGNET/Datasets/trained_models/mid-0000064.model'
                 model_params_path = trained_model_path.replace('.model','.param')
 
