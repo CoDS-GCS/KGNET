@@ -12,6 +12,7 @@ from GMLaaS.models.graph_saint_KGTOSA import graphSaint
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 from model_manager import downloadModel,downloadDataset
 import datetime
+import pandas as pd
 
 # output_path = Constants.KGNET_Config.inference_path
 inference_file = os.path.join(Constants.KGNET_Config.inference_path, 'inference.tsv')
@@ -63,18 +64,66 @@ def get_MetaData(model_id):
     res_df = kgmeta_govener.executeSparqlquery(query)
     res_df = res_df.applymap(lambda x: x.strip('"'))
     # dict_params['model']['modelID'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.modelId]['o'].item()).split('/')[-1] + '.model'
-    dict_params['model']['GNNMethod'] = str(res_df[res_df['p'] == Constants.GNN_KG_HParms.GNN_Method]['o'].item())
-    dict_params['model']['embSize'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Emb_size]['o'].item())
-    dict_params['model']['hiddenChannels'] = int(
-    res_df[res_df['p'] == Constants.GNN_KG_HParms.HiddenChannels]['o'].item())
-    dict_params['model']['Num_Layers'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Num_Layers]['o'].item())
+    # dict_params['model']['GNNMethod'] = str(res_df[res_df['p'] == Constants.GNN_KG_HParms.GNN_Method]['o'].item())
+    # dict_params['model']['embSize'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Emb_size]['o'].item())
+    # dict_params['model']['hiddenChannels'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.HiddenChannels]['o'].item())
+    # dict_params['model']['Num_Layers'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Num_Layers]['o'].item())
+    # dict_params['model']['TaskType'] = str (res_df[res_df['p'] == Constants.GNN_SubG_Parms.taskType]['o'].item())
+    #
+    # dict_params['subG']['targetEdge'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.targetEdge]['o'].item())
+    # dict_params['subG']['graphPrefix'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.prefix]['o'].item())
 
-    dict_params['subG']['targetEdge'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.targetEdge]['o'].item())
-    dict_params['subG']['graphPrefix'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.prefix]['o'].item())
+    try:
+        dict_params['model']['GNNMethod'] = str(res_df[res_df['p'] == Constants.GNN_KG_HParms.GNN_Method]['o'].item())
+    except Exception as e:
+        print("Error processing GNNMethod:", e)
+
+    try:
+        dict_params['model']['embSize'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Emb_size]['o'].item())
+    except Exception as e:
+        print("Error processing embSize:", e)
+
+    try:
+        dict_params['model']['hiddenChannels'] = int(
+            res_df[res_df['p'] == Constants.GNN_KG_HParms.HiddenChannels]['o'].item())
+    except Exception as e:
+        print("Error processing hiddenChannels:", e)
+
+    try:
+        dict_params['model']['Num_Layers'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Num_Layers]['o'].item())
+    except Exception as e:
+        print("Error processing Num_Layers:", e)
+
+    try:
+        dict_params['model']['taskType'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.taskType]['o'].item())
+    except Exception as e:
+        print("Error processing TaskType:", e)
+
+    try:
+        dict_params['subG']['targetEdge'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.targetEdge]['o'].item())
+    except Exception as e:
+        print("Error processing targetEdge:", e)
+
+    try:
+        dict_params['subG']['graphPrefix'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.prefix]['o'].item())
+    except Exception as e:
+        print("Error processing graphPrefix:", e)
 
     return dict_params
 
 
+def topKpred(pred_df, K=None):
+    result_dict = {}
+    for key, value in zip(pred_df[0], pred_df[1]):
+        if key not in result_dict:
+            result_dict[key] = []
+        if K is None or len(result_dict[key]) < K:
+            result_dict[key].append(value)
+
+    for key in result_dict:
+        result_dict[key] = str(result_dict[key])
+
+    return result_dict
 def generate_subgraph(named_graph_uri, target_rel_uri, dataQuery, sparqlEndpointURL):
     # query = [get_NC_d1h1_query(graph_uri=named_graph_uri, target_rel_uri=target_rel_uri,
     #                            tragetNode_filter_statments=targetNode_filter_statements)]
@@ -114,15 +163,25 @@ def filterTargetNodes(predictions, targetNodesQuery, sparqlEndpointURL,named_gra
     return filtered_pred
 
 
-def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery):
+def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk):
     dict_time = {}
     if not os.path.exists(Constants.KGNET_Config.inference_path):
         os.makedirs(Constants.KGNET_Config.inference_path)
 
     meta_dict = get_MetaData(model_id)
     model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id) + '.model'
+
+    ###### IF LINK PREDICTION #######
+    if meta_dict['model']['taskType'] ==  'kgnet:type/linkPrediction':
+        preds = pd.read_csv(os.path.join(Constants.KGNET_Config.inference_path,'authored_by_predictions.tsv'),header=None,sep='\t')
+        return topKpred(preds,topk)
+
     dataset_name = model_id.replace(".model","")
     downloadDataset(dataset_name + '.zip')
+
+
+
+
     time_subgraph = datetime.datetime.now()
     # subgraph = generate_subgraph(named_graph_uri=named_graph_uri,
     #                              target_rel_uri=meta_dict['subG']['targetEdge'],

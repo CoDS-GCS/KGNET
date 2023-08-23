@@ -36,6 +36,7 @@ async def run_inference(mid:int,inference_request: InferenceRequest):
     sparqlEndpointURL = inference_request.sparqlEndpointURL
     dataQuery = inference_request.dataQuery
     targetNodesQuery = inference_request.targetNodesQuery
+    topk = inference_request.topk
     # try:
     #     dic_results = perform_inference(model_id = model_id,named_graph_uri = named_graph_uri,
     #                   targetNode_filter_statements = dataQuery,
@@ -47,7 +48,8 @@ async def run_inference(mid:int,inference_request: InferenceRequest):
 
     dic_results = perform_inference(model_id = model_id, named_graph_uri = named_graph_uri,
                                     dataQuery= dataQuery, sparqlEndpointURL = sparqlEndpointURL,
-                                    targetNodesQuery = targetNodesQuery)
+                                    targetNodesQuery = targetNodesQuery,
+                                    topk = topk)
     return dic_results#['y_pred']
     # return {
     #     "model_id": model_id,
