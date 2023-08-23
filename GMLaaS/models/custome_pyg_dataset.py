@@ -25,7 +25,7 @@ class PygNodePropPredDataset_hsh(InMemoryDataset):
         if meta_dict is None:
             # self.dir_name = self.datasets_path+'_'.join(name.split('-'))
             self.dir_name = self.datasets_path + name
-            print(f'self.dir_name = {self.dir_name}')
+            # print(f'self.dir_name = {self.dir_name}')
             # check if previously-downloaded folder exists.
             # If so, use that one.
             
@@ -34,7 +34,7 @@ class PygNodePropPredDataset_hsh(InMemoryDataset):
                 self.dir_name = self.dir_name + '_pyg'
 
             self.original_root = self.datasets_path #root
-            print(f'self.original_root = {self.original_root}')
+            # print(f'self.original_root = {self.original_root}')
 
             # self.root = osp.join(root, self.dir_name) ###
             self.root =  self.dir_name

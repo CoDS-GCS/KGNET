@@ -38,8 +38,8 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
         dataset_types = output_root_path + dataset_name_csv + "_types.csv"
 
     if Header_row is None:
-        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t",header=Header_row)
-        g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=Header_row)
+        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t")
+        g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=None)
         g_tsv_df.columns=["s","p","o"]
         g_tsv_types_df.columns=['stype','ptype', 'otype']
     else:
@@ -51,15 +51,12 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
     g_tsv_df["p"] = g_tsv_df["p"].apply(lambda x: x.split('/')[-1].split('#')[-1])
     target_rel = target_rel.split('/')[-1].split('#')[-1]
     ##################Check if headers are present in _types file
-    if any(col not in g_tsv_types_df.columns for col in ['stype', 'ptype', 'otype']):
-        old_columns = g_tsv_types_df.columns
-        g_tsv_types_df = g_tsv_types_df.append(pd.Series(old_columns, index=g_tsv_types_df.columns), ignore_index=True)
-        # print('***OLD g_tsv_types df:',g_tsv_types_df.head())
-        # print(f'changing "{old_columns[0]}" to stype, "{old_columns[1]}" to ptype , and "{old_columns[2]}" to otype !')
-        g_tsv_types_df = g_tsv_types_df.rename(
-            columns={old_columns[0]: 'stype', old_columns[1]: 'ptype', old_columns[2]: 'otype'})
-        # print('***New g_tsv_types df:',g_tsv_types_df.head())
-    # print("original_g_csv_df loaded , records length=", len(g_tsv_df))
+    # if any(col not in g_tsv_types_df.columns for col in ['stype', 'ptype', 'otype']):
+    #     old_columns = g_tsv_types_df.columns
+    #     g_tsv_types_df = g_tsv_types_df.append(pd.Series(old_columns, index=g_tsv_types_df.columns), ignore_index=True)
+    #     g_tsv_types_df = g_tsv_types_df.rename(
+    #         columns={old_columns[0]: 'stype', old_columns[1]: 'ptype', old_columns[2]: 'otype'})
+    g_tsv_types_df.columns = ['stype', 'ptype', 'otype']
 
     # dataset_name += "_Discipline"
     try:
@@ -125,7 +122,6 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
     relations_entites_map = {}
     relations_dic = {}
     entites_dic = {}
-
     for rel in relations_lst:
         rel_type = rel.split("/")[-1]
         # rel_type = rel
@@ -135,6 +131,7 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
         # print(rel_types.columns)
         # print(len(rel_types))
         # print('stype', rel_types['stype'])
+        print(rel)
         s_type = rel_types['stype'].values[0]
         o_type = rel_types['otype'].values[0]
         rel_df["s_type"] = s_type

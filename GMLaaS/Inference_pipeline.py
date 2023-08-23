@@ -8,13 +8,16 @@ from KGNET import Constants
 from GMLaaS.DataTransform.INFERENCE_TSV_TO_PYG import inference_transform_tsv_to_PYG
 from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.graph_saint_KGTOSA import graphSaint
+# from GMLaaS.models.graph_saint_KGTOSA_DEMO import graphSaint
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
-from model_manager import downloadModel
+from model_manager import downloadModel,downloadDataset
+import datetime
 
 # output_path = Constants.KGNET_Config.inference_path
-inference_file = os.path.join(Constants.KGNET_Config.inference_path,'inference.tsv')
+inference_file = os.path.join(Constants.KGNET_Config.inference_path, 'inference.tsv')
 
-def delete_inference_cache(inference_path = Constants.KGNET_Config.inference_path):
+
+def delete_inference_cache(inference_path=Constants.KGNET_Config.inference_path):
     for entry in os.listdir(inference_path):
         entry_path = os.path.join(inference_path, entry)
         if os.path.isfile(entry_path):
@@ -22,12 +25,13 @@ def delete_inference_cache(inference_path = Constants.KGNET_Config.inference_pat
         elif os.path.isdir(entry_path):
             shutil.rmtree(entry_path)
 
+
 def get_MetaData(model_id):
     dict_params = {'model': {}, 'subG': {}}
     kgmeta_govener = KGMeta_Governer(endpointUrl=Constants.KGNET_Config.KGMeta_endpoint_url,
                                      KGMeta_URI=Constants.KGNET_Config.KGMeta_IRI)
-    model_id_format = str(model_id)#"<kgnet:GMLModel/"+model_id+">"
-    query="""
+    model_id_format = str(model_id)  # "<kgnet:GMLModel/"+model_id+">"
+    query = """
     prefix kgnet:<http://kgnet/>
     select * where
     {
@@ -38,7 +42,7 @@ def get_MetaData(model_id):
             {
             ?t ?p ?o.
             ?t ?tp ?s.
-            ?s <kgnet:GMLModel/id> """+model_id_format+""".
+            ?s <kgnet:GMLModel/id> """ + model_id_format + """.
             }
         }        
         union
@@ -48,40 +52,39 @@ def get_MetaData(model_id):
             where
             {
             ?m ?p ?o.
-            ?m <kgnet:GMLModel/id> """+model_id_format+""".
+            ?m <kgnet:GMLModel/id> """ + model_id_format + """.
             }
         }        
     }
     limit 100
-    
+
     """
     # print(query)
     res_df = kgmeta_govener.executeSparqlquery(query)
     res_df = res_df.applymap(lambda x: x.strip('"'))
-    #dict_params['model']['modelID'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.modelId]['o'].item()).split('/')[-1] + '.model'
+    # dict_params['model']['modelID'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.modelId]['o'].item()).split('/')[-1] + '.model'
     dict_params['model']['GNNMethod'] = str(res_df[res_df['p'] == Constants.GNN_KG_HParms.GNN_Method]['o'].item())
     dict_params['model']['embSize'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Emb_size]['o'].item())
-    dict_params['model']['hiddenChannels'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.HiddenChannels]['o'].item())
+    dict_params['model']['hiddenChannels'] = int(
+    res_df[res_df['p'] == Constants.GNN_KG_HParms.HiddenChannels]['o'].item())
     dict_params['model']['Num_Layers'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Num_Layers]['o'].item())
-
 
     dict_params['subG']['targetEdge'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.targetEdge]['o'].item())
     dict_params['subG']['graphPrefix'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.prefix]['o'].item())
 
     return dict_params
 
-def generate_subgraph(named_graph_uri,target_rel_uri,targetNode_filter_statements,sparqlEndpointURL):
 
-
+def generate_subgraph(named_graph_uri, target_rel_uri, dataQuery, sparqlEndpointURL):
     # query = [get_NC_d1h1_query(graph_uri=named_graph_uri, target_rel_uri=target_rel_uri,
     #                            tragetNode_filter_statments=targetNode_filter_statements)]
     query = ''
-    for statement in targetNode_filter_statements:
+    for statement in dataQuery:
         query += statement
     kg = KGNET(sparqlEndpointURL)
-    subgraph_df = kg.KG_sparqlEndpoint.executeSparqlquery(query,)
-    subgraph_df = subgraph_df.applymap(lambda x : x.strip('"'))
-    subgraph_df.to_csv(inference_file,index=None,sep='\t')
+    subgraph_df = kg.KG_sparqlEndpoint.executeSparqlquery(query, )
+    subgraph_df = subgraph_df.applymap(lambda x: x.strip('"'))
+    subgraph_df.to_csv(inference_file, index=None, sep='\t')
     return inference_file
 
 
@@ -101,44 +104,82 @@ def get_rel_types(named_graph_uri, graphPrefix, sparqlEndpointURL):
         return types_file
 
 
-def perform_inference(model_id,named_graph_uri,targetNode_filter_statements,sparqlEndpointURL):
+def filterTargetNodes(predictions, targetNodesQuery, sparqlEndpointURL,named_graph_uri):
+    kg = KGNET(sparqlEndpointURL,KG_NamedGraph_IRI=named_graph_uri)
+    targetNodes = kg.KG_sparqlEndpoint.executeSparqlquery(targetNodesQuery, )
+    targetNodes = targetNodes.applymap(lambda x: x.strip('"'))['s'].to_dict()
+    targetNodes = {v: k for k, v in targetNodes.items()}
+    filtered_pred = {key: predictions[key] for key in predictions if key in targetNodes}
 
+    return filtered_pred
+
+
+def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery):
+    dict_time = {}
     if not os.path.exists(Constants.KGNET_Config.inference_path):
         os.makedirs(Constants.KGNET_Config.inference_path)
 
     meta_dict = get_MetaData(model_id)
-    model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id)+'.model'
-    subgraph = generate_subgraph(named_graph_uri = named_graph_uri,
-                                target_rel_uri = meta_dict['subG']['targetEdge'],
-                                targetNode_filter_statements = targetNode_filter_statements,
-                                sparqlEndpointURL = sparqlEndpointURL)
+    model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id) + '.model'
+    dataset_name = model_id.replace(".model","")
+    downloadDataset(dataset_name + '.zip')
+    time_subgraph = datetime.datetime.now()
+    # subgraph = generate_subgraph(named_graph_uri=named_graph_uri,
+    #                              target_rel_uri=meta_dict['subG']['targetEdge'],
+    #                              dataQuery=dataQuery,
+    #                              sparqlEndpointURL=sparqlEndpointURL)
+    dict_time['subgraph_generation_time'] = (datetime.datetime.now() - time_subgraph).total_seconds()
+    # rel_types = get_rel_types(named_graph_uri=named_graph_uri,
+    #                           graphPrefix=meta_dict['subG']['graphPrefix'],
+    #                           sparqlEndpointURL=sparqlEndpointURL)
 
-    rel_types = get_rel_types(named_graph_uri = named_graph_uri,
-                              graphPrefix = meta_dict['subG']['graphPrefix'],
-                              sparqlEndpointURL = sparqlEndpointURL)
+    time_dataTransform = datetime.datetime.now()
+    # data_dict = inference_transform_tsv_to_PYG(dataset_name='inference',
+    #                                            dataset_name_csv='inference',
+    #                                            dataset_types=rel_types,
+    #                                            target_rel=meta_dict['subG']['targetEdge'],
+    #                                            output_root_path=Constants.KGNET_Config.inference_path,
+    #                                            # Header_row=False
+    #                                            )
 
-    data_dict = inference_transform_tsv_to_PYG(dataset_name='inference',
-                                   dataset_name_csv='inference',
-                                   dataset_types=rel_types,
-                                   target_rel=meta_dict['subG']['targetEdge'],
-                                   output_root_path=Constants.KGNET_Config.inference_path,
-                                   Header_row=True)
+    # dic_results = graphSaint(dataset_name='mid-0000092_', root_path=Constants.KGNET_Config.inference_path,
+    #                          loadTrainedModel=1, target_mapping=data_dict['target_mapping'],
+    #                          modelID=model_id)
+    # return dic_results['y_pred']
 
-    # dic_results = graphShadowSaint(dataset_name='inference',root_path=Constants.KGNET_Config.inference_path,loadTrainedModel=1,target_mapping=data_dict['target_mapping'],
-    #                  modelID=meta_dict['model']['modelID'])
+    dict_time['transformation_time'] = (datetime.datetime.now() - time_dataTransform).total_seconds()
 
-    if downloadModel(model_id) and  downloadModel(model_id.replace('.model','.param')):
+    time_download = datetime.datetime.now()
+    if downloadModel(model_id) and downloadModel(model_id.replace('.model', '.param')):
+        dict_time['model_download_time'] = (datetime.datetime.now() - time_download).total_seconds()
         print('Downloaded model successfully!')
 
+        time_inference = datetime.datetime.now()
         if meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.Graph_SAINT:
-            dic_results = graphSaint(dataset_name='inference',root_path=Constants.KGNET_Config.inference_path,loadTrainedModel=1,target_mapping=data_dict['target_mapping'],
-                             modelID=model_id)
+            dic_results = graphSaint(dataset_name=dataset_name, root_path=Constants.KGNET_Config.inference_path,
+                                     loadTrainedModel=1, #target_mapping=data_dict['target_mapping'],
+                                     modelID=model_id)
+
+
 
         elif meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.ShaDowGNN:
-            dic_results = graphShadowSaint(dataset_name='inference',root_path=Constants.KGNET_Config.inference_path,loadTrainedModel=1,target_mapping=data_dict['target_mapping'],
-                             modelID=model_id)
+            dic_results = graphShadowSaint(dataset_name='inference', root_path=Constants.KGNET_Config.inference_path,
+                                           loadTrainedModel=1, #target_mapping=data_dict['target_mapping'],
+                                           modelID=model_id)
 
-    shutil.rmtree(Constants.KGNET_Config.inference_path)
+    else:
+        return {'error': 'Model not found'}
+    dict_time['inference_time'] = (datetime.datetime.now() - time_inference).total_seconds()
+    dic_results['y_pred'] = filterTargetNodes(dic_results['y_pred'],
+                                              targetNodesQuery,
+                                              sparqlEndpointURL,
+                                              named_graph_uri)
+    # shutil.rmtree(Constants.KGNET_Config.inference_path)
 
-    return dic_results
-    print ('pass!')
+    # dict_time.update(dic_results['y_pred'])
+    # dic_results['y_pred'] = dic_results['y_pred'].update({'Inference_Time':dict_time})
+    dict_inference = dic_results['y_pred']
+    dict_time_dic = {"Inference_Times": dict_time}
+    dict_inference.update(dict_time_dic)
+    return dict_inference
+    print('pass!')

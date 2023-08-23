@@ -463,6 +463,9 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
                 with open (model_params_path,'rb') as f:
                     dict_model_param = pickle.load(f)
 
+                if len(target_mapping)==0:
+                    target_mapping = pd.read_csv(os.path.join(dir_path,'mapping',f'{subject_node}_entidx2name.csv'))
+
                 model = RGCN(dict_model_param['emb_size'],
                              dict_model_param['hidden_channels'],
                              dict_model_param['dataset.num_classes'],
@@ -472,7 +475,11 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
                              dict_model_param['list_x_dict_keys'],
                              dict_model_param['len_edge_index_dict_keys']
                 )
-                label_mapping = dict_model_param['label_mapping']
+                # label_mapping = dict_model_param['label_mapping']
+
+                if len(label_mapping)==0:
+                    label_mapping = pd.read_csv(os.path.join(dir_path,'mapping','labelidx2labelname.csv'))
+
                 model.load_state_dict(torch.load(trained_model_path))
                 # model= torch.load(trained_model_path)
 

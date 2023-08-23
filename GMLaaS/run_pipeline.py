@@ -16,7 +16,7 @@ from GMLaaS.models.rgcn_KGTOSA import rgcn
 from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.graph_MorsE import run_morse
 from GMLaaS.models.rgcn.rgcn_link_pred import rgcn_lp
-from GMLaaS.model_manager import uploadModelToServer
+from GMLaaS.model_manager import uploadModelToServer,uploadDatasetToServer
 from GMLaaS.models.evaluater import Evaluator
 from Constants import *
 def load_args(path_json):
@@ -139,6 +139,9 @@ def run_training_pipeline(json_args):
         elif json_args['training']['GNN_Method'] == Constants.GNN_Methods.RGCN:
             train_results_dict = rgcn_lp(dataset_name=json_args["training"]["dataset_name"],
                                          root_path=json_args["training"]["root_path"])
+    #UPLOAD DATASET
+    uploadDatasetToServer(os.path.join(Constants.KGNET_Config.datasets_output_path,
+                                       json_args["training"]["dataset_name"] + '.zip'))
     return transform_results_dict,train_results_dict
 
 if __name__ == '__main__':

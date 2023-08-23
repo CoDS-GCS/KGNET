@@ -11,6 +11,7 @@ from uvicorn import run
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
+from fastapi import Response,status
 
 app = FastAPI()
 HOST = '127.0.0.1'
@@ -18,18 +19,38 @@ HOST = '127.0.0.1'
 PORT = KGNET_Config.GML_ModelManager_PORT
 
 @app.post("/uploadmodel/")
-async def saveIncomingModel(file: UploadFile = File(...)):
+async def saveIncomingModel(model: UploadFile = File(...)):
     filepath = os.path.join(KGNET_Config.trained_model_path,
-                            file.filename)
+                            model.filename)
     with open(filepath, "wb") as f:
-        f.write(file.file.read())
+        f.write(model.file.read())
+    print(f'model {model.filename} saved successfully')
+    return JSONResponse(content={"message": "Model uploaded successfully"})
+
+@app.post("/uploaddataset/")
+async def saveIncomingDataset(dataset: UploadFile = File(...)):
+    filepath = os.path.join(KGNET_Config.datasets_output_path,
+                            dataset.filename)
+    with open(filepath, "wb") as f:
+        f.write(dataset.file.read())
+    print(f'Dataset {dataset.filename} saved successfully')
     return JSONResponse(content={"message": "Model uploaded successfully"})
 
 
 @app.get("/downloadmodel/{mid}")
-async def sendTrainedModel(mid:str):
+async def sendTrainedModel(mid:str,response:Response):
     filepath = os.path.join(KGNET_Config.trained_model_path,mid)
     if not os.path.exists(filepath):
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {"error": "File not found"}
+    return FileResponse(filepath, headers={"Content-Disposition": f"attachment; filename={mid}"})
+
+@app.get("/downloaddataset/{mid}")
+async def sendDataset(mid:str,response:Response):
+    # mid = 'mid-' + utils.getIdWithPaddingZeros(mid)
+    filepath = os.path.join(KGNET_Config.datasets_output_path,mid)
+    if not os.path.exists(filepath):
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {"error": "File not found"}
     return FileResponse(filepath, headers={"Content-Disposition": f"attachment; filename={mid}"})
 
