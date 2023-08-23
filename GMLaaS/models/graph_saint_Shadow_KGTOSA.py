@@ -456,12 +456,16 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
         if loadTrainedModel == 1:
             with torch.no_grad():
                 start_t = datetime.datetime.now()
-                trained_model_path = KGNET_Config.trained_model_path + modelID
+                trained_model_path = Constants.KGNET_Config.trained_model_path + modelID
                 # trained_model_path = r'/home/afandi/GitRepos/KGNET/Datasets/trained_models/mid-0000064.model'
-                model_params_path = trained_model_path.replace('.model','.param')
+                model_params_path = trained_model_path.replace('.model', '.param')
 
-                with open (model_params_path,'rb') as f:
+                with open(model_params_path, 'rb') as f:
                     dict_model_param = pickle.load(f)
+
+                if len(target_mapping) == 0:
+                    target_mapping = pd.read_csv(os.path.join(dir_path, 'mapping', f'{subject_node}_entidx2name.csv'))
+                    target_mapping = target_mapping.set_index('ent idx')['ent name'].to_dict()
 
                 model = RGCN(dict_model_param['emb_size'],
                              dict_model_param['hidden_channels'],
@@ -471,32 +475,34 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
                              dict_model_param['num_nodes_dict'],
                              dict_model_param['list_x_dict_keys'],
                              dict_model_param['len_edge_index_dict_keys']
-                )
-                label_mapping = dict_model_param['label_mapping']
-                model.load_state_dict(torch.load(trained_model_path))
-                # model= torch.load(trained_model_path)
+                             )
+                # label_mapping = dict_model_param['label_mapping']
 
-                print('Loaded Shadow Saint Model!')
+                if len(label_mapping) == 0:
+                    label_mapping = pd.read_csv(os.path.join(dir_path, 'mapping', 'labelidx2labelname.csv'))
+                    label_mapping = label_mapping.set_index('label idx')['label name'].to_dict()
+                model.load_state_dict(torch.load(trained_model_path))
+                print('Loaded Graph Saint Model!')
                 model.eval()
                 out = model.inference(x_dict, edge_index_dict, key2int)
                 # out = model(x_dict, edge_index, edge_type, node_type,
                 #             local_node_idx)
                 out = out[key2int[subject_node]]
-                out = out[:, :len(label_mapping)]  # TODO
+                # out = out [:,:len(label_mapping)] #TODO
                 y_pred = out.argmax(dim=-1, keepdim=True).cpu().flatten().tolist()
                 end_t = datetime.datetime.now()
                 print(dataset_name, "Infernce Time=", (end_t - start_t).total_seconds())
-                print('predictions : ',y_pred)
+                print('predictions : ', y_pred)
                 dict_pred = {}
-                for i,pred in enumerate(y_pred):
+                for i, pred in enumerate(y_pred):
                     dict_pred[target_mapping[i]] = label_mapping[pred]
 
                 dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
 
                 # for pred in y_pred.flatten
-                #dic_results['y_pred'] = pd.DataFrame({int(pred) : label_mapping[pred] for pred in y_pred.flatten().tolist()})
+                # dic_results['y_pred'] = pd.DataFrame({int(pred) : label_mapping[pred] for pred in y_pred.flatten().tolist()})
                 # dic_results['y_pred'] = pd.DataFrame({'ent id':y_pred.flatten().tolist(),
-                                         # 'ent name': [label_mapping[pred] for pred in y_pred.flatten().tolist()]})
+                # 'ent name': [label_mapping[pred] for pred in y_pred.flatten().tolist()]})
                 dic_results['y_pred'] = dict_pred
                 print(dic_results['y_pred'])
 
@@ -531,6 +537,12 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
                 total_run_t = total_run_t + (end_t - start_t).total_seconds()
                 print("model run ", run, " train time CPU=", end_t - start_t, " sec.")
                 print(getrusage(RUSAGE_SELF))
+            print('Calculating inference time')
+            with torch.no_grad():
+                time_inference_start = datetime.datetime.now()
+                model.inference(x_dict, edge_index_dict, key2int)
+            dic_results['Inference_Time'] = (datetime.datetime.now() - time_inference_start).total_seconds()
+
             total_run_t = (total_run_t + 0.00001) / runs
             gsaint_end_t = datetime.datetime.now()
             Highest_Train, Highest_Valid, Final_Train, Final_Test = logger.print_statistics()

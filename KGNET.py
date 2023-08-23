@@ -254,12 +254,12 @@ if __name__ == '__main__':
     #################################### NC ############################
     # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de')
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="aifb:Person",labelNodeType="aifb:ResearchGroup", GNNMethod=Constants.GNN_Methods.Graph_SAINT)
-    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',
-    #               KG_Prefix='dblp2022')
-    # model_info, transform_info, train_info = kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.NodeClassification,
-    #                                                          targetNodeType="dblp2022:Publication",
-    #                                                          labelNodeType="dblp2022:publishedIn_Obj",
-    #                                                          GNNMethod=KGNET.GNN_Methods.Graph_SAINT)
+    kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',
+                  KG_Prefix='dblp2022')
+    model_info, transform_info, train_info = kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.NodeClassification,
+                                                             targetNodeType="dblp2022:Publication",
+                                                             labelNodeType="dblp2022:publishedIn_Obj",
+                                                             GNNMethod=KGNET.GNN_Methods.Graph_SAINT)
 
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="aifb:Project",labelNodeType="aifb:Organization", GNNMethod=GNN_Methods.Graph_SAINT)
     # model_info, transform_info, train_info=  kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification,targetNodeType="aifb:Person",labelNodeType="aifb:ResearchGroup",GNNMethod=GNN_Methods.Graph_SAINT)
@@ -331,11 +331,11 @@ if __name__ == '__main__':
                     limit 300
                     offset 0
                 """
-    kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org')
-    types_df = kgnet.getKGNodeEdgeTypes(write_to_file=True, prefix='dblp2022')
-    resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_query_NC2)
-    print(resDF)
-    print(MetaQueries)
+    # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org')
+    # types_df = kgnet.getKGNodeEdgeTypes(write_to_file=True, prefix='dblp2022')
+    # resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_query_NC2)
+    # print(resDF)
+    # print(MetaQueries)
     #############################################3
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='http://www.RVO.net/', KG_Prefix="RVO")
     # kgnet.uploadKG(ttl_file_url="http://206.12.89.16/CodsData/KGNET/KGs/OBA.nt",name="Landenportaal-Rijksdienst voor Ondernemend Nederland (RVO)",description="information about countries around the globe with the objectives of these country monitors",domain="geometric")

@@ -43,12 +43,14 @@ class GNN_KG_HParms:
     def __init__(self):
        ""
 class GNN_SubG_Parms:
+    GNN_TYPE_PREFIX = 'kgnet:type/'
     GNN_KG_HP_PREFIX = GNN_KG_HParms.GNN_KG_PREFIX + 'taskSubgraph/'
     GNN_TASK_PREFIX = 'kgnet:GMLTask/'
     GNN_KG_TASK_PREFIX = 'kgnet:GMLTask/'
     targetEdge = GNN_KG_HP_PREFIX + 'targetEdge'
     prefix = GNN_KG_TASK_PREFIX + 'KGPrefix'
     modelId = GNN_TASK_PREFIX + 'modelID'
+    taskType = GNN_TASK_PREFIX + 'taskType'
     def __init__(self):
        ""
 class GML_Query_Types:
@@ -65,7 +67,7 @@ class TOSG_Patterns:
     def __init__(self):
        ""
 class KGNET_Config:
-    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
     trained_model_path = datasets_output_path + 'trained_models/'
     GML_API_URL = "http://206.12.99.65:64647/"
