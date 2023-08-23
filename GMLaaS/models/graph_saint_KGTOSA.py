@@ -1,5 +1,4 @@
 from copy import copy
-from Constants import *
 import json
 import argparse
 import shutil
@@ -693,6 +692,11 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 total_run_t = total_run_t + (end_t - start_t).total_seconds()
                 print("model run ", run, " train time CPU=", end_t - start_t, " sec.")
                 print(getrusage(RUSAGE_SELF))
+            print('Calculating inference time')
+            with torch.no_grad():
+                time_inference_start = datetime.datetime.now()
+                model.inference(x_dict, edge_index_dict, key2int)
+            dic_results['Inference_Time'] = (datetime.datetime.now() - time_inference_start).total_seconds()
             total_run_t = (total_run_t + 0.00001) / runs
             gsaint_end_t = datetime.datetime.now()
             Highest_Train, Highest_Valid, Final_Train, Final_Test = logger.print_statistics()
