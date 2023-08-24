@@ -352,7 +352,7 @@ class KGMeta_Governer(sparqlEndpoint):
         elif query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1].strip().lower() == GML_Operator_Types.LinkPrediction.strip().lower():
             Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/linkPredictionType> \"missingObject\" . \n"
 
-        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/inferenceTime> "+ str(train_results_dict["Inference_Time"]) +". \n"
+        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/inferenceTime> "+ str(train_results_dict["Inference_Time"]) +" . \n"
         #################################################### train_results_dict #######################################
         # Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/modelParametersSize> " + str(train_results_dict["Model_Trainable_Paramters_Count"]) + " . \n"
         Insert_Triples = append_triple(Insert_Triples, model_model_uri, '<kgnet:GMLModel/modelParametersSize>', train_results_dict, "Model_Trainable_Paramters_Count")

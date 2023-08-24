@@ -259,7 +259,7 @@ if __name__ == '__main__':
     model_info, transform_info, train_info = kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.NodeClassification,
                                                              targetNodeType="dblp2022:Publication",
                                                              labelNodeType="dblp2022:publishedIn_Obj",
-                                                             GNNMethod=KGNET.GNN_Methods.Graph_SAINT)
+                                                             GNNMethod=KGNET.GNN_Methods.RGCN)
 
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="aifb:Project",labelNodeType="aifb:Organization", GNNMethod=GNN_Methods.Graph_SAINT)
     # model_info, transform_info, train_info=  kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification,targetNodeType="aifb:Person",labelNodeType="aifb:ResearchGroup",GNNMethod=GNN_Methods.Graph_SAINT)
