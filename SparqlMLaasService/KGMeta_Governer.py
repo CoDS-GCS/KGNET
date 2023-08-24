@@ -226,15 +226,18 @@ class KGMeta_Governer(sparqlEndpoint):
         header=list(models_info_list[0].keys())
         header.insert(0,'Property')
         res_df=pd.DataFrame(models_res_lst, columns=header)
+        score_colums=""
         if "Test Acc Score" in res_df.columns:
             Acc_InferTime_lst = res_df[["Test Acc Score", "Inference Time"]].values.tolist()
+            score_colums="Test Acc Score"
         elif "Test Hits@10 Score" in res_df.columns:
             Acc_InferTime_lst = res_df[["Test Hits@10 Score", "Inference Time"]].values.tolist()
+            score_colums = "Test Hits@10 Score"
         model_idx = ModelSelector.getBestModelIdx(Acc_InferTime_lst)
         styler_df=(res_df.style
                            # .apply(lambda x:utils.highlight_value_in_column(x,color='#FF5C5C',agg='max'), subset=['Training Time Sec.', 'Training Memory GB.'], axis=0)
                            .apply(lambda x: Constants.utils.highlight_value_in_column(x, color=Constants.colors.green, agg=Constants.aggregations.min),subset=['Training Time Sec.','Inference Time', 'Training Memory GB.'], axis=0)
-                           .apply(lambda x: Constants.utils.highlight_value_in_column(x, color=Constants.colors.green, agg=Constants.aggregations.max),subset=["Test Acc Score"], axis=0)
+                           .apply(lambda x: Constants.utils.highlight_value_in_column(x, color=Constants.colors.green, agg=Constants.aggregations.max),subset=[score_colums], axis=0)
                            .apply( lambda row:  Constants.utils.highlightRowByIdx(row, model_idx , bgcolor=Constants.colors.orange, textcolor='', fontweight='bold'), axis = 1)
                            # .apply(lambda x: utils.highlight_value_in_column(x, color='#FF5C5C', agg='min'),subset=["Test Acc Score"], axis=0
         )
@@ -254,7 +257,7 @@ class KGMeta_Governer(sparqlEndpoint):
         for model_uri in models_lst:
             basic_info = {}
             model_df=res_df[res_df["s"]==model_uri]
-            basic_info["Model ID"] = res_df[res_df["p"] == "kgnet:GMLModel/id"]["o"].values[0]
+            basic_info["Model ID"] = model_df[model_df["p"] == "kgnet:GMLModel/id"]["o"].values[0]
             if "kgnet:GMLModel/test_Hits@10" in p_list:
                 basic_info["Test Hits@10 Score"] =  round(float(model_df[model_df["p"] == "kgnet:GMLModel/test_Hits@10"]["o"].values[0]),2)
             if "kgnet:GMLModel/testAccuracy" in p_list:
@@ -351,8 +354,10 @@ class KGMeta_Governer(sparqlEndpoint):
             Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/classifierType> \"MCSL\" . \n"
         elif query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1].strip().lower() == GML_Operator_Types.LinkPrediction.strip().lower():
             Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/linkPredictionType> \"missingObject\" . \n"
-
-        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/inferenceTime> "+ str(train_results_dict["Inference_Time"]) +" . \n"
+        if "Inference_Time" in train_results_dict:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/inferenceTime> "+ str(train_results_dict["Inference_Time"]) +" . \n"
+        else:
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/inferenceTime> 0 . \n"
         #################################################### train_results_dict #######################################
         # Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/modelParametersSize> " + str(train_results_dict["Model_Trainable_Paramters_Count"]) + " . \n"
         Insert_Triples = append_triple(Insert_Triples, model_model_uri, '<kgnet:GMLModel/modelParametersSize>', train_results_dict, "Model_Trainable_Paramters_Count")
@@ -427,7 +432,7 @@ class KGMeta_Governer(sparqlEndpoint):
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/GNNSampler/method> \"RW\" . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/GNNSampler/level> \"subgraph\" . \n"
         #################################################### transform_results_dict  #######################################
-        print("transform_results_dict=",transform_results_dict)
+        # print("transform_results_dict=",transform_results_dict)
         Insert_Triples = append_triple(Insert_Triples, model_model_uri, '<kgnet:GMLModel/taskSubgraph/edgeCount>',transform_results_dict, "TriplesCount")
         if 'data_obj' in transform_results_dict:
             Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/nodeCount> "+str(sum(list(transform_results_dict['data_obj']['num_nodes_dict'].values())))+" . \n"

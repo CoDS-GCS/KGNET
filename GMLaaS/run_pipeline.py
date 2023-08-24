@@ -143,8 +143,10 @@ def run_training_pipeline(json_args):
             train_results_dict = rgcn_lp(dataset_name=json_args["training"]["dataset_name"],
                                          root_path=json_args["training"]["root_path"])
     #UPLOAD DATASET
-    uploadDatasetToServer(os.path.join(Constants.KGNET_Config.datasets_output_path,
-                                       json_args["training"]["dataset_name"] + '.zip'))
+    if json_args["transformation"]["operatorType"] == Constants.GML_Operator_Types.NodeClassification:
+        uploadDatasetToServer(os.path.join(Constants.KGNET_Config.datasets_output_path,json_args["training"]["dataset_name"] + '.zip'))
+    elif json_args["transformation"]["operatorType"] == Constants.GML_Operator_Types.LinkPrediction:
+        uploadDatasetToServer(os.path.join(Constants.KGNET_Config.datasets_output_path,json_args["training"]["dataset_name"] + '.tsv'))
     return transform_results_dict,train_results_dict
 
 if __name__ == '__main__':
