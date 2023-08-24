@@ -53,10 +53,13 @@ def format_args(task,json_args,path_script):
 # subprocess.run(list_training)
 
 def uploadModel(model_path):
-    uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,
-                                     model_path + '.model'))
-    uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,
-                                     model_path + '.param'))
+    try:
+        uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,
+                                         model_path + '.model'))
+        uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,
+                                         model_path + '.param'))
+    except Exception as e:
+        print(e)
 
 def cmd_run_training_pipeline(path_json=None,path_transformation_py='DataTransform/TSV_TO_PYG_dataset.py',path_training_py='models/models/graph_saint/graph_saint_KGTOSA.py',json_args=None):
     if json_args is None:

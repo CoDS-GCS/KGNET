@@ -113,6 +113,9 @@ def get_MetaData(model_id):
 
 
 def topKpred(pred_df, K=None):
+    if K == 1:
+        return pred_df.set_index(0)[1].to_dict()
+
     result_dict = {}
     for key, value in zip(pred_df[0], pred_df[1]):
         if key not in result_dict:
@@ -172,9 +175,9 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
     model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id) + '.model'
 
     ###### IF LINK PREDICTION #######
-    if meta_dict['model']['taskType'] ==  'kgnet:type/linkPrediction':
+    if meta_dict['model']['taskType'] == 'kgnet:type/linkPrediction':
         preds = pd.read_csv(os.path.join(Constants.KGNET_Config.inference_path,'authored_by_predictions.tsv'),header=None,sep='\t')
-        return topKpred(preds,topk)
+        return topKpred(preds[:1000],topk)
 
     dataset_name = model_id.replace(".model","")
     downloadDataset(dataset_name + '.zip')
