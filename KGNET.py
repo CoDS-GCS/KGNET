@@ -272,17 +272,17 @@ if __name__ == '__main__':
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de',KG_Prefix="aifb")
     # model_info, transform_info, train_info = kgnet.train_GML(
     #     operatorType=Constants.GML_Operator_Types.LinkPrediction, targetEdge="http://swrc.ontoware.org/ontology#publication", GNNMethod=GNN_Methods.RGCN)
-    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql')
-    # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="dblp:Publication",
-    #     labelNodeType="dblp:venue", GNNMethod=GNN_Methods.Graph_SAINT)
-    # print(model_info)
+    kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
+    #types_df = kgnet.getKGNodeEdgeTypes(write_to_file=True, prefix='dblp2022')
+    model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="dblp2022:Publication",
+        labelNodeType="dblp2022:publishedIn_Obj", GNNMethod=GNN_Methods.Graph_SAINT)
+    print(model_info)
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.LinkPrediction,targetEdge="http://swrc.ontoware.org/ontology#author",GNNMethod=GNN_Methods.MorsE)
-    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',
-    #               KG_Prefix='dblp2022')
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
     # TargetEdge = "https://dblp.org/rdf/schema#authoredBy"
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.LinkPrediction,
     #                                                          targetEdge=TargetEdge,
-    #                                                          GNNMethod=KGNET.GNN_Methods.RGCN)
+    #                                                          GNNMethod=KGNET.GNN_Methods.MorsE)
     ################################## SPARQL ML Execute ##########################
     inference_query_NC = """
                 prefix aifb:<http://swrc.ontoware.org/ontology#>
@@ -333,7 +333,6 @@ if __name__ == '__main__':
                     offset 0
                 """
     kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org')
-    # types_df = kgnet.getKGNodeEdgeTypes(write_to_file=True, prefix='dblp2022')
     resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_query_LP)
     print(resDF)
     print(MetaQueries)
