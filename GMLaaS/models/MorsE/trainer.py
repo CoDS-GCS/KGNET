@@ -176,7 +176,7 @@ class Trainer(object):
 
         return results
 
-    def  valuate_test_triples(self, num_cand='all'):
+    def  evaluate_test_triples(self, num_cand='all'):
         """do evaluation on test triples of ind-test-graph"""
         ent_emb = self.get_ent_emb(self.test_train_g)
         results = self.evaluate(ent_emb, self.test_dataloader, num_cand=num_cand)

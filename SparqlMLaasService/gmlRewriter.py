@@ -559,8 +559,8 @@ class gmlQueryRewriter:
             return data_infer_query, data_query , target_nodes_query,model_id
         elif gmlOperatorType.lower() == "kgnet:type/linkprediction":
             target_edge = dict_gml_var['targetEdge']['object'] if not isinstance(dict_gml_var['targetEdge']['object'],tuple) else  dict_gml_var['targetEdge']['object'][1]
-            data_infer_query,data_query,target_nodes_query = self.format_data_query(self.query_dict,gmlOperatorType, userDefinedPredicate,target_node=target_edge, list_data_T=list_data_T, model_uri=dict_gml_var['$m'])
-            return data_infer_query ,data_query,target_nodes_query
+            data_infer_query,data_query,target_nodes_query,model_id = self.format_data_query(self.query_dict,gmlOperatorType, userDefinedPredicate,target_node=target_edge, list_data_T=list_data_T, model_uri=dict_gml_var['$m'])
+            return data_infer_query ,data_query,target_nodes_query,model_id
 
     def rewrite_gml_query (self):
         # print("gml_query_type=",self.query_dict["query_type"])

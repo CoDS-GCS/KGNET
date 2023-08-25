@@ -177,5 +177,5 @@ class VirtuosoUDFManager(UDFManager):
         """
         return self.executeSparqlQuery_dopost(Query),Query
 if __name__ == '__main__':
-    udfm=VirtuosoUDFManager(host="206.12.98.118",port=1111,username='dba', password='dba')
+    udfm=VirtuosoUDFManager(host="206.12.98.118",port=1111,username='***', password='***')
     print(udfm.getKGList())

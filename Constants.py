@@ -67,7 +67,7 @@ class TOSG_Patterns:
     def __init__(self):
        ""
 class KGNET_Config:
-    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
+    datasets_output_path="//media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
     trained_model_path = datasets_output_path + 'trained_models/'
     GML_API_URL = "http://206.12.99.65:64647/"
@@ -136,7 +136,12 @@ class utils:
         default = ''
         # must return one string per cell in this row
         if row[0] != row[1]:
-            return [default, highlight]
+            if len(str(row[0]).strip().replace("\"",""))==0:
+                return [default, 'background-color:' + bgcolor + ' ;  font-weight:' + fontweight + ';']
+            else:
+                return [default, 'background-color:red ;  font-weight:' + fontweight + ';']
+        elif str(row[0]) == str(row[1]):
+            return ['background-color:#EDF9EB;', 'background-color:#EDF9EB;']
         else:
             return [default, default]
     # df.style.apply(highlightDiferrentRowValues, subset=['num_children', 'num_pets'], axis=1)
