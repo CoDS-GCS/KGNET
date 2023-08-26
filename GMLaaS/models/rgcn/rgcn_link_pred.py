@@ -22,6 +22,8 @@ from resource import *
 import datetime
 import os
 import json
+import pandas as pd
+import os.path as osp
 
 #from utils import calc_mrr
 #path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', 'RLPD')
@@ -176,18 +178,27 @@ def compute_mrr(z, edge_index, edge_type):
         rank = compute_rank(out)
         ranks.append(rank)
     ranks = torch.tensor(ranks, dtype=torch.float)
-    hits=[10]    
+    hits=[10]
     for hit in hits:
         avg_count = torch.mean((ranks <= hit).float())
         hits_10 = avg_count.item()
         print("Hits (filtered) @ {}: {:.6f}".format(hit, hits_10))
 
-        
+
     return (1. / torch.tensor(ranks, dtype=torch.float)).mean(),hits_10
 
 
 
-def rgcn_lp(dataset_name,root_path=KGNET_Config.datasets_output_path,epochs=3,val_interval=2,hidden_channels=50,batch_size=-1,runs=1,emb_size=128,walk_length = 2, num_steps=2):
+def rgcn_lp(dataset_name,
+            root_path=KGNET_Config.datasets_output_path,
+            epochs=3,val_interval=2,
+            hidden_channels=50,batch_size=-1,runs=1,
+            emb_size=128,walk_length = 2, num_steps=2,
+            loadTrainedModel=0,
+            target_rel = '',
+            list_src_nodes = [],
+            K = 1,modelID = ''
+            ):
     # parser = argparse.ArgumentParser()
     # parser.add_argument('root_path',type=str,default=KGNET_Config.datasets_output_path)
 
@@ -211,6 +222,64 @@ def rgcn_lp(dataset_name,root_path=KGNET_Config.datasets_output_path,epochs=3,va
         DistMultDecoder(dataset.num_relations // 2, hidden_channels=hidden_channels),
     )
     print('Model Initialized!')
+
+
+    if loadTrainedModel == 1:
+
+        ###### LOAD ENTITIES AND REL DICT ##########
+        entities_df = pd.read_csv(osp.join(dataset.raw_dir, 'entities.dict'), header=None, sep="\t")
+        entities_dict = dict(zip(entities_df[1], entities_df[0]))
+        rev_entities_dict = {v:k for k,v in entities_dict.items()}
+
+        relations_df = pd.read_csv(osp.join(dataset.raw_dir, 'relations.dict'), header=None, sep="\t")
+        relations_dict = dict(zip(relations_df[1], relations_df[0]))
+        if target_rel not in relations_dict:
+            return {'error':['Unseen relation']}
+        target_rel_ID = relations_dict[target_rel]
+
+        ####### LOAD MODEL STATE ##############
+        trained_model_path = os.path.join(KGNET_Config.trained_model_path,modelID)
+        model.load_state_dict(torch.load(trained_model_path)); print('LOADED PRE-TRAINED MODEL !d')
+
+        with torch.no_grad():
+            edge_index = data.edge_index
+            edge_type = data.edge_type
+            y_pred = {}
+            z = model.encode(data.edge_index, data.edge_type)
+            # out = model.decode(z,data.edge_index,data.edge_type)
+            # print(out)
+
+            # for i in tqdm(range(edge_type.numel())):
+            for _src in list_src_nodes:
+                if _src not in entities_dict:
+                    y_pred[_src] = ['None']
+                    continue
+                src = entities_dict[_src]
+                (_, dst), rel = edge_index[:, target_rel_ID], edge_type[target_rel_ID]
+
+                # Try all nodes as tails, but delete true triplets:
+                tail_mask = torch.ones(data.num_nodes, dtype=torch.bool)
+                for (heads, tails), types in [
+                    (data.train_edge_index, data.train_edge_type),
+                    (data.valid_edge_index, data.valid_edge_type),
+                    (data.test_edge_index, data.test_edge_type),
+                ]:
+                    tail_mask[tails[(heads == src) & (types == rel)]] = False
+
+                tail = torch.arange(data.num_nodes)[tail_mask]
+                tail = torch.cat([torch.tensor([dst]), tail])
+                head = torch.full_like(tail, fill_value=src)
+                eval_edge_index = torch.stack([head, tail], dim=0)
+                eval_edge_type = torch.full_like(tail, fill_value=rel)
+
+                out = model.decode(z, eval_edge_index, eval_edge_type)
+                y_pred[_src] = [rev_entities_dict[i] for i in out.topk(K).indices.tolist() if i in rev_entities_dict]
+                # print(out)
+
+        return y_pred
+
+
+
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
     start_train_t = datetime.datetime.now()
@@ -239,6 +308,8 @@ def rgcn_lp(dataset_name,root_path=KGNET_Config.datasets_output_path,epochs=3,va
     end_train_t = datetime.datetime.now()
     total_train_t = str((end_train_t - start_train_t).total_seconds())
     total_time = str((start_data_t - end_train_t).total_seconds())
+    model_name = gen_model_name(dataset_name)
+    dict_results['model_name'] = model_name
     dict_results['Train_Time'] = total_train_t
     dict_results['Total_Time'] = total_time
     dict_results["Model_Parameters_Count"] = sum(p.numel() for p in model.parameters())
@@ -269,7 +340,6 @@ def rgcn_lp(dataset_name,root_path=KGNET_Config.datasets_output_path,epochs=3,va
     logs_path = os.path.join(root_path, 'logs')
     model_path = os.path.join(root_path, 'trained_models')
     create_dir([logs_path, model_path])
-    model_name = gen_model_name(dataset_name)
     with open(os.path.join(logs_path, model_name + '_log.json'), "w") as outfile:
         json.dump(dict_results, outfile)
     torch.save(model.state_dict(), os.path.join(model_path, model_name) + ".model")
@@ -277,3 +347,16 @@ def rgcn_lp(dataset_name,root_path=KGNET_Config.datasets_output_path,epochs=3,va
 
     return dict_results
     # print("Total Time Sec=", (end_t - start_t).total_seconds())
+
+
+
+# rgcn_lp(dataset_name='mid-0000100',
+#         root_path=os.path.join(KGNET_Config.inference_path,),
+#         loadTrainedModel=1,
+#         target_rel = "https://dblp.org/rdf/schema#authoredBy",
+#         list_src_nodes =  ['https://dblp.org/rec/conf/ctrsa/Rosie22',
+#                             'https://dblp.org/rec/conf/ctrsa/WuX22',
+#                             'https://dblp.org/rec/conf/padl/2022'],
+#         K = 2,
+#         modelID = ''
+#         )
