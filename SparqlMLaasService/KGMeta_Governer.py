@@ -144,8 +144,8 @@ class KGMeta_Governer(sparqlEndpoint):
         if "kgnet:GMLTask/dateCreated" in p_list:
             basic_info["Date Created"] = res_df[res_df["p"] == "kgnet:GMLTask/dateCreated"]["o"].values[0]
         basic_info["# Trained Models"] = len(res_df[res_df["p"] == "kgnet:GMLTask/modelID"]["o"].unique())
-        if len(res_df[res_df["p"] == "kgnet:GMLTask/modelID"]["o"].unique())>0:
-            basic_info["Trained Models IDs"] = ",".join(list(res_df[res_df["p"] == "kgnet:GMLTask/modelID"]["o"].unique()))
+        # if len(res_df[res_df["p"] == "kgnet:GMLTask/modelID"]["o"].unique())>0:
+        #     basic_info["Trained Models IDs"] = ",".join(list(res_df[res_df["p"] == "kgnet:GMLTask/modelID"]["o"].unique()))
         return pd.DataFrame(list(basic_info.items()),columns=["property","Value"])
     def getGMLModelInfoByID(self,mid):
         mid_query = """PREFIX kgnet: <https://www.kgnet.com/>  

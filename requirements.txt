@@ -1,29 +1,23 @@
-!pip install gcc
-!pip install gcc_linux-64 gxx_linux-64
-!pip install pytorch torchvision torchaudio cpuonly -c pytorch
-!pip install pyg -c pyg
-!pip install pandas
-!pip install ogb
-!pip install sacred
-!pip install seml
-!pip install parallel-sort==0.0.3  # please do not use new versions
-!pip install python-tsp
-!pip install psutil
-!pip install numba
-!pip install dgl==0.4.2
-!pip install lmdb==0.98
-!pip install networkx==2.4
-!pip install scikit-learn==0.22.1
-!pip install torch==1.7.0
-!pip install tqdm==4.43.0
-!pip install torch_geometric==1.7.1
-!pip install torch_scatter==2.0.6
-!pip install torch_sparse==0.6.9
-!pip install Python>=3.6
-!pip install DGL>=0.5.0
-!pip install torch-geometric>=2.0.2
-!pip install Numpy>=1.16.0
-!pip install pandas>=0.24.0
-!pip install urllib3>=1.24.0
-!pip install cikit-learn>=0.20.0
-!pip install outdated>=0.2.0
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
+conda install pyg -c pyg
+pip install pandas
+pip install pyvis
+pip install sacred
+pip install seml
+pip install psutil
+pip install numba
+pip install dgl==0.9.0
+pip install lmdb==0.98
+pip install networkx==2.4
+pip install scikit-learn
+pip install tqdm==4.43.0
+pip install SPARQLWrapper
+pip install wget
+pip install pyodbc
+pip install pyvis
+pip install --no-index torch-scatter -f https://pytorch-geometric.com/whl/torch-2.0.0+cpu.html
+pip install --no-index torch-sparse -f https://pytorch-geometric.com/whl/torch-2.0.0+cpu.html
+pip install --no-index torch-cluster -f https://pytorch-geometric.com/whl/torch-2.0.0+cpu.html
+pip install --no-index torch-spline-conv -f https://pytorch-geometric.com/whl/torch-2.0.0+cpu.html
+pip install torch-geometric
+pip install
