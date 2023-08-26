@@ -32,111 +32,133 @@ conda activate kgnet
 </li>
 </ul>
 
-<b>Generating the Meta-sampled graph dataset:</b>
-1. under dataSampling the node sampler and edge sampler methods are used to sample large datasets for node classification and link prediction respectively. the sampling methods take the sull graph as input and the traget node or target edge and generate the task sampled subgraph
+## 1. Initializing KGNET 
+### Step 1:  Importing KGNET and setting up path.
+Use the following code to import KGNET and set up the path where you want to store your datasets:
 ```python
-# run node sampler 
-python nodesampler.py --KG DBLP --targetNode https://dblp.org/rdf/schema-publishedIn
-python edgesampler.py --KG FB15K --targetEdge /people/person/profession
+from KGNET.KGNET import KGNET
+KGNET.KGNET_Config.datasets_output_path="/path/to/datasets/"
 ```
-2. Run data transformer [GML dataTransformer](/DataTransform/kgnet_data_transformer.py)
-transform your dataset into adjaceny metrics for node classification task by providing 
-   1. the triples (CSV/TSV) dataset 
-   2. the splitting criterria i.e. https://dblp.org/rdf/schema#yearOfEvent
-   3. the target nodes labels i.e. https://dblp.org/rdf/schema#publishedIn
-The generated splits are
-```
-knoweldge graph dataset /
-├── mapping
-│   └── nodex_entid2name.csv
-│   └── ....
-├── raw
-│   └── node-label
-│   └── node-feat
-│   └── relations
-│      └── nodex_rel_nodey
-│      └── ....
-├── split
-│   └── train
-│   └── test
-│   └── valid
-...
-```
+<u>Note: It is suggested that you observe the default paths inside KGNET/Constants.py and configure them based on your preference.</u>
+
+### Step 2: Create a KGNET instance and load your Knowledge Graph (KG).
+A KGNET object contains all the necessary details about the KG. You can instantiate a KGNET object with the following example:
 ```python
-# run data transformer sampler 
-python kgnet_data_transformer.py --KG DBLP --splittingEdge  https://dblp.org/rdf/schema-yearOfEvent --labelsEdge https://dblp.org/rdf/schema-publishedIn
+kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
+```
+<u>Note: The arguments provided above are for the demo scenario. You can replace them with your own KG.</u>
+
+
+## 2. Performing Node Classification on your KG
+### Step 1: Train a Node Classification (NC) model.
+To train a NC model for your KG, you can call the ```train_GML``` function of the KGNET. It requires 4 required arguments.
+
+```operatorType``` = Operation type; Node Classification or Link Prediction.
+
+```GNNMethod``` = Method for the model,e.g. GraphSaint, RGCN,etc.
+
+```targetNodeType``` = Select the target node from your KG.
+
+```labelNodeType``` = the label node you want to predict.
+
+Below is an example for training a model on DBLP dataset
+
+```python
+kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.NodeClassification,
+                GNNMethod=KGNET.GNN_Methods.Graph_SAINT,
+                targetNodeType="dblp2022:Publication",labelNodeType="dblp2022:publishedIn_Obj")
+```
+<u> Note: Once your Model is trained, it is uploaded to the KGNET.</u>
+
+### Step 2: Perform NC Inference on your KG.
+Once you have trained your model, you can use it to perform inference on your KG. For this purpose you can write a SPARQL query as shown in the example below:
+```python
+query = """
+            prefix dblp2022:<https://dblp.org/rdf/schema#>
+            prefix kgnet:<http://kgnet/>
+            select ?Publication ?Title ?dblp_Venue ?Pred_Venue
+            from <https://dblp2022.org>
+            where
+            {
+            ?Publication a dblp2022:Publication .
+            ?Publication  dblp2022:publishedIn ?dblp_Venue .
+            ?Publication  dblp2022:title ?Title .
+            ?Publication ?NodeClassifier ?Pred_Venue .
+            ?NodeClassifier a <kgnet:types/NodeClassifier>.
+            ?NodeClassifier <kgnet:targetNode> dblp2022:Publication.
+            ?NodeClassifier <kgnet:labelNode> dblp2022:publishedIn_Obj.
+            }
+            limit 100
+        """
+
+```
+Once you have the query, you can execute it with the following function:
+
+```python
+kgnet.executeSPARQLMLInferenceQuery(query)
+```
+This function runs the inference pipeline and returns the predictions along with stats associated with the inference.
+
+## 2. Performing Link Prediction on your KG
+The process of performing Link Prediction on your KG is almost identical to that of NC. 
+### Step 1: Train a Link Prediction (LP) model.
+
+To train a NC model for your KG, you can call the ```train_GML``` function of the KGNET. It requires 3 required argument:
+
+```python
+kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.LinkPrediction,
+                 targetEdge=TargetEdge,
+                 GNNMethod=KGNET.GNN_Methods.MorsE)
 ```
 
-3. Run your GML-Queries [GML Queries](/GMLOperators_old)
-     - GML **Insert (Model Train)** Query
-       ```python
-       gml_query=""" prefix dblp:<https://www.dblp.org/>
-       prefix kgnet:<https://www.kgnet.com/>
-       Insert into <kgnet>  { ?s ?p ?o }
-       where {select * from  kgnet.TrainGML(
-       {modelName: 'MAG_Paper-Venue_Classifer',
-        GML-Operator: kgnet:NodeClassifier,
-        TargetNodes: dblp:publication,
-        NodesLables: dblp:venue,
-        aggregator: 'mean',
-        activationFunction: 'sigmoid',
-        hyperParameters:{ batchSize: 50,
-                       n-layers:3,
-                       h-dim:100 },
-        budget:{ MaxMemory:50GB,
-                MaxTime:1h,
-                Priority:ModelScore} } )}""" 
-   
-        python InsertOperator.py --query gml_query
-       ```
-     - GML **Node Classifier** Query   
-        ```python
-        gml_query="""prefix dblp: <https://www.dblp.org/>
-        prefix kgnet: <https://www.kgnet.com/>
-        select ?title ?venue
-        where { 
-        ?paper a dblp:Publication.
-        ?paper dblp:title ?title.
-        ?paper ?NodeClassifier ?venue.
-        ?NodeClassifier a kgnet:NodeClassifier.
-        ?NodeClassifier kgnet:TargetNode dblp:paper.
-        ?NodeClassifier kgnet:NodeLabel dblp:venue.}"""   
-      
-         python NodeClassifier.py --query gml_query
-         ```
-     - GML **Delete** Query   
-        ```python
-        gml_query="""prefix dblp:<https://www.dblp.org/>
-        prefix kgnet:<https://www.kgnet.com/>
-        delete {?NodeClassifier ?p ?o}
-        where {
-        ?NodeClassifier a kgnet:NodeClassifier.
-        ?NodeClassifier kgnet:classifierTarget dblp:publication.
-        ?NodeClassifier kgnet:classifierLabel dblp:venue.}"""
-      
-        python InsertOperator.py --query gml_query
-        ```
-     - GML **Link Predictor** Query   
-        ```python
-         gml_query="""prefix dblp: <https://www.dblp.com/>
-         prefix kgnet: <https://www.kgnet.com/>
-         select ?person ?affiliation
-         where { ?person a fb:person.
-         ?person ?LinkPredictor ?affiliation.
-         ?LinkPredictor a kgnet:LinkPredictor.
-         ?LinkPredictor kgnet:SourceNode dblp:person.
-         ?LinkPredictor kgnet:DestinationNode dblp:affiliation.
-         ?LinkPredictor kgnet:TopK-Links 10.}"""  
-       
-         python LinkPredictor.py --query gml_query
-         ```
-      
+```operatorType``` = Operation type; Node Classification or Link Prediction
+```GNNMethod``` = Method for the model,e.g. GraphSaint, RGCN,etc.
+```targetEdge``` = Select the target edge you want to predict on your KG.
+
+###  Step 2: Perform LP Inference on your KG.
+Much like NC, you can write a query to perform inference on your choice of nodes as shown in the example below.
+
+```python
+query = """         prefix dblp2022:<https://dblp.org/rdf/schema#>
+                    prefix kgnet:<https://kgnet/>
+                    select ?publication ?Title ?pred_author
+                    from <https://dblp2022.org>
+                    where {
+                    ?publication a dblp2022:Publication.
+                    ?publication dblp2022:title ?Title .
+                    ?publication dblp2022:authoredBy ?auth .
+                    ?publication ?LinkPredictor ?pred_author .
+                    ?LinkPredictor  a <kgnet:types/LinkPredictor>.
+                    ?LinkPredictor  <kgnet:targetEdge>  """+ "\""+TargetEdge+"\""+ """ .
+                    ?LinkPredictor <kgnet:GNNMethod> "MorsE" .
+                    ?LinkPredictor <kgnet:topK> 4.
+                    }
+                    order by ?publication
+                    limit 300
+            """
+
+```
+Once you have the query, you can run the ```executeSPARQLMLInferenceQuery``` command to perform the inference:
+```python
+kgnet.executeSPARQLMLInferenceQuery(query)
+```
+
+## 3. Exploring KGMETA:
+As KGMETA contains a variety of Tasks and each may be associated with multiple GNN models you can query the KGMETA. For a given taskId you can view the models trained on it using the following function:
+
+```python
+kgnet.KGMeta_Governer.getGMLTaskModelsBasicInfoByID(taskId)
+```
+
+<!--
 ##  Using the Kgnet Web Interface 
 Kgnet provides predefined operators in form of python apis that allow seamless integration with a conventional data science pipeline.
 Checkout our [rep](https://github.com/hussien/KGNet-Interface) and [KGNET APIs](GMLWebServiceApis)
 
 ## kgnet APIs
 See the full list of supported GML-Operators [here](docs/kgnet_gml_operators.md).
+-->
+
 
 ## Citing Our Work
 If you find our work useful, please cite it in your research:
@@ -155,4 +177,4 @@ If you find our work useful, please cite it in your research:
 This repository is part of our submission to CIDR-2023. We will make it available to the public research community upon acceptance. 
 
 ## Questions
-For any questions please contact us at:<br/> hussein.abdallah@concordia.ca , essam.mansour@concordia.ca  
+For any questions please contact us at:<br/> hussein.abdallah@concordia.ca , waleed.afandi@concordia.ca essam.mansour@concordia.ca  

@@ -8,7 +8,9 @@ from KGNET import Constants
 from GMLaaS.DataTransform.INFERENCE_TSV_TO_PYG import inference_transform_tsv_to_PYG
 from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.graph_saint_KGTOSA import graphSaint
+from GMLaaS.models.rgcn.rgcn_link_pred import rgcn_lp
 # from GMLaaS.models.graph_saint_KGTOSA_DEMO import graphSaint
+from GMLaaS.DataTransform.Transform_LP_Dataset import transform_LP_train_valid_test_subsets
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 from model_manager import downloadModel,downloadDataset
 import datetime
@@ -149,6 +151,7 @@ def get_rel_types(named_graph_uri, graphPrefix, sparqlEndpointURL):
     gml_operator = gmlOperator(KG_sparqlEndpoint=KG_sparqlEndpoint)
     gml_operator.getKGNodeEdgeTypes(namedGraphURI=named_graph_uri, prefix=graphPrefix)
 
+
     if not os.path.exists(types_file):
         raise FileNotFoundError(f'Types file was not generated at expected location: {types_file}')
 
@@ -156,30 +159,57 @@ def get_rel_types(named_graph_uri, graphPrefix, sparqlEndpointURL):
         return types_file
 
 
-def filterTargetNodes(predictions, targetNodesQuery, sparqlEndpointURL,named_graph_uri):
+def filterTargetNodes(predictions = pd.DataFrame(), targetNodesQuery = "", sparqlEndpointURL = "",named_graph_uri = "",apply = True,):
     kg = KGNET(sparqlEndpointURL,KG_NamedGraph_IRI=named_graph_uri)
     targetNodes = kg.KG_sparqlEndpoint.executeSparqlquery(targetNodesQuery, )
     targetNodes = targetNodes.applymap(lambda x: x.strip('"'))['s'].to_dict()
     targetNodes = {v: k for k, v in targetNodes.items()}
-    filtered_pred = {key: predictions[key] for key in predictions if key in targetNodes}
 
+    if not apply:
+        return targetNodes
+
+    filtered_pred = {key: predictions[key] for key in predictions if key in targetNodes}
     return filtered_pred
 
 
-def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk):
+def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk,demo = True):
     dict_time = {}
     if not os.path.exists(Constants.KGNET_Config.inference_path):
         os.makedirs(Constants.KGNET_Config.inference_path)
 
     meta_dict = get_MetaData(model_id)
     model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id) + '.model'
+    dataset_name = model_id.replace(".model","")
+
 
     ###### IF LINK PREDICTION #######
     if meta_dict['model']['taskType'] == 'kgnet:type/linkPrediction':
-        preds = pd.read_csv(os.path.join(Constants.KGNET_Config.inference_path,'authored_by_predictions.tsv'),header=None,sep='\t')
-        return topKpred(preds[:1000],topk)
 
-    dataset_name = model_id.replace(".model","")
+        if demo:
+            preds = pd.read_csv(os.path.join(Constants.KGNET_Config.inference_path,'authored_by_predictions.tsv'),header=None,sep='\t')
+            return topKpred(preds[:1000],topk)
+
+        targetNodes = list(filterTargetNodes(targetNodesQuery=targetNodesQuery, sparqlEndpointURL=sparqlEndpointURL, named_graph_uri=named_graph_uri, apply=False).keys())
+
+        downloadDataset(dataset_name + '.tsv')
+
+        transform_LP_train_valid_test_subsets(data_path=KGNET.KGNET_Config.inference_path,
+                                              ds_name=dataset_name,
+                                              target_rel=meta_dict['subG']['targetEdge'])
+
+        dic_results = rgcn_lp(dataset_name=dataset_name,root_path=KGNET.KGNET_Config.inference_path,
+                                loadTrainedModel=1,target_rel=meta_dict['subG']['targetEdge'],list_src_nodes=targetNodes,
+                              modelID=model_id,K=topk)
+        if topk==1:
+            dic_results = {k : v[0] for k,v in dic_results.items()}
+
+        return dic_results
+
+
+
+
+
+
     downloadDataset(dataset_name + '.zip')
 
 
