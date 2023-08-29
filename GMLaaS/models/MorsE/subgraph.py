@@ -18,6 +18,7 @@ def gen_subgraph_datasets(args):
     BYTES_PER_DATUM = get_average_subgraph_size(args, args.num_sample_for_estimate_size, train_g) * 2
     print("BYTES_PER_DATUM=",BYTES_PER_DATUM)
     map_size = (args.num_train_subgraph + args.num_valid_subgraph) * BYTES_PER_DATUM
+    map_size=int(map_size)
     print("db_path=",args.db_path, "map_size=",map_size)
     env = lmdb.open(args.db_path, map_size=map_size, max_dbs=2)
     train_subgraphs_db = env.open_db("train_subgraphs".encode())
