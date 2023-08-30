@@ -32,6 +32,26 @@ conda activate kgnet
 </li>
 </ul>
 
+## Supported Features
+* Openlink-Virtuoso RDF Engine 
+* Train GNN models 
+  * node classification methods (RGCN,Shadow-GNN,GraphSaint)
+  * link prediction methods (RGCN,MorsE)
+* Inference for **Seen Nodes**
+  * node classification methods (RGCN,GraphSaint) , more methods to be supported soon
+  * node classification methods (RGCN) , more methods to be supported soon
+* SPARQL-ML queries
+  * Single GML task per query (user defined predicate i.e. kgnet:types/NodeClassifier)
+  * Simple queries ( nested queries , unions , group by ) are not supported
+
+##  KGNET Configration settings
+* Datasets path: path to the trained task sampled subgraph  data 
+* Inference temp data path : temp path to store inference subgraph data
+* trained model path: path to the trained task model file
+* Inference API IP/Port: Restful API IP/Port
+* Model Store API IP/Port : Restful API IP/Port
+* KGMeta KG URL/IRI : Virtuoso endpoint IP/ KG IRI
+
 ## 1. Initializing KGNET 
 ### Step 1:  Importing KGNET and setting up the paths.
 Use the following code to import KGNET and set up the path where you want to store your datasets:
@@ -150,6 +170,17 @@ As KGMETA contains a variety of Tasks and each may be associated with multiple G
 kgnet.KGMeta_Governer.getGMLTaskModelsBasicInfoByID(taskId)
 ```
 
+## Create your local KGMeta KG
+* load the template KGMeta KG to your end point
+* add your KG graphs meta information to KGMeta
+* update KGNET.KGNETConfig with your KGMeta KG endpoint url and IRI to KGNet Conig object
+##  Run your version GML-Inference API
+* Run GMLWebServiceApis.Inference_API.py instance and set you IP/Port
+* update KGNET.KGNETConfig with API url
+* Configure the Models and metadata files paths
+
+
+  
 <!--
 ##  Using the Kgnet Web Interface 
 Kgnet provides predefined operators in the form of Python APIs that allow seamless integration with a conventional data science pipeline.
