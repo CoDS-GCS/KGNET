@@ -184,10 +184,18 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
 
     ###### IF LINK PREDICTION #######
     if meta_dict['model']['taskType'] == 'kgnet:type/linkPrediction':
-
         if demo:
             preds = pd.read_csv(os.path.join(Constants.KGNET_Config.inference_path,'authored_by_predictions.tsv'),header=None,sep='\t')
-            return topKpred(preds[:1000],topk)
+            print("preds.columns=",preds.columns)
+            kg = KGNET(sparqlEndpointURL, KG_NamedGraph_IRI=named_graph_uri)
+            targetNodes = kg.KG_sparqlEndpoint.executeSparqlquery(targetNodesQuery, )
+            print("targetNodes.columns=", targetNodes.columns)
+            print("len(targetNodes)=",(len(targetNodes)))
+            targetNodes['s']=targetNodes['s'].apply(lambda x:str(x).replace("\"",""))
+            preds=preds[preds[0].isin(targetNodes['s'].tolist())]
+            print("len(targetNodes)=", (len(targetNodes)))
+            return topKpred(preds, topk)
+            # return topKpred(preds[:1000],topk)
 
         targetNodes = list(filterTargetNodes(targetNodesQuery=targetNodesQuery, sparqlEndpointURL=sparqlEndpointURL, named_graph_uri=named_graph_uri, apply=False).keys())
 
