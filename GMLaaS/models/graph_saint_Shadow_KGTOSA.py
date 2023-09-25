@@ -243,8 +243,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
         for data in train_loader:
             data = data.to(device)
             optimizer.zero_grad()
-            out = model(x_dict, data.edge_index, data.edge_attr, data.node_type,
-                        data.local_node_idx)
+            out = model(x_dict, data.edge_index, data.edge_attr, data.node_type,data.local_node_idx)
             # out = out[data.train_mask]
             out = torch.index_select(out, 0, data.root_n_id)
             ###################### for graph saint ######################
@@ -456,7 +455,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
         if loadTrainedModel == 1:
             with torch.no_grad():
                 start_t = datetime.datetime.now()
-                trained_model_path = Constants.KGNET_Config.trained_model_path + modelID
+                trained_model_path = KGNET_Config.trained_model_path + modelID
                 # trained_model_path = r'/home/afandi/GitRepos/KGNET/Datasets/trained_models/mid-0000064.model'
                 model_params_path = trained_model_path.replace('.model', '.param')
 
@@ -606,17 +605,17 @@ if __name__ == '__main__':
     parser.add_argument('--hidden_channels', type=int, default=64)
     parser.add_argument('--dropout', type=float, default=0.5)
     parser.add_argument('--lr', type=float, default=0.005)
-    parser.add_argument('--epochs', type=int, default=2)
+    parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--runs', type=int, default=1)
     parser.add_argument('--batch_size', type=int, default=2000)
     parser.add_argument('--walk_length', type=int, default=2)
     parser.add_argument('--num_steps', type=int, default=10)
     parser.add_argument('--loadTrainedModel', type=int, default=0)
-    parser.add_argument('--dataset_name', type=str, default="aifb")
-    parser.add_argument('--root_path', type=str, default="../../Datasets/")
+    parser.add_argument('--dataset_name', type=str, default="mid-0000092")
+    parser.add_argument('--root_path', type=str, default= KGNET_Config.datasets_output_path)
     parser.add_argument('--output_path', type=str, default="./")
     parser.add_argument('--include_reverse_edge', type=bool, default=True)
-    parser.add_argument('--n_classes', type=int, default=440)
+    parser.add_argument('--n_classes', type=int, default=1001)
     parser.add_argument('--emb_size', type=int, default=128)
     args = parser.parse_args()
     print(args)

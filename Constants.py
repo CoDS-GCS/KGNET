@@ -67,13 +67,14 @@ class TOSG_Patterns:
     def __init__(self):
        ""
 class KGNET_Config:
-    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
     trained_model_path = datasets_output_path + 'trained_models/'
     GML_API_URL = "http://206.12.99.65:64647/"
     GML_Inference_PORT = "64647"
     GML_ModelManager_PORT = "64648"
-    GML_ModelManager_URL = "http://206.12.100.114"
+    # GML_ModelManager_URL = "http://206.12.100.114"
+    GML_ModelManager_URL = "http://206.12.99.65"
     KGMeta_IRI = "http://kgnet/"
     KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
     def __init__(self):
