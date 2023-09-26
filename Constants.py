@@ -70,7 +70,7 @@ class KGNET_Config:
     datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
     trained_model_path = datasets_output_path + 'trained_models/'
-    GML_API_URL = "http://206.12.99.65:64647/"
+    GML_API_URL = "http://206.12.102.12:64647/"
     GML_Inference_PORT = "64647"
     GML_ModelManager_PORT = "64648"
     # GML_ModelManager_URL = "http://206.12.100.114"
