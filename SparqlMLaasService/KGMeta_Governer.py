@@ -6,6 +6,7 @@ import pandas as pd
 import re
 
 import Constants
+from Constants import RDFEngine
 from Constants import  KGNET_Config, GML_Operator_Types,GNN_Methods
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 from SparqlMLaasService.ModelSelector import ModelSelector
@@ -28,8 +29,8 @@ def append_triple(Insert_Triples,model_model_uri,triple,insert_dict,key):
     return Insert_Triples
 
 class KGMeta_Governer(sparqlEndpoint):
-    def __init__(self,endpointUrl=KGNET_Config.KGMeta_endpoint_url,KGMeta_URI="http://kgnet"):
-        sparqlEndpoint.__init__(self, endpointUrl)
+    def __init__(self,endpointUrl=KGNET_Config.KGMeta_endpoint_url,KGMeta_URI="http://kgnet",RDFEngine=RDFEngine.OpenlinkVirtuoso):
+        sparqlEndpoint.__init__(self, endpointUrl,RDFEngine=RDFEngine)
         self.KGMeta_URI = KGMeta_URI
     def insertKGMetadata(self,sparqlendpoint,prefix,namedGraphURI,name,description,domain):
         max_g_query="select max(?gid)+1 from <"+KGNET_Config.KGMeta_IRI+">\n where {"
@@ -245,12 +246,12 @@ class KGMeta_Governer(sparqlEndpoint):
 
     def OptimizeForBestModel(self, tid):
         mid_query = """PREFIX kgnet: <https://www.kgnet.com/>  
-                           select ?mid as ?s ?p ?o
-                           from <""" + KGNET_Config.KGMeta_IRI + """> where { ?s <kgnet:GMLTask/id> """ + str(tid) + " . ?s <kgnet:GMLTask/modelID> ?mid. ?mid ?p ?o .}"
+                           select (?mid as ?s) ?p ?o
+                           from <""" + KGNET_Config.KGMeta_IRI + """> where { ?t <kgnet:GMLTask/id> """ + str(tid) + " . ?t <kgnet:GMLTask/modelID> ?mid. ?mid ?p ?o .}"
         res_df = self.executeSparqlquery(mid_query)
-        res_df["s"] = res_df["s"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") else x)
-        res_df["p"] = res_df["p"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") else x)
-        res_df["o"] = res_df["o"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") else x)
+        res_df["s"] = res_df["s"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<")  else x)
+        res_df["p"] = res_df["p"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else x)
+        res_df["o"] = res_df["o"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else x)
         models_lst=res_df[res_df["p"]=="kgnet:GMLModel/id"]["s"].unique().tolist()
         p_list = res_df["p"].unique().tolist()
         models_info_list=[]
@@ -317,7 +318,7 @@ class KGMeta_Governer(sparqlEndpoint):
         Insert_Triples = ""
         for pref in query_dict["prefixes"]:
             Insert_Triples += "PREFIX " + pref + ":<" + query_dict["prefixes"][pref] + "> \n"
-        Insert_Triples += "Insert into <"+KGNET_Config.KGMeta_IRI+"> {"
+        Insert_Triples += "With <"+KGNET_Config.KGMeta_IRI+"> Insert {"
         if task_exist==False:
             Insert_Triples+="<"+task_uri +"> a <kgnet:type/GMLTask> . \n"
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/id> "+str(int(task_uri.split("tid-")[1]))+" . \n"
@@ -345,7 +346,7 @@ class KGMeta_Governer(sparqlEndpoint):
         Insert_Triples += "<" + task_uri + ">  <kgnet:GMLTask/modelID> <" + model_model_uri + ">  . \n"
         Insert_Triples += "<" + model_model_uri + "> a <kgnet:type/GMLModel> . \n"
         Insert_Triples += "<" + model_model_uri + ">  <kgnet:GMLTask/description>	 \""+query_dict["insertJSONObject"]["name"]+"\" . \n"
-        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/id> " + str(next_model_id) + " . \n"
+        Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/id> \"" + str(next_model_id) + "\" . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/createBy> <kgnet:user/uid-0000001> . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/dateCreated> \""+datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S") +"\". \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/GNNMethod> \""+query_dict["insertJSONObject"]["GMLTask"]["GNNMethod"]+"\" . \n"
@@ -451,10 +452,13 @@ class KGMeta_Governer(sparqlEndpoint):
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/splitRel>  \"\" . \n"
         if "targetNodeFilters" in query_dict["insertJSONObject"]["GMLTask"]:
             Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/filters>  \""+str(list(query_dict["insertJSONObject"]["GMLTask"]["targetNodeFilters"].values()))+"\" . \n"
-        Insert_Triples+="}"
+        Insert_Triples+="} where {}"
         ###########################
-        res=self.executeSparqlquery(Insert_Triples)
-        return res[res.columns[0]].values[0].split(",")[1]
+        res=self.executeSparqlInsertQuery(Insert_Triples)
+        if len(res)>0:
+            return res[res.columns[0]].values[0].split(",")[1]
+        else:
+            return "#"
     def insertTriples(self,triples_lst):
         """not implemented yet"""
     def deleteTriples(self,triples_lst):

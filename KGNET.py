@@ -25,12 +25,13 @@ class KGNET():
     namedGraphURI_dic=Constants.namedGraphURI_dic
     utils=Constants.utils
     "KGNET system main class that automates GML the training and infernce pipeline"
-    def __init__(self,KG_endpointUrl,KGMeta_endpointUrl="http://206.12.98.118:8890/sparql", KGMeta_KG_URI=Constants.KGNET_Config.KGMeta_IRI,KG_NamedGraph_IRI=None,KG_Prefix=None,KG_Prefix_URL=None):
-        self.KGMeta_Governer = KGMeta_Governer(endpointUrl=KGMeta_endpointUrl, KGMeta_URI=KGMeta_KG_URI)
+    def __init__(self,KG_endpointUrl,KGMeta_endpointUrl="http://206.12.98.118:8890/sparql", KGMeta_KG_URI=Constants.KGNET_Config.KGMeta_IRI,RDFEngine=Constants.RDFEngine.OpenlinkVirtuoso,KG_NamedGraph_IRI=None,KG_Prefix=None,KG_Prefix_URL=None):
+        self.KGMeta_Governer = KGMeta_Governer(endpointUrl=KGMeta_endpointUrl, KGMeta_URI=KGMeta_KG_URI,RDFEngine=RDFEngine)
         self.VirtuosoUDFManager=VirtuosoUDFManager(host=KG_endpointUrl.split(":")[0].split("//")[-1])
-        self.KG_sparqlEndpoint = sparqlEndpoint(endpointUrl=KG_endpointUrl)
+        self.KG_sparqlEndpoint = sparqlEndpoint(endpointUrl=KG_endpointUrl,RDFEngine=RDFEngine)
         self.gml_insert_op = gmlInsertOperator(self.KGMeta_Governer,self.KG_sparqlEndpoint)
         self.KG_NamedGraph_URI = KG_NamedGraph_IRI
+        self.RDFEngine=RDFEngine
         if KG_Prefix:
             self.kg_Prefix = KG_Prefix
         else:
@@ -66,17 +67,18 @@ class KGNET():
         predicate_types_df=self.KG_sparqlEndpoint.executeSparqlquery(predicate_types_query)
         edge_types_lst=predicate_types_df["p"].apply(lambda x:x.replace("\"","")).tolist()
         KG_types_lst=[]
+        edge_types_lst=[elem.replace("<","").replace(">","") for elem in edge_types_lst]
         for edgeType in edge_types_lst:
             if edgeType !="http://www.w3.org/1999/02/22-rdf-syntax-ns#type":
-                s_type_query="select IF(STRLEN(xsd:string(?s_type))>0,xsd:string(?s_type),\""+edgeType.split("/")[-1]+"_Subj\") as ?s_type count(*) as ?count \n"
+                s_type_query="select (IF(STRLEN(xsd:string(?s_type_p))>0,xsd:string(?s_type_p),\""+edgeType.split("/")[-1]+"_Subj\") as ?s_type) (count(*) as ?count) \n"
                 s_type_query += "" if NamedGraph_URI is None else "from <" + NamedGraph_URI + "> \n"
                 s_type_query += "where { ?s <"+edgeType+"> ?o. \n"
-                s_type_query += " OPTIONAL {?s a ?s_type.} } \n group by  ?s_type \n order by desc(count(*))  limit 1000"
+                s_type_query += " OPTIONAL {?s a ?s_type_p.} } \n group by  ?s_type_p \n order by desc(count(*))  limit 1000"
 
-                o_type_query = "select IF(STRLEN(xsd:string(?o_type))>0,xsd:string(?o_type),\"" + edgeType.split("/")[-1] + "_Obj\") as ?o_type count(*) as ?count \n"
+                o_type_query = "select (IF(STRLEN(xsd:string(?o_type_p))>0,xsd:string(?o_type_p),\"" + edgeType.split("/")[-1] + "_Obj\") as ?o_type) (count(*) as ?count) \n"
                 o_type_query += "" if NamedGraph_URI is None else "from <" + NamedGraph_URI + "> \n"
                 o_type_query += "where { ?s <" + edgeType + "> ?o. \n"
-                o_type_query += " OPTIONAL {?o a ?o_type.} } \n group by  ?o_type \n order by desc(count(*))  limit 1000"
+                o_type_query += " OPTIONAL {?o a ?o_type_p.} } \n group by  ?o_type_p \n order by desc(count(*))  limit 1000"
 
                 s_types_df = self.KG_sparqlEndpoint.executeSparqlquery(s_type_query)
                 o_types_df = self.KG_sparqlEndpoint.executeSparqlquery(o_type_query)
@@ -129,7 +131,7 @@ class KGNET():
                        from <"""+ self.KG_NamedGraph_URI+""">
                        where { ?s ?p ?o.} limit 1000 """
         edges_df=self.KG_sparqlEndpoint.executeSparqlquery(edges_query)
-        edges_df["p"] = edges_df["p"].apply(lambda x: str(x).replace("\"", ""))
+        edges_df["p"] = edges_df["p"].apply(lambda x: str(x).replace("\"", "").replace("<","").replace(">",""))
         edges_df["p_lower"] = edges_df["p"].apply(lambda x: str(x).lower())
         target_edge_df=edges_df[edges_df["p_lower"].str.endswith(target_edge_short.lower())]
         return target_edge_df["p"].values[0]
@@ -186,7 +188,7 @@ class KGNET():
         ######################### write sparqlML query #########################
         insert_task_dict = gmlQueryParser(sparql_ml_insert_query).extractQueryStatmentsDict()
         model_info, transform_info, train_info = self.gml_insert_op.executeQuery(insert_task_dict)
-        return int(model_info["task_uri"].split("-")[1]),int(model_info["model_uri"].split("-")[1]), {"model_info":model_info,"transform_info": transform_info, "train_info":train_info}
+        return model_info["task_uri"].split("/")[-1],model_info["model_uri"].split("/")[-1], {"model_info":model_info,"transform_info": transform_info, "train_info":train_info}
     def executeSPARQLMLInferenceQuery(self,query):
         """Automates the GML infernrence query execution steps including:
             * parse GML infernce query
@@ -272,11 +274,13 @@ if __name__ == '__main__':
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de',KG_Prefix="aifb")
     # model_info, transform_info, train_info = kgnet.train_GML(
     #     operatorType=Constants.GML_Operator_Types.LinkPrediction, targetEdge="http://swrc.ontoware.org/ontology#publication", GNNMethod=GNN_Methods.RGCN)
-    kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
-    #types_df = kgnet.getKGNodeEdgeTypes(write_to_file=True, prefix='dblp2022')
-    model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="dblp2022:Publication",
-        labelNodeType="dblp2022:publishedIn_Obj", GNNMethod=GNN_Methods.Graph_SAINT)
-    print(model_info)
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.100.35:5820/kgnet_kgs/query',KGMeta_endpointUrl='http://206.12.100.35:5820/kgnet_kgs/query', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022',RDFEngine=Constants.RDFEngine.stardog)
+
+    # types_df = kgnet.getKGNodeEdgeTypes(write_to_file=True, prefix='dblp2022')
+    # task_id,mode_id,model_info_dict = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="dblp2022:Publication",
+    #     labelNodeType="dblp2022:publishedIn_Obj", GNNMethod=GNN_Methods.Graph_SAINT)
+    # print(model_info_dict)
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.LinkPrediction,targetEdge="http://swrc.ontoware.org/ontology#author",GNNMethod=GNN_Methods.MorsE)
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
     # TargetEdge = "https://dblp.org/rdf/schema#authoredBy"
@@ -332,8 +336,9 @@ if __name__ == '__main__':
                     limit 300
                     offset 0
                 """
-    kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org')
-    resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_query_LP)
+    # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org')
+    kgnet = KGNET(KG_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query",KGMeta_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query", KG_NamedGraph_IRI='https://dblp2022.org',RDFEngine=RDFEngine.stardog)
+    resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_query_NC2)
     print(resDF)
     print(MetaQueries)
     #############################################3

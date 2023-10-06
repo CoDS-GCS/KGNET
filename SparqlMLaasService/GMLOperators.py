@@ -9,6 +9,7 @@ from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_query as 
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d2h1_query as get_NC_d2h1_query
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_LP import write_d2h1_TOSG,get_LP_d1h1_query,get_LP_d2h1_query
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
+import datetime
 class gmlOperator():
     def __init__(self,KG_sparqlEndpoint):
         self.KG_sparqlEndpoint = KG_sparqlEndpoint
@@ -45,11 +46,36 @@ class gmlInsertOperator(gmlOperator):
             elif TOSG=="d2h1":
                 query=get_LP_d2h1_query(graph_uri=named_graph_uri,target_rel_uri=target_rel_uri,tragetNode_filter_statments=tragetNode_filter_statments)
             self.KG_sparqlEndpoint.execute_sparql_multithreads(query,output_path,start_offset=0, batch_size=10**5, threads_count=16,rows_count=None)
+    def get_next_model_id(self,query_dict,mode='HASH'):
+        if mode == 'HASH':
+            # next_model_id = "Model->" + query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1] + "->" + \
+            #                 query_dict["insertJSONObject"]["GMLTask"]["namedGraphURI"] + "->" + \
+            #                 query_dict["insertJSONObject"]["GMLTask"]["targetEdge"] + "->" + \
+            #                 query_dict["insertJSONObject"]["GMLTask"]["GNNMethod"] + "->" +\
+            #                 str(datetime.datetime.now().timestamp())
+            next_model_id = str(datetime.datetime.now().timestamp())
+            next_model_id = kgnet_utils.getBase64EncodedVal(next_model_id)
+        else:
+            next_model_id = self.KGMeta_Governer_obj.getNextGMLModelID()
+            next_model_id = kgnet_utils.getIdWithPaddingZeros(next_model_id)
+        return next_model_id
+    def get_next_task_id(self,query_dict,mode='HASH'):
+        if mode=='HASH':
+            # next_task_id = "Model->" + query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1] + "->" + \
+            #                 query_dict["insertJSONObject"]["GMLTask"]["namedGraphURI"] + "->" + \
+            #                 query_dict["insertJSONObject"]["GMLTask"]["targetEdge"]+"->"+ \
+            #                str(datetime.datetime.now().timestamp())
+            next_task_id = str(datetime.datetime.now().timestamp())
+            next_task_id = kgnet_utils.getBase64EncodedVal(next_task_id)
+        else:
+            next_task_id = self.KGMeta_Governer_obj.getNextGMLTaskID()
+            next_task_id = kgnet_utils.getIdWithPaddingZeros(next_task_id)
+        return next_task_id
     def create_train_pipline_json(self,query_dict):
         task_uri, task_exist = self.getTaskUri(query_dict)
-        next_model_id = self.KGMeta_Governer_obj.getNextGMLModelID()
-        model_model_uri = "kgnet:GMLModel/mid-" + kgnet_utils.getIdWithPaddingZeros(next_model_id)
-        ds_name="mid-" + kgnet_utils.getIdWithPaddingZeros(next_model_id)
+        ds_name="mid-"+self.get_next_model_id(query_dict)
+        # model_model_uri = "kgnet:GMLModel/mid-" + kgnet_utils.getIdWithPaddingZeros(next_model_id)
+        # ds_name="mid-" + kgnet_utils.getIdWithPaddingZeros(next_model_id)
         train_pipeline_dict={
             "transformation": {
                 "operatorType": query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1],
@@ -73,19 +99,19 @@ class gmlInsertOperator(gmlOperator):
 
     def getTaskUri(self,query_dict):
         task_type = query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1]
-        tid= self.KGMeta_Governer_obj.getGMLTaskID(query_dict)
+        tid = self.KGMeta_Governer_obj.getGMLTaskID(query_dict)
         if tid:
-            return "kgnet:GMLTask/tid-"+kgnet_utils.getIdWithPaddingZeros(tid),True
+            return "kgnet:GMLTask/tid-"+tid,True
         else:
-            next_tid= self.KGMeta_Governer_obj.getNextGMLTaskID()
-            return "kgnet:GMLTask/tid-"+ kgnet_utils.getIdWithPaddingZeros(next_tid),False
+            next_tid= self.get_next_task_id(query_dict)
+            return "kgnet:GMLTask/tid-"+next_tid,False
     def UpdateKGMeta(self,query_dict,transform_results_dict,train_results_dict):
         task_uri, task_exist = self.getTaskUri(query_dict)
         print("task_uri=", task_uri)
-        next_model_id = self.KGMeta_Governer_obj.getNextGMLModelID()
-        model_uri = "kgnet:GMLModel/mid-" + kgnet_utils.getIdWithPaddingZeros(next_model_id)
+        next_model_id =train_results_dict["dataset_name"]
+        model_uri = "kgnet:GMLModel/" + next_model_id
         print("model_uri=",model_uri)
-        res=self.KGMeta_Governer_obj.insertGMLModel(query_dict,task_uri,task_exist,next_model_id,model_uri,transform_results_dict,train_results_dict)
+        res=self.KGMeta_Governer_obj.insertGMLModel(query_dict,task_uri,task_exist,next_model_id.split('mid-')[1],model_uri,transform_results_dict,train_results_dict)
         result_dict={}
         result_dict["task_uri"]=task_uri
         result_dict["task_exist"] = task_exist

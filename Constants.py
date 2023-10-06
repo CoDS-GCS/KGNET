@@ -1,3 +1,5 @@
+import base64
+from hashlib import sha256
 class GNN_Methods:
     Graph_SAINT = "G_SAINT"
     RGCN = "RGCN"
@@ -67,14 +69,14 @@ class TOSG_Patterns:
     def __init__(self):
        ""
 class KGNET_Config:
-    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"
+    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
     trained_model_path = datasets_output_path + 'trained_models/'
     GML_API_URL = "http://206.12.102.12:64647/"
     GML_Inference_PORT = "64647"
     GML_ModelManager_PORT = "64648"
     # GML_ModelManager_URL = "http://206.12.100.114"
-    GML_ModelManager_URL = "http://206.12.99.65"
+    GML_ModelManager_URL = "http://206.12.102.12"
     KGMeta_IRI = "http://kgnet/"
     KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
     def __init__(self):
@@ -103,7 +105,10 @@ class aggregations:
     avg='avg'
     mean='mean'
     def __init__(self):
-       ""
+     ""
+class RDFEngine:
+    OpenlinkVirtuoso="OpenlinkVirtuoso"
+    stardog = "stardog"
 class utils:
     def __init__(self):
        ""
@@ -151,3 +156,25 @@ class utils:
     def getIdWithPaddingZeros(id):
         return str(int(id)).zfill(7)
 
+    @staticmethod
+    def getBase64EncodedVal(string_val):
+        base64_bytes = base64.b64encode(string_val.encode('ascii'))
+        # print("encode_data:", base64_bytes)
+        return str(base64_bytes)[2:-1]
+
+    @staticmethod
+    def decodeBase64(str_bytes):
+        bytes_64 = base64.b64decode(str_bytes)
+        return str(bytes_64.decode('ascii'))
+
+    @staticmethod
+    def get_sha256(s):
+        return sha256(s.encode('utf-8')).hexdigest()
+
+if __name__ == '__main__':
+    input="graph sainr->dblp->NC->03012024"
+    encoded_String=utils.getBase64EncodedVal(input)
+    print("encoded_String=",encoded_String)
+    decoded_String=utils.decodeBase64(encoded_String)
+    print("decoded_String=", decoded_String)
+    print(utils.get_sha256(input))

@@ -9,11 +9,11 @@ import threading
 
 
 def get_LP_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
-    query1="""select distinct ?s as ?subject ?p as ?predicate ?o as ?object  
+    query1="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+            from <"""+graph_uri+""">  
            where
            {
                 select ?s ?p ?o
-                from <"""+graph_uri+""">
                 where 
                 {
                 ?s <"""+target_rel_uri+"""> ?o2.
@@ -28,11 +28,11 @@ def get_LP_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None)
            } 
         """
 
-    query2 = """select distinct ?s as ?subject ?p as ?predicate ?o as ?object  
+    query2 = """select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+               from <""" + graph_uri + """>  
                where
                {
                     select ?o as ?s ?p ?o2 as ?o
-                    from <""" + graph_uri + """>
                     where 
                     {
                     ?s <""" + target_rel_uri + """> ?o.

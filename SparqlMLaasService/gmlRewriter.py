@@ -459,6 +459,11 @@ class gmlQueryRewriter:
                 string_gml+=s
                 string_q_dataonly+=s
 
+        if self.KGMeta_Governer.RDFEngine==Constants.RDFEngine.stardog:
+            string_q+="prefix kgnetML:<tag:stardog:api:kgnet:>\n"
+        else:
+            string_q += "prefix kgnetML:<sql:>\n"
+
         string_q_target_nodes=string_q_dataonly
         string_q_dataonly +="SELECT ?s ?p ?o \n"+ " from <" + query['from'] + "> \n" if 'from' in query else ""
         string_q_dataonly +="where { ?s ?p ?o { \n"
@@ -471,7 +476,7 @@ class gmlQueryRewriter:
             for item in query['select']:
                 if item.lower() == str(label_variable).lower():
                     target_label += target_label_mod
-                    string_q+= f'\n sql:getKeyValue_v2({self.set_syntax(target_variable)},{self.set_syntax(target_label)}) as {self.set_syntax(item)} '
+                    string_q+= f'\n (kgnetML:getKeyValue_v2({self.set_syntax(target_variable)},{self.set_syntax(target_label)}) as {self.set_syntax(item)} ) '
                     continue
                 s = f" ?{item} "
                 string_q+=s
@@ -479,7 +484,7 @@ class gmlQueryRewriter:
 
         string_q += "\n from <" + query['from'] + "> \n" if 'from' in query else ""
         string_q+= "WHERE { \n"
-        string_q_dataonly +="from <"+query['from']+"> \n" if 'from' in query else ""
+        # string_q_dataonly +="from <"+query['from']+"> \n" if 'from' in query else ""
         string_q_dataonly += "WHERE { \n"
         string_q_target_nodes += "from <" + query['from'] + "> \n" if 'from' in query else ""
         string_q_target_nodes += "WHERE { \n"
@@ -499,7 +504,7 @@ class gmlQueryRewriter:
                 # target_type = get_rdfType(list_data_T, target_node)
                 target_type = self.get_rdfType(list_data_T, target_node) if self.get_rdfType(list_data_T, target_node) is not None else target_node
                 sub_query='{'
-                sub_query+=f"SELECT sql:{clf_fxn[gmlOperatorType.lower()]}(\"{model_uri}\",?API_JSON) \n as {self.set_syntax(target_label)}"
+                sub_query+=f"SELECT (kgnetML:{clf_fxn[gmlOperatorType.lower()]}(\"{model_uri}\",?API_JSON) \n as {self.set_syntax(target_label)} )"
                 sub_query+=' WHERE {}} '
                 string_q+=sub_query
                 continue
@@ -526,12 +531,17 @@ class gmlQueryRewriter:
 
         ####################### create inference API-JSON object #####################
         kg_df=self.KGMeta_Governer.getModelKGMetadata(mid=str(int(model_uri.split("/")[-1])))
+        for col in kg_df.columns.tolist():
+            kg_df[col]=kg_df[col].apply(lambda x:str(x)[1:-1] if str(x).startswith("<") or str(x).startswith("\"") else x)
         kg_df_p_list=kg_df["p"].tolist()
         API_JSON = "\"\"\"{\"model_id\" : " + str(int(model_uri.split("/")[-1])) + ", "
-        if "\"kgnet:graph/namedGraphURI\"" in kg_df_p_list:
-            API_JSON+= "\"named_graph_uri\" : \""+kg_df[kg_df["p"] == "\"kgnet:graph/namedGraphURI\""]["o"].values[0].replace("\"","")+"\", "
-        if "\"kgnet:graph/sparqlendpoint\"" in  kg_df_p_list:
-            API_JSON += "\"sparqlEndpointURL\" : \"" + kg_df[kg_df["p"] == "\"kgnet:graph/sparqlendpoint\""]["o"].values[0].replace("\"","") + "\", "
+        API_JSON += "\"RDFEngine\" : \"" + self.KGMeta_Governer.RDFEngine + "\", "
+        if "kgnet:graph/namedGraphURI" in kg_df_p_list:
+            API_JSON+= "\"named_graph_uri\" : \""+kg_df[kg_df["p"] == "kgnet:graph/namedGraphURI"]["o"].values[0].replace("\"","")+"\", "
+        if "kgnet:graph/sparqlendpoint" in  kg_df_p_list:
+            # API_JSON += "\"sparqlEndpointURL\" : \"" + kg_df[kg_df["p"] == "kgnet:graph/sparqlendpoint"]["o"].values[0].replace("\"","") + "\", "
+            API_JSON += "\"sparqlEndpointURL\" : \"" + self.KGMeta_Governer.endpointUrl + "\", "
+
         for triple in query['triples'] :
             if str(triple['predicate']).lower()=='kgnet:topk':
                 API_JSON += "\"topk\" : "+str(triple['object'])+", "
