@@ -186,7 +186,7 @@ if __name__ == '__main__':
     #     }
     #     """
 
-    kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.98.118:8890/sparql', KGMeta_URI=KGNET.KGNET_Config.KGMeta_IRI)
+    kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.98.118:8890/sparql', KGMeta_URI=KGNET_Config.KGMeta_IRI)
     # KG_sparqlEndpoint = sparqlEndpoint(endpointUrl='http://206.12.98.118:8890/sparql')
     KG_sparqlEndpoint = sparqlEndpoint(endpointUrl='http://206.12.99.253:8890/sparql')
     # kgmeta_govener = KGMeta_Governer(endpointUrl='http://206.12.97.2:8890/sparql/', KGMeta_URI="http://kgnet")

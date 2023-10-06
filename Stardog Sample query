@@ -1,0 +1,16 @@
+prefix kgnet:<tag:stardog:api:kgnet:>
+# prefix kgnet:<sql:>
+PREFIX dblp2022: <https://dblp.org/rdf/schema#>
+select  ?Publication ?Org_Venue (kgnet:getKeyValue_v2(?Publication,?dict) as ?pred)
+# from <https://dblp2022.org>
+WHERE{
+    ?Publication a dblp2022:Publication .
+    ?Publication dblp2022:publishedIn ?Org_Venue .
+    ?Publication dblp2022:title ?Title .
+    {
+        select (kgnet:getNodeClass_v2("http://206.12.102.12:64647/gml_inference/mid/117","""{"model_id": 117,"named_graph_uri": "https://dblp2022.org","sparqlEndpointURL": "http://206.12.98.118:8890/sparql","dataQuery" : ["PREFIX dblp2022: <https://dblp.org/rdf/schema#> PREFIX kgnet: <http://kgnet/> SELECT ?s ?p ?o from <https://dblp2022.org>   where { ?s ?p ?o { SELECT ?Publication as ?s  from <https://dblp2022.org>     WHERE {  ?Publication <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> dblp2022:Publication . ?Publication dblp2022:publishedIn ?Org_Venue . ?Publication dblp2022:title ?Title . }    LIMIT 2000  }  filter(!isBlank(?o)). } "],"targetNodesQuery": "PREFIX dblp2022: <https://dblp.org/rdf/schema#> PREFIX kgnet: <http://kgnet/> SELECT distinct ?Publication as ?s  from <https://dblp2022.org>  WHERE {  ?Publication <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> dblp2022:Publication . ?Publication dblp2022:publishedIn ?Org_Venue . ?Publication dblp2022:title ?Title . }  ORDER BY ?Publication LIMIT 2000","topk":2}""") as ?dict)
+        where {}
+    }
+}
+ORDER BY ?Publication
+limit 2000

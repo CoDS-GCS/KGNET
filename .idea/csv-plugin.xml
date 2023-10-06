@@ -80,13 +80,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/Datasets/mid-0000092/raw/node-label/Publication/node-label.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="/GMLQueryRewriter_old/cognitive_queries.csv">
           <value>
             <Attribute>

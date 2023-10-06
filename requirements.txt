@@ -20,4 +20,4 @@ pip install --no-index torch-sparse -f https://pytorch-geometric.com/whl/torch-2
 pip install --no-index torch-cluster -f https://pytorch-geometric.com/whl/torch-2.0.0+cpu.html
 pip install --no-index torch-spline-conv -f https://pytorch-geometric.com/whl/torch-2.0.0+cpu.html
 pip install torch-geometric
-pip install
+pip install pystardog
