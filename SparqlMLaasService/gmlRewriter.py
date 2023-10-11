@@ -530,11 +530,11 @@ class gmlQueryRewriter:
         string_q_dataonly += "\n} filter(!isBlank(?o)). }"
 
         ####################### create inference API-JSON object #####################
-        kg_df=self.KGMeta_Governer.getModelKGMetadata(mid=str(int(model_uri.split("/")[-1])))
+        kg_df=self.KGMeta_Governer.getModelKGMetadata(mid=str(model_uri.split("/")[-1]))
         for col in kg_df.columns.tolist():
             kg_df[col]=kg_df[col].apply(lambda x:str(x)[1:-1] if str(x).startswith("<") or str(x).startswith("\"") else x)
         kg_df_p_list=kg_df["p"].tolist()
-        API_JSON = "\"\"\"{\"model_id\" : " + str(int(model_uri.split("/")[-1])) + ", "
+        API_JSON = "\"\"\"{\"model_id\" : \"" + str(model_uri.split("/")[-1]) + "\", "
         API_JSON += "\"RDFEngine\" : \"" + self.KGMeta_Governer.RDFEngine + "\", "
         if "kgnet:graph/namedGraphURI" in kg_df_p_list:
             API_JSON+= "\"named_graph_uri\" : \""+kg_df[kg_df["p"] == "kgnet:graph/namedGraphURI"]["o"].values[0].replace("\"","")+"\", "

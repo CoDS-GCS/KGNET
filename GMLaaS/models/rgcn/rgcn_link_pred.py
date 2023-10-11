@@ -308,6 +308,7 @@ def rgcn_lp(dataset_name,
     end_train_t = datetime.datetime.now()
     total_train_t = str((end_train_t - start_train_t).total_seconds())
     total_time = str((start_data_t - end_train_t).total_seconds())
+    dict_results['dataset_name'] = dataset_name
     model_name = gen_model_name(dataset_name)
     dict_results['model_name'] = model_name
     dict_results['Train_Time'] = total_train_t

@@ -275,8 +275,8 @@ if __name__ == '__main__':
     # model_info, transform_info, train_info = kgnet.train_GML(
     #     operatorType=Constants.GML_Operator_Types.LinkPrediction, targetEdge="http://swrc.ontoware.org/ontology#publication", GNNMethod=GNN_Methods.RGCN)
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
-    # kgnet = KGNET(KG_endpointUrl='http://206.12.100.35:5820/kgnet_kgs/query',KGMeta_endpointUrl='http://206.12.100.35:5820/kgnet_kgs/query', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022',RDFEngine=Constants.RDFEngine.stardog)
-
+    kgnet = KGNET(KG_endpointUrl='http://206.12.100.35:5820/kgnet_kgs/query',KGMeta_endpointUrl='http://206.12.100.35:5820/kgnet_kgs/query', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022',RDFEngine=Constants.RDFEngine.stardog)
+    #
     # types_df = kgnet.getKGNodeEdgeTypes(write_to_file=True, prefix='dblp2022')
     # task_id,mode_id,model_info_dict = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="dblp2022:Publication",
     #     labelNodeType="dblp2022:publishedIn_Obj", GNNMethod=GNN_Methods.Graph_SAINT)
@@ -286,7 +286,7 @@ if __name__ == '__main__':
     # TargetEdge = "https://dblp.org/rdf/schema#authoredBy"
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.LinkPrediction,
     #                                                          targetEdge=TargetEdge,
-    #                                                          GNNMethod=KGNET.GNN_Methods.MorsE)
+    #                                                          GNNMethod=KGNET.GNN_Methods.RGCN)
     ################################## SPARQL ML Execute ##########################
     inference_query_NC = """
                 prefix aifb:<http://swrc.ontoware.org/ontology#>
@@ -336,9 +336,9 @@ if __name__ == '__main__':
                     limit 300
                     offset 0
                 """
-    # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org')
-    kgnet = KGNET(KG_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query",KGMeta_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query", KG_NamedGraph_IRI='https://dblp2022.org',RDFEngine=RDFEngine.stardog)
-    resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_query_NC2)
+    kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org')
+    # kgnet = KGNET(KG_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query",KGMeta_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query", KG_NamedGraph_IRI='https://dblp2022.org',RDFEngine=RDFEngine.stardog)
+    resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_query_LP)
     print(resDF)
     print(MetaQueries)
     #############################################3
