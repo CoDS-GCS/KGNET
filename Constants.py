@@ -152,6 +152,15 @@ class utils:
             return [default, default]
     # df.style.apply(highlightDiferrentRowValues, subset=['num_children', 'num_pets'], axis=1)
 
+
+
+    @staticmethod
+    def is_number(val):
+        try:
+            f=float(val)
+            return True
+        except ValueError:
+            return False
     @staticmethod
     def getIdWithPaddingZeros(id):
         return str(int(id)).zfill(7)

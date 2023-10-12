@@ -28,14 +28,14 @@ def get_LP_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None)
            } 
         """
 
-    query2 = """select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+    query2 = """select distinct (?s as ?subject) (?p as ?predicate) (?o3 as ?object)
                from <""" + graph_uri + """>  
                where
                {
-                    select ?o as ?s ?p ?o2 as ?o
+                    select (?o as ?s) ?p (?o2 as ?o3)
                     where 
                     {
-                    ?s <""" + target_rel_uri + """> ?o.
+                    ?s0 <""" + target_rel_uri + """> ?o.
                     ?o ?p ?o2.
                     filter(!isBlank(?o2)).\n"""
     if tragetNode_filter_statments:

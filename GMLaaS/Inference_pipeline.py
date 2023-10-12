@@ -1,6 +1,5 @@
 import os
 import shutil
-from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_query as get_NC_d1h1_query
 from SparqlMLaasService.GMLOperators import gmlOperator
 from KGNET import KGNET
@@ -29,42 +28,45 @@ def delete_inference_cache(inference_path=Constants.KGNET_Config.inference_path)
             shutil.rmtree(entry_path)
 
 
-def get_MetaData(model_id):
+def get_MetaData(model_id,kg_endpoint):
     dict_params = {'model': {}, 'subG': {}}
-    kgmeta_govener = KGMeta_Governer(endpointUrl=Constants.KGNET_Config.KGMeta_endpoint_url,
-                                     KGMeta_URI=Constants.KGNET_Config.KGMeta_IRI)
     model_id_format = str(model_id)  # "<kgnet:GMLModel/"+model_id+">"
     query = """
     prefix kgnet:<http://kgnet/>
-    select * where
+    select *
+    from <http://kgnet/>
+    where
     {
         {
-            select ?t as ?s  ?p as ?p  ?o as ?o
-            from <http://kgnet/>
+            select (?t as ?s) ?p   ?o
             where
             {
+            ?m <kgnet:GMLModel/id> ?mid.
+            filter(str(?mid)="?mid_p").
+            ?t ?tp ?m.
             ?t ?p ?o.
-            ?t ?tp ?s.
-            ?s <kgnet:GMLModel/id> """ + model_id_format + """.
             }
         }        
         union
         {
-            select ?m as ?s ?p as ?p  ?o as ?o
-            from <http://kgnet/>
+            select (?m as ?s) ?p  ?o 
             where
             {
+            ?m <kgnet:GMLModel/id> ?mid.
+            filter(str(?mid)="?mid_p").
             ?m ?p ?o.
-            ?m <kgnet:GMLModel/id> """ + model_id_format + """.
             }
         }        
     }
-    limit 100
-
+    limit 1000
     """
-    # print(query)
-    res_df = kgmeta_govener.executeSparqlquery(query)
+    query=query.replace("?mid_p",model_id_format)
+    print("query=",query)
+    res_df = kg_endpoint.executeSparqlquery(query)
+    res_df["o"]=res_df["o"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else x)
+    res_df["p"]=res_df["p"].apply(lambda x: str(x)[1:-1] if  str(x).startswith("<") else x)
     res_df = res_df.applymap(lambda x: x.strip('"'))
+    # print("res_df=",res_df)
     # dict_params['model']['modelID'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.modelId]['o'].item()).split('/')[-1] + '.model'
     # dict_params['model']['GNNMethod'] = str(res_df[res_df['p'] == Constants.GNN_KG_HParms.GNN_Method]['o'].item())
     # dict_params['model']['embSize'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Emb_size]['o'].item())
@@ -114,7 +116,7 @@ def get_MetaData(model_id):
     return dict_params
 
 
-def topKpred(pred_df, K=None):
+def topKpred(pred_df, RDFEngine,K=None):
     if K == 1:
         return pred_df.set_index(0)[1].to_dict()
 
@@ -123,21 +125,24 @@ def topKpred(pred_df, K=None):
         if key not in result_dict:
             result_dict[key] = []
         if K is None or len(result_dict[key]) < K:
-            result_dict[key].append(value)
+            result_dict[key].append(str(value))
 
-    for key in result_dict:
-        result_dict[key] = str(result_dict[key])
+    if RDFEngine==Constants.RDFEngine.stardog:
+        for key in result_dict:
+            result_dict[key] = str(result_dict[key]).replace("'","\"")
+    else:
+        for key in result_dict:
+            result_dict[key] = str(result_dict[key])
 
     return result_dict
-def generate_subgraph(named_graph_uri, target_rel_uri, dataQuery, sparqlEndpointURL):
+def generate_subgraph(kg_endpoint,dataQuery):
     # query = [get_NC_d1h1_query(graph_uri=named_graph_uri, target_rel_uri=target_rel_uri,
     #                            tragetNode_filter_statments=targetNode_filter_statements)]
     query = ''
     for statement in dataQuery:
         query += statement
-    kg = KGNET(sparqlEndpointURL)
-    subgraph_df = kg.KG_sparqlEndpoint.executeSparqlquery(query, )
-    subgraph_df = subgraph_df.applymap(lambda x: x.strip('"'))
+    subgraph_df = kg_endpoint.executeSparqlquery(query, )
+    subgraph_df = subgraph_df.applymap(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else str(x))
     subgraph_df.to_csv(inference_file, index=None, sep='\t')
     return inference_file
 
@@ -159,9 +164,12 @@ def get_rel_types(named_graph_uri, graphPrefix, sparqlEndpointURL):
         return types_file
 
 
-def filterTargetNodes(predictions = pd.DataFrame(), targetNodesQuery = "", sparqlEndpointURL = "",named_graph_uri = "",apply = True,):
-    kg = KGNET(sparqlEndpointURL,KG_NamedGraph_IRI=named_graph_uri)
-    targetNodes = kg.KG_sparqlEndpoint.executeSparqlquery(targetNodesQuery, )
+def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery = "",apply = True,):
+    print("targetNodesQuery=",targetNodesQuery)
+    targetNodes = kg_endpoint.executeSparqlquery(targetNodesQuery)
+    print("targetNodes.columns",targetNodes.columns)
+    targetNodes["s"]=targetNodes["s"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else str(x))
+    # print("targetNodes.columns=",targetNodes.columns)
     targetNodes = targetNodes.applymap(lambda x: x.strip('"'))['s'].to_dict()
     targetNodes = {v: k for k, v in targetNodes.items()}
 
@@ -172,33 +180,38 @@ def filterTargetNodes(predictions = pd.DataFrame(), targetNodesQuery = "", sparq
     return filtered_pred
 
 
-def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk,demo = True):
+def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk,RDFEngine,demo = True):
+    if RDFEngine:
+        kg_endpoint = sparqlEndpoint(sparqlEndpointURL,RDFEngine=RDFEngine)
+    else:
+        kg_endpoint = sparqlEndpoint(sparqlEndpointURL)
+
     dict_time = {}
     if not os.path.exists(Constants.KGNET_Config.inference_path):
         os.makedirs(Constants.KGNET_Config.inference_path)
-
-    meta_dict = get_MetaData(model_id)
-    model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id) + '.model'
+    meta_dict = get_MetaData(model_id,kg_endpoint)
+    if Constants.utils.is_number(model_id):
+        model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id) + '.model'
+    else:
+        model_id = 'mid-' +model_id + '.model'
     dataset_name = model_id.replace(".model","")
-
-
     ###### IF LINK PREDICTION #######
+    print("model meta_dict['model']=",meta_dict['model'])
     if meta_dict['model']['taskType'] == 'kgnet:type/linkPrediction':
         if demo:
             preds = pd.read_csv(os.path.join(Constants.KGNET_Config.inference_path,'authored_by_predictions.tsv'),header=None,sep='\t')
-            print("preds.columns=",preds.columns)
-            kg = KGNET(sparqlEndpointURL, KG_NamedGraph_IRI=named_graph_uri)
-            targetNodes = kg.KG_sparqlEndpoint.executeSparqlquery(targetNodesQuery, )
+            # preds.columns=["s","o"]
+            # print("preds.columns=",preds.columns)
+            targetNodes = kg_endpoint.executeSparqlquery(targetNodesQuery)
             print("targetNodes.columns=", targetNodes.columns)
             print("len(targetNodes)=",(len(targetNodes)))
-            targetNodes['s']=targetNodes['s'].apply(lambda x:str(x).replace("\"",""))
+            targetNodes['s']=targetNodes['s'].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else str(x))
             preds=preds[preds[0].isin(targetNodes['s'].tolist())]
-            print("len(targetNodes)=", (len(targetNodes)))
-            return topKpred(preds, topk)
+            #print("len(targetNodes)=", (len(targetNodes)))
+            #print("preds=", preds)
+            return topKpred(preds, RDFEngine,topk)
             # return topKpred(preds[:1000],topk)
-
-        targetNodes = list(filterTargetNodes(targetNodesQuery=targetNodesQuery, sparqlEndpointURL=sparqlEndpointURL, named_graph_uri=named_graph_uri, apply=False).keys())
-
+        targetNodes = list(filterTargetNodes(kg_endpoint,targetNodesQuery=targetNodesQuery,apply=False).keys())
         downloadDataset(dataset_name + '.tsv')
 
         transform_LP_train_valid_test_subsets(data_path=KGNET.KGNET_Config.inference_path,
@@ -212,17 +225,7 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
             dic_results = {k : v[0] for k,v in dic_results.items()}
 
         return dic_results
-
-
-
-
-
-
     downloadDataset(dataset_name + '.zip')
-
-
-
-
     time_subgraph = datetime.datetime.now()
     # subgraph = generate_subgraph(named_graph_uri=named_graph_uri,
     #                              target_rel_uri=meta_dict['subG']['targetEdge'],
@@ -270,12 +273,8 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
     else:
         return {'error': 'Model not found'}
     dict_time['inference_time'] = (datetime.datetime.now() - time_inference).total_seconds()
-    dic_results['y_pred'] = filterTargetNodes(dic_results['y_pred'],
-                                              targetNodesQuery,
-                                              sparqlEndpointURL,
-                                              named_graph_uri)
+    dic_results['y_pred'] = filterTargetNodes(kg_endpoint,predictions=dic_results['y_pred'],targetNodesQuery=targetNodesQuery)
     # shutil.rmtree(Constants.KGNET_Config.inference_path)
-
     # dict_time.update(dic_results['y_pred'])
     # dic_results['y_pred'] = dic_results['y_pred'].update({'Inference_Time':dict_time})
     dict_inference = dic_results['y_pred']

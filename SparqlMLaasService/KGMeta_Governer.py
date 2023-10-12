@@ -69,12 +69,13 @@ class KGMeta_Governer(sparqlEndpoint):
         kg_metadata_query = """PREFIX kgnet: <https://www.kgnet.com/>  
                             select ?g ?p ?o
                             from <""" + KGNET_Config.KGMeta_IRI + """> 
-                            where { ?m <kgnet:GMLModel/id> """+str(mid)+""" .
+                            where { ?m <kgnet:GMLModel/id> ?mid .
                             ?t <kgnet:GMLTask/modelID> ?m .
                             ?t <kgnet:GMLTask/appliedOnGraph> ?g .
                             ?g ?p ?o. 
+                            filter(str(?mid)=?p_mid).
                             }"""
-        kg_df = self.executeSparqlquery(kg_metadata_query)
+        kg_df = self.executeSparqlquery(kg_metadata_query.replace("?p_mid","\""+str(mid)+"\""))
         return kg_df
     def getNextGMLModelID(self):
         next_tid_query = """PREFIX kgnet: <https://www.kgnet.com/>  
@@ -281,7 +282,7 @@ class KGMeta_Governer(sparqlEndpoint):
         elif "Test Hits@10 Score" in res_df.columns:
             Acc_InferTime_lst = res_df[["Test Hits@10 Score", "Inference Time"]].values.tolist()
         model_idx = ModelSelector.getBestModelIdx(Acc_InferTime_lst)
-        return int(res_df.iloc[model_idx]["Model ID"])
+        return res_df.iloc[model_idx]["Model ID"]
     def getGraphUriByPrefix(self,prefix="MAG"):
         next_mid_query = """PREFIX kgnet: <https://www.kgnet.com/>  
                           select ?g 

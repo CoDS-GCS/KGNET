@@ -98,7 +98,7 @@ def run_training_pipeline(json_args):
                                                       split_rel_valid_value=None)
 
         if json_args["training"]["GNN_Method"] == Constants.GNN_Methods.Graph_SAINT:
-            train_results_dict = graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=1,
+            train_results_dict = graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=15,
                                             runs=1, batch_size=20000,
                                             walk_length=2, num_steps=10, loadTrainedModel=0,
                                             dataset_name=json_args["training"]["dataset_name"],

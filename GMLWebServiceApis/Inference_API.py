@@ -16,24 +16,26 @@ from pydantic import BaseModel
 import traceback
 
 app = FastAPI()
-HOST = '127.0.0.1'
-# HOST = '0.0.0.0'
+#HOST = '127.0.0.1'
+HOST = '0.0.0.0'
 PORT = KGNET_Config.GML_Inference_PORT
 
 class InferenceRequest(BaseModel):
-    model_id : int
+    model_id : str
     named_graph_uri : str
     sparqlEndpointURL : str
+    RDFEngine : str
     dataQuery : List[str]
     targetNodesQuery : str
     topk: int = 1
 
 
 @app.post("/gml_inference/mid/{mid}")
-async def run_inference(mid:int,inference_request: InferenceRequest):
+async def run_inference(mid:str,inference_request: InferenceRequest):
     model_id = inference_request.model_id if inference_request.model_id is not None else mid
     named_graph_uri = inference_request.named_graph_uri
     sparqlEndpointURL = inference_request.sparqlEndpointURL
+    RDFEngine = inference_request.RDFEngine
     dataQuery = inference_request.dataQuery
     targetNodesQuery = inference_request.targetNodesQuery
     topk = inference_request.topk
@@ -49,7 +51,7 @@ async def run_inference(mid:int,inference_request: InferenceRequest):
     dic_results = perform_inference(model_id = model_id, named_graph_uri = named_graph_uri,
                                     dataQuery= dataQuery, sparqlEndpointURL = sparqlEndpointURL,
                                     targetNodesQuery = targetNodesQuery,
-                                    topk = topk)
+                                    topk = topk,RDFEngine=RDFEngine)
     return dic_results#['y_pred']
     # return {
     #     "model_id": model_id,

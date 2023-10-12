@@ -1,6 +1,8 @@
 import sys
 import os
 import pandas as pd
+
+import Constants
 from Constants import utils as kgnet_utils, GML_Operator_Types,GML_Query_Types,KGNET_Config
 from GMLaaS.run_pipeline import run_training_pipeline
 from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
@@ -54,7 +56,7 @@ class gmlInsertOperator(gmlOperator):
             #                 query_dict["insertJSONObject"]["GMLTask"]["GNNMethod"] + "->" +\
             #                 str(datetime.datetime.now().timestamp())
             next_model_id = str(datetime.datetime.now().timestamp())
-            next_model_id = kgnet_utils.getBase64EncodedVal(next_model_id)
+            next_model_id = kgnet_utils.get_sha256(next_model_id)
         else:
             next_model_id = self.KGMeta_Governer_obj.getNextGMLModelID()
             next_model_id = kgnet_utils.getIdWithPaddingZeros(next_model_id)
@@ -66,7 +68,7 @@ class gmlInsertOperator(gmlOperator):
             #                 query_dict["insertJSONObject"]["GMLTask"]["targetEdge"]+"->"+ \
             #                str(datetime.datetime.now().timestamp())
             next_task_id = str(datetime.datetime.now().timestamp())
-            next_task_id = kgnet_utils.getBase64EncodedVal(next_task_id)
+            next_task_id = kgnet_utils.get_sha256(next_task_id)
         else:
             next_task_id = self.KGMeta_Governer_obj.getNextGMLTaskID()
             next_task_id = kgnet_utils.getIdWithPaddingZeros(next_task_id)
@@ -101,7 +103,10 @@ class gmlInsertOperator(gmlOperator):
         task_type = query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1]
         tid = self.KGMeta_Governer_obj.getGMLTaskID(query_dict)
         if tid:
-            return "kgnet:GMLTask/tid-"+tid,True
+            if Constants.utils.is_number(tid):
+                return "kgnet:GMLTask/tid-" + Constants.utils.getIdWithPaddingZeros(tid), True
+            else:
+                return "kgnet:GMLTask/tid-"+tid,True
         else:
             next_tid= self.get_next_task_id(query_dict)
             return "kgnet:GMLTask/tid-"+next_tid,False
