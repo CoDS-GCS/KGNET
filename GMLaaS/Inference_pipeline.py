@@ -66,7 +66,7 @@ def get_MetaData(model_id,kg_endpoint):
     res_df["o"]=res_df["o"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else x)
     res_df["p"]=res_df["p"].apply(lambda x: str(x)[1:-1] if  str(x).startswith("<") else x)
     res_df = res_df.applymap(lambda x: x.strip('"'))
-    print("res_df=",res_df)
+    # print("res_df=",res_df)
     # dict_params['model']['modelID'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.modelId]['o'].item()).split('/')[-1] + '.model'
     # dict_params['model']['GNNMethod'] = str(res_df[res_df['p'] == Constants.GNN_KG_HParms.GNN_Method]['o'].item())
     # dict_params['model']['embSize'] = int(res_df[res_df['p'] == Constants.GNN_KG_HParms.Emb_size]['o'].item())
@@ -165,7 +165,9 @@ def get_rel_types(named_graph_uri, graphPrefix, sparqlEndpointURL):
 
 
 def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery = "",apply = True,):
+    print("targetNodesQuery=",targetNodesQuery)
     targetNodes = kg_endpoint.executeSparqlquery(targetNodesQuery)
+    print("targetNodes.columns",targetNodes.columns)
     targetNodes["s"]=targetNodes["s"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else str(x))
     # print("targetNodes.columns=",targetNodes.columns)
     targetNodes = targetNodes.applymap(lambda x: x.strip('"'))['s'].to_dict()
@@ -199,7 +201,7 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
         if demo:
             preds = pd.read_csv(os.path.join(Constants.KGNET_Config.inference_path,'authored_by_predictions.tsv'),header=None,sep='\t')
             # preds.columns=["s","o"]
-            print("preds.columns=",preds.columns)
+            # print("preds.columns=",preds.columns)
             targetNodes = kg_endpoint.executeSparqlquery(targetNodesQuery)
             print("targetNodes.columns=", targetNodes.columns)
             print("len(targetNodes)=",(len(targetNodes)))
@@ -271,9 +273,8 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
     else:
         return {'error': 'Model not found'}
     dict_time['inference_time'] = (datetime.datetime.now() - time_inference).total_seconds()
-    dic_results['y_pred'] = filterTargetNodes(kg_endpoint,dic_results['y_pred'])
+    dic_results['y_pred'] = filterTargetNodes(kg_endpoint,predictions=dic_results['y_pred'],targetNodesQuery=targetNodesQuery)
     # shutil.rmtree(Constants.KGNET_Config.inference_path)
-
     # dict_time.update(dic_results['y_pred'])
     # dic_results['y_pred'] = dic_results['y_pred'].update({'Inference_Time':dict_time})
     dict_inference = dic_results['y_pred']
