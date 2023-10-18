@@ -1,6 +1,6 @@
 ### KGNET is accepted at <a href="https://ieeexplore.ieee.org/document/10184515">ICDE-2023</a>
 # KGNET - A GML-Enabled RDF Engine
-<p><b>Note: We are working on a full release of KGNET with all working functionalities by the end of August </b></p>
+<!--<p><b>Note: We are working on a full release of KGNET with all working functionalities by the end of August </b></p>-->
 <img alt="kgnet_architecture" src="docs/imgs/kgnet.png" width="500"/>
 
 
@@ -208,4 +208,4 @@ If you find our work useful, please cite it in your research:
 This repository is part of our submission to CIDR-2023. We will make it available to the public research community upon acceptance. 
 
 ## Questions
-For any questions please contact us at:<br/> hussein.abdallah@concordia.ca, waleed.afandi@concordia.ca, essam.mansour@concordia.ca  
+For any questions please contact us at:<br/> hussein.abdallah@mail.concordia.ca, waleed.afandi@mail.concordia.ca, essam.mansour@concordia.ca  
