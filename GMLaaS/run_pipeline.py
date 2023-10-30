@@ -57,10 +57,12 @@ def format_args(task, json_args, path_script):
 
 def uploadModel(model_path):
     try:
-        uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,
-                                         model_path + '.model'))
-        uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,
-                                         model_path + '.param'))
+        if Constants.KGNET_Config.fileStorageType==Constants.FileStorageType.remoteFileStore:
+            uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,model_path + '.model'))
+            uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,model_path + '.param'))
+        elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
+            utils.uploadFileToS3(os.path.join(Constants.KGNET_Config.trained_model_path,model_path) ,file_type="model")
+            utils.uploadFileToS3(os.path.join(Constants.KGNET_Config.trained_model_path,model_path + '.param'),file_type="metadata")
     except Exception as e:
         print(e)
 
@@ -98,7 +100,7 @@ def run_training_pipeline(json_args):
                                                       split_rel_valid_value=None)
 
         if json_args["training"]["GNN_Method"] == Constants.GNN_Methods.Graph_SAINT:
-            train_results_dict = graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=15,
+            train_results_dict = graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=1,
                                             runs=1, batch_size=20000,
                                             walk_length=2, num_steps=10, loadTrainedModel=0,
                                             dataset_name=json_args["training"]["dataset_name"],
@@ -153,12 +155,18 @@ def run_training_pipeline(json_args):
             uploadModel(train_results_dict['model_name'])
 
     # UPLOAD DATASET
+
+
     if json_args["transformation"]["operatorType"] == Constants.GML_Operator_Types.NodeClassification:
-        uploadDatasetToServer(
-            os.path.join(Constants.KGNET_Config.datasets_output_path, json_args["training"]["dataset_name"] + '.zip'))
+        if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
+            uploadDatasetToServer(os.path.join(Constants.KGNET_Config.datasets_output_path, json_args["training"]["dataset_name"] + '.zip'))
+        elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
+            utils.uploadFileToS3(os.path.join(Constants.KGNET_Config.datasets_output_path, json_args["training"]["dataset_name"] + '.zip'), file_type="metadata")
     elif json_args["transformation"]["operatorType"] == Constants.GML_Operator_Types.LinkPrediction:
-        uploadDatasetToServer(
-            os.path.join(Constants.KGNET_Config.datasets_output_path, json_args["training"]["dataset_name"] + '.tsv'))
+        if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
+            uploadDatasetToServer(os.path.join(Constants.KGNET_Config.datasets_output_path, json_args["training"]["dataset_name"] + '.tsv'))
+        elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
+            utils.uploadFileToS3(os.path.join(Constants.KGNET_Config.datasets_output_path, json_args["training"]["dataset_name"] + '.tsv'), file_type="metadata")
     return transform_results_dict, train_results_dict
 
 
