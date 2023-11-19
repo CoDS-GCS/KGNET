@@ -227,6 +227,13 @@ If you find our work useful, please cite it in your research:
   year={2023},
   publisher={VLDB Endowment}
 }
+
+@article{KGTOSA,
+  title={Task-Oriented GNNs Training on Large Knowledge Graphs for Accurate and Efficient Modeling},
+  author={Abdallah, Hussein and Afandi, Waleed and Kalnis, Panos and Mansour, Essam},
+  journal={Proceedings of the VLDB Endowment},
+  publisher={CORR}
+}
 ```
 ## Publicity
 This repository is part of our submission to ICDE-2023.  
