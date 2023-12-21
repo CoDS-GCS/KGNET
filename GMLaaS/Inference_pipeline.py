@@ -231,6 +231,7 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
             dic_results = {k : v[0] for k,v in dic_results.items()}
 
         return dic_results
+
     if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
         downloadDataset(dataset_name + '.zip')
     elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
@@ -265,6 +266,9 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
     time_download = datetime.datetime.now()
     downloaded=False
     filepath = os.path.join(Constants.KGNET_Config.trained_model_path, model_id)
+    if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.localfile:
+        if os.path.exists(filepath) and os.path.exists(filepath.replace('.model', '.param')):
+            downloaded = True
     if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
         downloaded=downloadModel(model_id) and downloadModel(model_id.replace('.model', '.param'))
     elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:

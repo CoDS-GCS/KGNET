@@ -214,10 +214,10 @@ class KGNET():
             pandas dataframe : query results in a dataframe
         """
         gmlInferenceOp=gmlInferenceOperator(self.KGMeta_Governer,self.KG_sparqlEndpoint)
-        candidateSparqlQuery,kgDataQuery,kgTargetNodesQuery,kgmetaModelQuery,model_id=gmlInferenceOp.executeQuery(query)
+        candidateSparqlQuery,kgDataQuery,kgTargetNodesQuery,kgmetaModelQuery,model_ids_lst=gmlInferenceOp.executeQuery(query)
         df_res=self.KG_sparqlEndpoint.executeSparqlquery(candidateSparqlQuery)
         # df_res=df_res.apply(lambda x: (x.str)[1:-1])
-        return df_res,{"model_id":model_id,"candidateSparqlQuery":candidateSparqlQuery,"kgDataQuery":kgDataQuery,"kgTargetNodesQuery":kgTargetNodesQuery,"kgmetaModelQuery":kgmetaModelQuery}
+        return df_res,{"model_ids_lst":model_ids_lst,"candidateSparqlQuery":candidateSparqlQuery,"kgDataQuery":kgDataQuery,"InferenceTargetNodeQueries":kgTargetNodesQuery,"kgmetaModelQuery":kgmetaModelQuery}
 if __name__ == '__main__':
     dblp_LP = """
        prefix dblp:<https://dblp.org/rdf/schema#>
@@ -275,18 +275,30 @@ if __name__ == '__main__':
     # model_info, transform_info, train_info = kgnet.train_GML(
     #     operatorType=Constants.GML_Operator_Types.LinkPrediction, targetEdge="http://swrc.ontoware.org/ontology#publication", GNNMethod=GNN_Methods.RGCN)
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
-    kgnet = KGNET(KG_endpointUrl='http://206.12.100.35:5820/kgnet_kgs/query',KGMeta_endpointUrl='http://206.12.100.35:5820/kgnet_kgs/query', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022',RDFEngine=Constants.RDFEngine.stardog)
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.100.35:5820/kgnet_kgs/query',KGMeta_endpointUrl='http://206.12.100.35:5820/kgnet_kgs/query', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022',RDFEngine=Constants.RDFEngine.stardog)
     # types_df = kgnet.getKGNodeEdgeTypes(write_to_file=True, prefix='dblp2022')
     # task_id,mode_id,model_info_dict = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="dblp2022:Publication",labelNodeType="dblp2022:publishedIn_Obj", GNNMethod=GNN_Methods.Graph_SAINT)
     # task_id='tid-0000025'
     # df = kgnet.KGMeta_Governer.getGMLTaskModelsBasicInfoByID(task_id)
     # print(model_info_dict)
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.LinkPrediction,targetEdge="http://swrc.ontoware.org/ontology#author",GNNMethod=GNN_Methods.MorsE)
-    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
-    TargetEdge = "https://dblp.org/rdf/schema#authoredBy"
-    model_info, transform_info, train_info = kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.LinkPrediction,
-                                                             targetEdge=TargetEdge,
-                                                             GNNMethod=KGNET.GNN_Methods.RGCN)
+    kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
+    # KGNET.inference_path = KGNET.KGNET_Config.datasets_output_path + 'Inference/'
+    # KGNET.KGNET_Config.trained_model_path = KGNET.KGNET_Config.datasets_output_path + 'trained_models/'
+    #
+    # KGNET.KGNET_Config.GML_API_URL = "http://206.12.102.12:64647/"
+    # KGNET.KGNET_Config.GML_Inference_PORT = "64647"
+    # KGNET.KGNET_Config.fileStorageType = FileStorageType.remoteFileStore
+    # #########remoteFileStore######
+    # KGNET.KGNET_Config.GML_ModelManager_URL = "http://206.12.102.12"
+    # KGNET.KGNET_Config.GML_ModelManager_PORT = "64648"
+    # KGNET.KGNET_Config.KGMeta_IRI = "http://kgnet/"
+    # KGNET.KGNET_Config.KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
+    #
+    # TargetEdge = "https://dblp.org/rdf/schema#authoredBy"
+    # model_info, transform_info, train_info = kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.LinkPrediction,
+    #                                                          targetEdge=TargetEdge,
+    #                                                          GNNMethod=KGNET.GNN_Methods.RGCN)
     ################################## SPARQL ML Execute ##########################
     inference_query_NC = """
                 prefix aifb:<http://swrc.ontoware.org/ontology#>
@@ -336,11 +348,89 @@ if __name__ == '__main__':
                     limit 300
                     offset 0
                 """
-    # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org')
-    kgnet = KGNET(KG_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query",KGMeta_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query", KG_NamedGraph_IRI='https://dblp2022.org',RDFEngine=RDFEngine.stardog)
-    resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_query_NC2)
+
+    # inference_MQuery_NC = """
+    #            prefix dblp2022:<https://dblp.org/rdf/schema#>
+    #            prefix kgnet:<http://kgnet/>
+    #            select ?Publication ?Title ?Org_Venue ?Pred_Venue
+    #            from <https://dblp2022.org>
+    #            where
+    #            {
+    #            ?Publication a dblp2022:Publication .
+    #            ?Publication  dblp2022:title ?Title .
+    #            ?Publication ?authored_by ?Author .
+    #            ?Publication  dblp2022:publishedIn ?Org_Venue .
+    #            ?Auhor ?aff ?Org_Aff_Country .
+    #
+    #            ?Publication ?NodeClassifier ?Pred_Venue .
+    #            ?NodeClassifier a <kgnet:types/NodeClassifier>.
+    #            ?NodeClassifier <kgnet:targetNode> dblp2022:Publication.
+    #            ?NodeClassifier <kgnet:labelNode> dblp2022:publishedIn_Obj.
+    #
+    #            ?Auhor ?NodeClassifier2 ?Pred_Aff_Country .
+    #            ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
+    #            ?NodeClassifier2 <kgnet:targetNode> dblp2022:Author.
+    #            ?NodeClassifier2 <kgnet:labelNode> dblp2022:Country_Obj.
+    #            }
+    #            limit 10
+    #    """
+    # inference_MQuery_NC = """
+    #                prefix dblp2022:<https://dblp.org/rdf/schema#>
+    #                prefix kgnet:<http://kgnet/>
+    #                select ?Publication ?Title ?Org_Venue ?Pred_Venue ?Author ?Org_primary_Aff ?Pred_primary_Aff
+    #                from <https://dblp2022.org>
+    #                where
+    #                {
+    #                ?Publication a dblp2022:Publication .
+    #                ?Publication  dblp2022:title ?Title .
+    #                ?Publication  dblp2022:authoredBy ?Author .
+    #                ?Publication  dblp2022:publishedIn ?Org_Venue .
+    #                ?Author dblp2022:primaryAffiliation ?Org_primary_Aff .
+    #
+    #                ?Publication ?NodeClassifier ?Pred_Venue .
+    #                ?NodeClassifier a <kgnet:types/NodeClassifier>.
+    #                ?NodeClassifier <kgnet:targetNode> dblp2022:Publication.
+    #                ?NodeClassifier <kgnet:labelNode> dblp2022:publishedIn_Obj.
+    #
+    #                ?Author ?NodeClassifier2 ?Pred_primary_Aff .
+    #                ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
+    #                ?NodeClassifier2 <kgnet:targetNode> dblp2022:Publication.
+    #                ?NodeClassifier2 <kgnet:labelNode> dblp2022:publishedIn_Obj.
+    #                }
+    #                limit 10
+    #        """
+    inference_MQuery_NC = """
+               prefix dblp2022:<https://dblp.org/rdf/schema#>
+               prefix kgnet:<http://kgnet/>
+               select ?Publication ?Title ?Org_Venue ?Pred_Venue  ?Org_author ?Pred_author
+               from <https://dblp2022.org>
+               where
+               {
+                   ?Publication a dblp2022:Publication .
+                   ?Publication  dblp2022:title ?Title .
+                   ?Publication  dblp2022:publishedIn ?Org_Venue .
+                   ?Publication dblp2022:authoredBy ?Org_author .
+
+                   ?Publication ?NodeClassifier ?Pred_Venue .
+                   ?NodeClassifier a <kgnet:types/NodeClassifier>.
+                   ?NodeClassifier <kgnet:targetNode> dblp2022:Publication.
+                   ?NodeClassifier <kgnet:labelNode> dblp2022:publishedIn_Obj.
+
+                    ?Publication ?LinkPredictor ?Pred_author.
+                    ?LinkPredictor  a <kgnet:types/LinkPredictor>.
+                    ?LinkPredictor  <kgnet:targetEdge> "https://dblp.org/rdf/schema#authoredBy" .
+                    ?LinkPredictor <kgnet:GNNMethod> "MorsE" .
+                    ?LinkPredictor <kgnet:topK> 3 .
+               }
+               limit 10
+           """
+
+    kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org',KGMeta_endpointUrl="http://206.12.98.118:8890/sparql",RDFEngine=RDFEngine.OpenlinkVirtuoso)
+    # kgnet = KGNET(KG_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query",KGMeta_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query", KG_NamedGraph_IRI='https://dblp2022.org',RDFEngine=RDFEngine.stardog)
+    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_NC2)
+    resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_NC)
     print(resDF)
-    # print(MetaQueries)
+    print(MetaQueries)
     #############################################3
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='http://www.RVO.net/', KG_Prefix="RVO")
     # kgnet.uploadKG(ttl_file_url="http://206.12.89.16/CodsData/KGNET/KGs/OBA.nt",name="Landenportaal-Rijksdienst voor Ondernemend Nederland (RVO)",description="information about countries around the globe with the objectives of these country monitors",domain="geometric")

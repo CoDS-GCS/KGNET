@@ -100,7 +100,7 @@ class KGNET_Config:
     GML_ModelManager_URL = "http://206.12.99.253"
     KGMeta_IRI = "http://kgnet/"
     KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
-    fileStorageType=FileStorageType.S3
+    fileStorageType=FileStorageType.remoteFileStore
     def __init__(self):
        ""
 

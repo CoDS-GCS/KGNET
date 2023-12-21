@@ -147,11 +147,11 @@ class gmlInferenceOperator(gmlOperator):
         self.GML_Query_Type = GML_Query_Types.Inference
     def executeQuery(self, query):
         gmlqp = gmlQueryParser(query)
-        dataInferQ,dataQ,tragetNodesq, kmetaq,model_id = gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(), self.KGMeta_Governer_obj).rewrite_gml_query()
+        dataInferQ,dataQ,tragetNodesq, kgmeta_model_queries_dict,model_ids = gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(), self.KGMeta_Governer_obj).rewrite_gml_query()
         # print("KGMeta task select query= \n",kmetaq)
         # print("SPARQL candidate query form 2= \n",dataInferQ)
         # print("SPARQLdata only Query=\n", dataQ)
-        return dataInferQ,dataQ,tragetNodesq,kmetaq,model_id
+        return dataInferQ,dataQ,tragetNodesq,kgmeta_model_queries_dict,model_ids
 
 if __name__ == '__main__':
     ""

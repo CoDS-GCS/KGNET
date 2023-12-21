@@ -36,7 +36,6 @@ def downloadModel (mid):
     response = requests.get(f"{Constants.KGNET_Config.GML_ModelManager_URL+':' + Constants.KGNET_Config.GML_ModelManager_PORT}/downloadmodel/{mid}", stream=True)
     if response.status_code != 500:
         filepath = os.path.join(Constants.KGNET_Config.trained_model_path, mid)
-
         with open(filepath,'wb') as f:
             for chunk in response.iter_content(chunk_size=128):
                 f.write(chunk)
