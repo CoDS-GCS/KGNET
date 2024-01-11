@@ -351,7 +351,13 @@ class gmlQueryRewriter:
             return "\""+str(var.string)+"\""
         elif isinstance(var,rdflib.term.Literal) :
             return str(var)
-        return '?'+var if not isinstance(var,tuple) else f'{str(var[0])}:{str(var[1])}' # return with '?' apended to it if its a single term else return with prefix:postfix notation
+        elif isinstance(var, rdflib.term.Variable):
+            return '?' + var  #'?' append to it if its a single term else return with prefix:postfix notation
+        elif isinstance(var,tuple):
+            return  f'{str(var[0])}:{str(var[1])}'
+        else:
+            return str(var)
+        return var
 
     def get_rdfType (self,list_data_T,var,rdf_type='http://www.w3.org/1999/02/22-rdf-syntax-ns#type'):
         """ The get_rdfType () function takes inputs a list of triples and a subject variable
@@ -419,16 +425,18 @@ class gmlQueryRewriter:
                 target_type = dict_vars[gml_op]['target']['object'] if 'target' in dict_vars[gml_op] else dict_vars[gml_op]['targetEdge'][
                     'object'] if 'targetEdge' in dict_vars[gml_op] else None
                 if target_type:
-                    target_type = self.set_syntax(self.get_rdfType(data_vars, target_type.split(':')[1]) if (
+                    target_type = self.set_syntax(self.get_rdfType(data_vars, target_type.split(':')[-1]) if (
                                 isinstance(target_type, str) and self.get_rdfType(data_vars, target_type.split(':')[
-                            1]) is not None) else target_type)
+                            -1]) is not None) else target_type)
 
                 string_Q += "{"
                 for key in dict_vars[gml_op].keys():
                     if len(dict_vars[gml_op][key]) == 0:
                         continue
                     elif key in ['target', 'label']:
-                        string_temp = f"{self.set_syntax(dict_vars[gml_op][key]['subject'])} {self.set_syntax(dict_vars[gml_op][key]['predicate'])} <{self.set_syntax(dict_vars[gml_op][key]['object'])}> .\n"
+                        obj=self.set_syntax(dict_vars[gml_op][key]['object'])
+                        obj= ("<"+str(obj)+">") if (str(obj).startswith("<") or str(obj).startswith("http") or ":" in str(obj) ) else str(obj)
+                        string_temp = f"{self.set_syntax(dict_vars[gml_op][key]['subject'])} {self.set_syntax(dict_vars[gml_op][key]['predicate'])} {obj} .\n"
                         string_Q += string_temp
                         continue
                     elif key == 'targetEdge':
@@ -514,7 +522,7 @@ class gmlQueryRewriter:
                 if item in labels_dict.keys():
                     target_label = item+target_label_postfix
                     target_variable=str(target_variables_dict[labels_dict[item]])
-                    string_q+= f'\n (kgnetML:getKeyValue_v2({self.set_syntax(target_variable)},{self.set_syntax(target_label)}) as {self.set_syntax(item)} ) '
+                    string_q+= f'\n (kgnetML:getKeyValue_v2({self.set_syntax(rdflib.term.Variable(target_variable))},{self.set_syntax(rdflib.term.Variable(target_label))}) as {self.set_syntax(rdflib.term.Variable(item))} ) '
                     continue
                 s = f" ?{item} "
                 string_q+=s
@@ -562,11 +570,11 @@ class gmlQueryRewriter:
         if "limit" in query:
             string_q+= f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
             string_q_dataonly += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
-            string_q_target_nodes += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
+            # string_q_target_nodes += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
         if "offset" in query:
             string_q += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
             string_q_dataonly += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
-            string_q_target_nodes += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
+            # string_q_target_nodes += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
         # string_q_dataonly += "\n} filter(!isBlank(?o)). }"
 
         ####################### create inference API-JSON object #####################
@@ -601,6 +609,7 @@ class gmlQueryRewriter:
             API_JSON += "\"dataQuery\" : [\"" + op_string_q_dataonly + "\"] , "
 
             op_target_nodes_query= string_q_target_nodes.replace("\"", "'").replace("\n", " ").replace(self.set_syntax(target_variable), "?s")
+
             string_q_target_nodes_dict[str(gml_op)] =op_target_nodes_query
             API_JSON += "\"targetNodesQuery\" : \"" +op_target_nodes_query+ "\" "
             API_JSON+="}\"\"\""

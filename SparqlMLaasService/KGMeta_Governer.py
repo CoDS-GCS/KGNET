@@ -260,7 +260,7 @@ class KGMeta_Governer(sparqlEndpoint):
     def OptimizeForBestModel(self, tid):
         mid_query = """PREFIX kgnet: <https://www.kgnet.com/>  
                            select (?mid as ?s) ?p ?o
-                           from <""" + KGNET_Config.KGMeta_IRI + """> where { ?t <kgnet:GMLTask/id> """ + str(tid) + " . ?t <kgnet:GMLTask/modelID> ?mid. ?mid ?p ?o .}"
+                           from <""" + KGNET_Config.KGMeta_IRI + """> where { ?t <kgnet:GMLTask/id> """ + (str(tid) if (Constants.utils.is_number(str(tid))  or str(tid).startswith("<")) else "\"" +str(tid)+"\"") + " . ?t <kgnet:GMLTask/modelID> ?mid. ?mid ?p ?o .}"
         res_df = self.executeSparqlquery(mid_query)
         res_df["s"] = res_df["s"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<")  else x)
         res_df["p"] = res_df["p"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else x)
@@ -311,19 +311,19 @@ class KGMeta_Governer(sparqlEndpoint):
             task_query += "PREFIX " + pref + ":<" + query_dict["prefixes"][pref] + "> \n"
         if operator_type==GML_Operator_Types.NodeClassification:
             task_query+= """select ?tid  from <""" + KGNET_Config.KGMeta_IRI + """> where {
-                              ?task	<kgnet:GMLTask/taskType>  <kgnet:type/nodeClassification> .
-                              ?task	<kgnet:GMLTask/labelNode> <"""+ query_dict["insertJSONObject"]["GMLTask"]["labelNode"] + "> . \n"
+                              ?task	<kgnet:GMLTask/taskType>  <kgnet:type/nodeClassification> ."""
+            task_query+= ("?task	<kgnet:GMLTask/labelNode> <"""+ query_dict["insertJSONObject"]["GMLTask"]["labelNode"] + "> . \n" if "labelNode" in query_dict["insertJSONObject"]["GMLTask"].keys()  else "")
+            task_query += ("?task	<kgnet:GMLTask/targetEdge> <""" + query_dict["insertJSONObject"]["GMLTask"]["targetEdge"] + "> . \n" if "targetEdge" in query_dict["insertJSONObject"]["GMLTask"].keys() else "")
             task_query += "?task <kgnet:GMLTask/targetNode>	<" + query_dict["insertJSONObject"]["GMLTask"]["targetNode"] + "> . \n"
             task_query += "?task <kgnet:GMLTask/id>	?tid. \n} limit 1"
         elif operator_type==GML_Operator_Types.LinkPrediction:
-            task_query += """select ?tid  from <""" + KGNET_Config.KGMeta_IRI + """> where {
-                                        ?task	<kgnet:GMLTask/taskType>	<kgnet:type/linkPrediction> . \n"""
+            task_query += """select ?tid  from <""" + KGNET_Config.KGMeta_IRI + """> where {?task	<kgnet:GMLTask/taskType>	<kgnet:type/linkPrediction> . \n"""
             task_query += "?task <kgnet:GMLTask/targetEdge>	\"" + query_dict["insertJSONObject"]["GMLTask"]["targetEdge"] + "\" . \n"
             task_query += "?task <kgnet:GMLTask/id>	?tid. \n} limit 1"
 
         task_df = self.executeSparqlquery(task_query)
         if len(task_df) > 0:
-            return task_df["tid"].values[0]
+            return task_df["tid"].values[0].replace("\"","")
         else:
             return None
 
@@ -334,7 +334,7 @@ class KGMeta_Governer(sparqlEndpoint):
         Insert_Triples += "With <"+KGNET_Config.KGMeta_IRI+"> Insert {"
         if task_exist==False:
             Insert_Triples+="<"+task_uri +"> a <kgnet:type/GMLTask> . \n"
-            Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/id> "+str(int(task_uri.split("tid-")[1]))+" . \n"
+            Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/id> \""+str(task_uri.split("tid-")[1])+"\" . \n"
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/createdBy> <kgnet:user/uid-0000001> . \n"
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/dateCreated> \""+ datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S") +"\" . \n"
             if "namedGraphPrefix" in query_dict["insertJSONObject"]["GMLTask"]:
@@ -351,9 +351,11 @@ class KGMeta_Governer(sparqlEndpoint):
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/name> \""+query_dict["insertJSONObject"]["name"]+"\" . \n"
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/description>	\"\" . \n"
             if "labelNode" in query_dict["insertJSONObject"]["GMLTask"]:
-                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/labelNode>	<"+ query_dict["insertJSONObject"]["GMLTask"]["labelNode"]+"> . \n"
+                labelNode=query_dict["insertJSONObject"]["GMLTask"]["labelNode"]
+                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/labelNode>	"+(("<"+labelNode+">") if labelNode.startswith("http") or labelNode.contains(":") else labelNode)+" . \n"
             if "targetNode" in query_dict["insertJSONObject"]["GMLTask"]:
-                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/targetNode> <"+ query_dict["insertJSONObject"]["GMLTask"]["targetNode"]+"> . \n"
+                targetNode = query_dict["insertJSONObject"]["GMLTask"]["targetNode"]
+                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/targetNode> "+(("<"+targetNode+">") if targetNode.startswith("http") or targetNode.contains(":") else targetNode)+" . \n"
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/targetEdge> \""+ query_dict["insertJSONObject"]["GMLTask"]["targetEdge"]+"\" . \n"
         ######################
         Insert_Triples += "<" + task_uri + ">  <kgnet:GMLTask/modelID> <" + model_model_uri + ">  . \n"
@@ -467,6 +469,7 @@ class KGMeta_Governer(sparqlEndpoint):
             Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/filters>  \""+str(list(query_dict["insertJSONObject"]["GMLTask"]["targetNodeFilters"].values()))+"\" . \n"
         Insert_Triples+="} where {}"
         ###########################
+        print("Insert_Triples=",Insert_Triples)
         res=self.executeSparqlInsertQuery(Insert_Triples)
         if len(res)>0:
             return res[res.columns[0]].values[0].split(",")[1]
@@ -530,10 +533,10 @@ if __name__ == '__main__':
     # res_df=kgmeta_govener.executeSparqlquery(query)
     # print(res_df)
 
-    # kgmeta_govener.insertKGMetadata(sparqlendpoint='http://206.12.98.118:8890/sparql',
-    #                                        prefix='dblp2022',
-    #                                        namedGraphURI='https://dblp2022.org',
-    #                                        name='dblp2022',
-    #                                        description='Subgraph of dblp 2022-03 KG that contains only the papers published in 2022 and thier connected neighbours',
-    #                                        domain='academic')
-    kgmeta_govener.getGMLTaskModelsBasicInfoByID(26)
+    kgmeta_govener.insertKGMetadata(sparqlendpoint='http://206.12.98.118:8890/sparql',
+                                           prefix='WikiKG2015_v2',
+                                           namedGraphURI='http://wikikg-v2',
+                                           name='WikiKG2015_v2',
+                                           description='Subgraph of Wikidata KG 2015 KG',
+                                           domain='academic')
+    #kgmeta_govener.getGMLTaskModelsBasicInfoByID(26)

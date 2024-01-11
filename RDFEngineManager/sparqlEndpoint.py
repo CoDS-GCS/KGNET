@@ -92,22 +92,23 @@ class sparqlEndpoint:
         q_start_t = datetime.datetime.now()
         rows_count_lst = []
         for query in queries:
-            if rows_count==None:
-                rows_count_query = query.replace("select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)",
-                                                "select (count( distinct *) as ?c)")
-                rows_count_query = rows_count_query.replace("limit ?limit", "")
-                rows_count_query = rows_count_query.replace("offset ?offset", "")
-                rows_count = self.ExecScalarQuery( rows_count_query)
+            # if rows_count==None:
+            rows_count_query = query.replace("select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)",
+                                            "select (count( distinct *) as ?c)")
+            rows_count_query = rows_count_query.replace("limit ?limit", "")
+            rows_count_query = rows_count_query.replace("offset ?offset", "")
+            rows_count = self.ExecScalarQuery( rows_count_query)
             rows_count_lst.append(int(rows_count))
         q_end_t = datetime.datetime.now()
         print("rows_count=", sum(rows_count_lst), "Query Time=", q_end_t - q_start_t, " sec.")
         #######################
         q_start_t = datetime.datetime.now()
+        org_bs=batch_size
         with open(out_file, 'w') as f:
             for q_idx, query in enumerate(queries):
-                batches_count = int(rows_count_lst[q_idx] / batch_size) + 1
-                batch_size = rows_count_lst[q_idx] if rows_count_lst[q_idx] < batch_size else batch_size
-                print("query idx=", q_idx, "batches_count=", batches_count)
+                batches_count = int(rows_count_lst[q_idx] / org_bs) + 1
+                batch_size = rows_count_lst[q_idx] if rows_count_lst[q_idx] < org_bs else org_bs
+                print("query idx=", q_idx, "batches_count=", batches_count, "row_count",rows_count_lst[q_idx])
                 th_idx = 1
                 th_lst = []
                 for idx, offset in enumerate(range(start_offset, rows_count_lst[q_idx], batch_size)):

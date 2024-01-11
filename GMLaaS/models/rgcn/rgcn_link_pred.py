@@ -192,7 +192,7 @@ def compute_mrr(z, edge_index, edge_type):
 def rgcn_lp(dataset_name,
             root_path=KGNET_Config.datasets_output_path,
             epochs=3,val_interval=2,
-            hidden_channels=50,batch_size=-1,runs=1,
+            hidden_channels=10,batch_size=-1,runs=1,
             emb_size=128,walk_length = 2, num_steps=2,
             loadTrainedModel=0,
             target_rel = '',

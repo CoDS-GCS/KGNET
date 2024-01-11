@@ -51,7 +51,7 @@ class KGNET():
         gid,_=self.KGMeta_Governer.insertKGMetadata(self.KG_sparqlEndpoint.endpointUrl,self.kg_Prefix,self.KG_NamedGraph_URI,name,description,domain)
         return gid
     def getKGNodeEdgeTypes(self,write_to_file=False,prefix=None):
-        "returns a dataframe of KG triples node/edge types"
+        "returns a dataframe of KG triples node/edge types considers only single source and destinations node types per edge type"
         if self.KG_NamedGraph_URI is None or self.KG_sparqlEndpoint is None:
             raise Exception("KG endpoint or the named-graph IRI is not defined")
         NamedGraph_URI=""
@@ -91,6 +91,50 @@ class KGNET():
             if prefix is None:
                 raise Exception("prefix is not provided to save the KG types file")
             kg_types_df.to_csv(Constants.KGNET_Config.datasets_output_path+ (self.namedGraphURI.split(".")[1] if prefix is None else prefix) +"_Types.csv",header=None, index=None)
+        return kg_types_df
+
+    def getKGNodeEdgeTypes_V2(self, write_to_file=False, prefix=None):
+        "returns a dataframe of KG triples node/edge types considring multi node type per edge"
+        if self.KG_NamedGraph_URI is None or self.KG_sparqlEndpoint is None:
+            raise Exception("KG endpoint or the named-graph IRI is not defined")
+        NamedGraph_URI = ""
+        if self.KG_NamedGraph_URI == "https://dblp2022.org":
+            NamedGraph_URI = "http://dblp.org"
+        else:
+            NamedGraph_URI = self.KG_NamedGraph_URI
+
+        NamedGraph_URI = self.KG_NamedGraph_URI
+        predicate_types_query = "select distinct ?p \n"
+        predicate_types_query += "" if NamedGraph_URI is None else "from <" + NamedGraph_URI + "> \n"
+        predicate_types_query += " where {?s ?p ?o.}  "
+        predicate_types_df = self.KG_sparqlEndpoint.executeSparqlquery(predicate_types_query)
+        edge_types_lst = predicate_types_df["p"].apply(lambda x: x.replace("\"", "")).tolist()
+        KG_types_lst = []
+        edge_types_lst = [elem.replace("<", "").replace(">", "") for elem in edge_types_lst]
+        for edgeType in edge_types_lst:
+            if edgeType != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type":
+                query="""select distinct ?stype ?otype
+                            from <http://wikikg-v2>
+                            where 
+                            {
+                            ?s <"""+edgeType+"""> ?o.
+                            ?s a ?stype.
+                            ?o a ?otype.
+                            }"""
+                types_df=self.KG_sparqlEndpoint.executeSparqlquery(query)
+                for idx,row in types_df.iterrows():
+                    KG_types_lst.append([row["stype"].replace("\"", "").split("/")[-1].split("#")[-1],
+                                     edgeType.split("/")[-1].split("#")[-1],
+                                     row["otype"].replace("\"", "").split("/")[-1].split("#")[-1]])
+            else:
+                KG_types_lst.append(["entity", edgeType.split("/")[-1].split("#")[-1], "type"])
+        kg_types_df = pd.DataFrame(KG_types_lst, columns=["subject", "predicate", "object"])
+        kg_types_df = kg_types_df.sort_values(by=["subject"])
+        if write_to_file:
+            if prefix is None:
+                raise Exception("prefix is not provided to save the KG types file")
+            kg_types_df.to_csv(Constants.KGNET_Config.datasets_output_path + (
+                self.namedGraphURI.split(".")[1] if prefix is None else prefix) + "_Types.csv", header=None, index=None)
         return kg_types_df
     def visualizeKG(self,types_df,width="100%",height="500px",Notebook=False,Directed=True):
         "Visualize  dataframe where subject and objects columns represents nodes and predicate column represnts the relations between nodes"
@@ -135,14 +179,16 @@ class KGNET():
         edges_df["p_lower"] = edges_df["p"].apply(lambda x: str(x).lower())
         target_edge_df=edges_df[edges_df["p_lower"].str.endswith(target_edge_short.lower())]
         return target_edge_df["p"].values[0]
-    def train_GML(self,operatorType,GNNMethod,targetNodeType=None,labelNodeType=None,targetEdge=None):
+    def train_GML(self,operatorType,GNNMethod,targetNodeType=None,labelNodeType=None,targetEdge=None,TOSG_Pattern=None, epochs=None,emb_size=None):
         "Automates the GML training pipeline given the minimal task attributes steps including: write a SPARQL-ML insert query,  parsing the GML insert query ,identifying GML task type and attributes, sample task orianted subgraph, transform sampled subgraph into PYG dataset, train a GNN model, and save trained model meta-data into KGMeta KG "
         if self.kg_Prefix is not None:
-            if operatorType==Constants.GML_Operator_Types.NodeClassification:
+            if operatorType==Constants.GML_Operator_Types.NodeClassification and targetEdge is None:
                 # self.kg_Prefix=targetNodeType.split(":")[0]
                 kg_types_path = Constants.KGNET_Config.datasets_output_path + self.kg_Prefix + "_Types.csv"
                 kg_types_ds = pd.read_csv(kg_types_path, header=None)
-                target_edge_df = kg_types_ds[(kg_types_ds[0].str.lower() == targetNodeType.split(":")[1].lower()) & (kg_types_ds[2].str.lower() == labelNodeType.split(":")[1].lower())]
+                tnType=targetNodeType.split(":")[-1].lower()
+                lnType=labelNodeType.split(":")[-1].lower()
+                target_edge_df = kg_types_ds[(kg_types_ds[0].str.lower() == tnType ) & (kg_types_ds[2].str.lower() == lnType)]
                 targetEdge = target_edge_df[1].values[0]
                 targetEdge = self.getTargetEdgeTypeIRI(self.kg_Prefix, targetEdge)
             elif operatorType == Constants.GML_Operator_Types.LinkPrediction:
@@ -164,7 +210,7 @@ class KGNET():
                select * from kgnet.TrainGML(
                {\n"""
         if operatorType == Constants.GML_Operator_Types.NodeClassification:
-            sparql_ml_insert_query+="\"name\":\""+operatorType+">"+self.kg_Prefix+">"+targetNodeType+">"+labelNodeType+">"+GNNMethod+"\",\n"
+            sparql_ml_insert_query+="\"name\":\""+operatorType+">"+self.kg_Prefix+">"+targetNodeType+">"+("None" if labelNodeType is None else labelNodeType) +">"+GNNMethod+"\",\n"
         elif operatorType == Constants.GML_Operator_Types.LinkPrediction:
             sparql_ml_insert_query += "\"name\":\"" + operatorType +">"+self.kg_Prefix+ ">" +targetEdge.split("/")[-1] + ">" + GNNMethod + "\",\n"
         sparql_ml_insert_query+="\"GMLTask\":{\"taskType\":\"kgnet:"+operatorType+"\",\n"
@@ -177,10 +223,14 @@ class KGNET():
         sparql_ml_insert_query += "\"namedGraphPrefix\":\"" + self.kg_Prefix + "\",\n"
         sparql_ml_insert_query+="\"targetEdge\":\""+targetEdge+"\",\"GNNMethod\":\""+GNNMethod+"\",\n"
         sparql_ml_insert_query+="\"datasetTypesFilePath\":\""+kg_types_path+"\",\n"
+        if epochs is not None:
+            sparql_ml_insert_query += "\"epochs\":" + str(epochs)+ ","
+        if emb_size is not None:
+            sparql_ml_insert_query += "\"embSize\":" + str(emb_size)+ ","
         if operatorType == Constants.GML_Operator_Types.NodeClassification:
-            sparql_ml_insert_query+="\"TOSG\":\""+TOSG_Patterns.d1h1+"\""
+            sparql_ml_insert_query+="\"TOSG\":\""+(TOSG_Patterns.d1h1 if TOSG_Pattern is None else TOSG_Pattern)+"\""
         elif operatorType == Constants.GML_Operator_Types.LinkPrediction:
-            sparql_ml_insert_query+="\"TOSG\":\""+TOSG_Patterns.d2h1+"\""
+            sparql_ml_insert_query+="\"TOSG\":\""+(TOSG_Patterns.d2h1 if TOSG_Pattern is None else TOSG_Pattern)+"\""
         if operatorType == Constants.GML_Operator_Types.NodeClassification and self.kg_Prefix=="dblp":
             sparql_ml_insert_query += """,\n "targetNodeFilters":{"filter1":["<https://dblp.org/rdf/schema#yearOfPublication>", "?year","filter(xsd:integer(?year)<=1950)"] \n}\n"""
         sparql_ml_insert_query += "}\n})}"
@@ -270,7 +320,26 @@ if __name__ == '__main__':
     # # model_info, transform_info, train_info=kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification,targetNodeType="dblp:Publication",labelNodeType="dblp:venue",GNNMethod=GNN_Methods.Graph_SAINT)
     # # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="dblp:Publication",labelNodeType="dblp:venue", GNNMethod=GNN_Methods.Graph_SAINT)
     # print(model_info)
-    #################################### LP ############################
+
+    kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://wikikg-v2',KG_Prefix='WikiKG2015_v2')
+    # types_df = kgnet.getKGNodeEdgeTypes_V2(write_to_file=True, prefix='WikiKG2015_v2')
+    # types_df = types_df[(~types_df["object"].str.endswith("_Obj")) | (types_df["object"].str.endswith("publishedIn_Obj"))]
+    # types_df
+
+    TargetEdge = "http://www.wikidata.org/entity/P166" # WikidataKG award received
+    label_type="science_or_engineering_award"
+
+    # TargetEdge = "http://www.wikidata.org/entity/P101"  # WikidataKG work field# area_of_mathematics
+    # label_type="area_of_mathematics"
+
+    #TargetEdge = "http://www.wikidata.org/entity/P108" # Employer
+    #"http://www.wikidata.org/entity/Q3571662" Yan Lucn
+
+    # for epoch in range(5,30,5):
+    #     for e_size in range(32, 128, 32):
+    #         model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="human",labelNodeType=label_type,targetEdge=TargetEdge, GNNMethod=GNN_Methods.Graph_SAINT,TOSG_Pattern=TOSG_Patterns.d1h1,epochs=epoch,emb_size=e_size)
+    #################################### LP ######
+    # ######################
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de',KG_Prefix="aifb")
     # model_info, transform_info, train_info = kgnet.train_GML(
     #     operatorType=Constants.GML_Operator_Types.LinkPrediction, targetEdge="http://swrc.ontoware.org/ontology#publication", GNNMethod=GNN_Methods.RGCN)
@@ -281,8 +350,9 @@ if __name__ == '__main__':
     # task_id='tid-0000025'
     # df = kgnet.KGMeta_Governer.getGMLTaskModelsBasicInfoByID(task_id)
     # print(model_info_dict)
-    # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.LinkPrediction,targetEdge="http://swrc.ontoware.org/ontology#author",GNNMethod=GNN_Methods.MorsE)
-    kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
+    #model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.LinkPrediction,targetEdge="http://swrc.ontoware.org/ontology#author",GNNMethod=GNN_Methods.MorsE)
+    #kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
+    kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://wikikg-v2',KG_Prefix='WikiKG2015_v2')
     # KGNET.inference_path = KGNET.KGNET_Config.datasets_output_path + 'Inference/'
     # KGNET.KGNET_Config.trained_model_path = KGNET.KGNET_Config.datasets_output_path + 'trained_models/'
     #
@@ -296,6 +366,12 @@ if __name__ == '__main__':
     # KGNET.KGNET_Config.KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
     #
     # TargetEdge = "https://dblp.org/rdf/schema#authoredBy"
+    # model_info, transform_info, train_info = kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.LinkPrediction,
+    #                                                          targetEdge=TargetEdge,
+    #                                                          GNNMethod=KGNET.GNN_Methods.RGCN)
+
+    # TargetEdge = "http://www.wikidata.org/entity/P166" # WikidataKG award received
+    TargetEdge= "http://www.wikidata.org/entity/P101" # WikidataKG field of work
     # model_info, transform_info, train_info = kgnet.train_GML(operatorType=KGNET.GML_Operator_Types.LinkPrediction,
     #                                                          targetEdge=TargetEdge,
     #                                                          GNNMethod=KGNET.GNN_Methods.RGCN)
@@ -348,32 +424,154 @@ if __name__ == '__main__':
                     limit 300
                     offset 0
                 """
+    inference_query_wikidata_workField_NC = """
+                    prefix wiki:<http://www.wikidata.org/entity/>
+                    prefix kgnet:<http://kgnet/>
+                    select ?human ?work
+                    from <http://wikikg-v2>
+                    where
+                    {
+                    ?human wiki:P101 ?w.
+                    ?human a "human".
+                    ?w a "area_of_mathematics".
+                    ?human ?NodeClassifier ?work.
+                    ?NodeClassifier a <kgnet:types/NodeClassifier>.
+                    ?NodeClassifier <kgnet:targetNode> "human".
+                    ?NodeClassifier <kgnet:labelNode> "area_of_mathematics".
+                    ?NodeClassifier <kgnet:targetEdge> "http://www.wikidata.org/entity/P101".
+                    }
+                    limit 100
+                """
+    # TargetEdge = "" # WikidataKG award received
+    # label_type="science_or_engineering_award"
+    inference_query_wikidata_award_NC = """
+                        prefix wiki:<http://www.wikidata.org/entity/>
+                        prefix kgnet:<http://kgnet/>
+                        select ?human ?award
+                        from <http://wikikg-v2>
+                        where
+                        {
+                        ?human wiki:P166 ?w.
+                        ?human a "human".
+                        ?w a "science_or_engineering_award".
+                        ?human ?NodeClassifier ?award.
+                        ?NodeClassifier a <kgnet:types/NodeClassifier>.
+                        ?NodeClassifier <kgnet:targetNode> "human".
+                        ?NodeClassifier <kgnet:labelNode> "science_or_engineering_award".
+                        ?NodeClassifier <kgnet:targetEdge> "http://www.wikidata.org/entity/P166".
+                        }
+                        limit 100
+                    """
 
-    # inference_MQuery_NC = """
-    #            prefix dblp2022:<https://dblp.org/rdf/schema#>
-    #            prefix kgnet:<http://kgnet/>
-    #            select ?Publication ?Title ?Org_Venue ?Pred_Venue
-    #            from <https://dblp2022.org>
-    #            where
-    #            {
-    #            ?Publication a dblp2022:Publication .
-    #            ?Publication  dblp2022:title ?Title .
-    #            ?Publication ?authored_by ?Author .
-    #            ?Publication  dblp2022:publishedIn ?Org_Venue .
-    #            ?Auhor ?aff ?Org_Aff_Country .
-    #
-    #            ?Publication ?NodeClassifier ?Pred_Venue .
-    #            ?NodeClassifier a <kgnet:types/NodeClassifier>.
-    #            ?NodeClassifier <kgnet:targetNode> dblp2022:Publication.
-    #            ?NodeClassifier <kgnet:labelNode> dblp2022:publishedIn_Obj.
-    #
-    #            ?Auhor ?NodeClassifier2 ?Pred_Aff_Country .
-    #            ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
-    #            ?NodeClassifier2 <kgnet:targetNode> dblp2022:Author.
-    #            ?NodeClassifier2 <kgnet:labelNode> dblp2022:Country_Obj.
-    #            }
-    #            limit 10
-    #    """
+    inference_query_wikidata_award_workField_NC = """
+                            prefix wiki:<http://www.wikidata.org/entity/>
+                            prefix kgnet:<http://kgnet/>
+                            select ?human ?univ ?pred_award ?pred_work
+                            from <http://wikikg-v2>
+                            where
+                            {
+                            ?human wiki:P166 ?award.
+                            ?human a "human".
+                            ?human wiki:P69 ?univ .
+                            
+                            ?award a "science_or_engineering_award".
+                            ?human ?NodeClassifier ?pred_award.
+                            ?NodeClassifier a <kgnet:types/NodeClassifier>.
+                            ?NodeClassifier <kgnet:targetNode> "human".
+                            ?NodeClassifier <kgnet:labelNode> "science_or_engineering_award".
+                            ?NodeClassifier <kgnet:targetEdge> "http://www.wikidata.org/entity/P166".
+                            
+                            ?human wiki:P101 ?work.
+                            ?work a "area_of_mathematics".
+                            ?human ?NodeClassifier2 ?pred_work.
+                            ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
+                            ?NodeClassifier2 <kgnet:targetNode> "human".
+                            ?NodeClassifier2 <kgnet:labelNode> "area_of_mathematics".
+                            ?NodeClassifier2 <kgnet:targetEdge> "http://www.wikidata.org/entity/P101".                        
+                            }
+                            limit 100
+                        """
+
+    inference_query_wikidata_award_workField_univ_NC = """prefix wiki:<http://www.wikidata.org/entity/>
+                               prefix kgnet:<http://kgnet/>
+                               select ?human ?awardLabel ?workFieldLabel ?univ_label
+                               where
+                               {
+                                    ?pred_award_ent  <http://www.w3.org/2000/01/rdf-schema#label> ?awardLabel.
+                                    ?pred_work_ent  <http://www.w3.org/2000/01/rdf-schema#label> ?workFieldLabel.
+                                    optional {?univ <http://www.w3.org/2000/01/rdf-schema#label> ?univ_label. }
+                                    filter(?awardLabel='Royal Medal').
+                                    filter(?workFieldLabel='number theory').
+                                    {
+                                       select ?human ?univ (IRI(?pred_award) as ?pred_award_ent) (IRI(?pred_work) as ?pred_work_ent)
+                                       from <http://wikikg-v2>
+                                       where
+                                       {
+                                           ?human wiki:P166 ?award.
+                                           ?human a "human".
+                                           ?human wiki:P69 ?univ .
+            
+                                           ?award a "science_or_engineering_award".
+                                           ?human ?NodeClassifier ?pred_award.
+                                           ?NodeClassifier a <kgnet:types/NodeClassifier>.
+                                           ?NodeClassifier <kgnet:targetNode> "human".
+                                           ?NodeClassifier <kgnet:labelNode> "science_or_engineering_award".
+                                           ?NodeClassifier <kgnet:targetEdge> "http://www.wikidata.org/entity/P166".
+            
+                                           ?human wiki:P101 ?work.
+                                           ?work a "area_of_mathematics".
+                                           ?human ?NodeClassifier2 ?pred_work.
+                                           ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
+                                           ?NodeClassifier2 <kgnet:targetNode> "human".
+                                           ?NodeClassifier2 <kgnet:labelNode> "area_of_mathematics".
+                                           ?NodeClassifier2 <kgnet:targetEdge> "http://www.wikidata.org/entity/P101".                        
+                                       }
+                                       #limit 100
+                                    }
+                                }
+                           """
+    nested_Query=""" select  (count(*) as ?s)
+                where
+                {
+                    ?s ?p ?o.
+                    {
+                        select distinct ?s
+                        from <http://wikikg-v2>
+                        where
+                        {
+                           ?s <http://www.wikidata.org/entity/P69> ?o.
+                           ?s a "human".
+                           ?o <http://schema.org/description> ?ol.
+                        }
+                    }
+                } 
+                """
+
+    inference_MQuery_NC = """
+               prefix dblp2022:<https://dblp.org/rdf/schema#>
+               prefix kgnet:<http://kgnet/>
+               select ?Publication ?Title ?Org_Venue ?Pred_Venue
+               from <https://dblp2022.org>
+               where
+               {
+               ?Publication a dblp2022:Publication .
+               ?Publication  dblp2022:title ?Title .
+               ?Publication ?authored_by ?Author .
+               ?Publication  dblp2022:publishedIn ?Org_Venue .
+               ?Auhor ?aff ?Org_Aff_Country .
+
+               ?Publication ?NodeClassifier ?Pred_Venue .
+               ?NodeClassifier a <kgnet:types/NodeClassifier>.
+               ?NodeClassifier <kgnet:targetNode> dblp2022:Publication.
+               ?NodeClassifier <kgnet:labelNode> dblp2022:publishedIn_Obj.
+
+               ?Auhor ?NodeClassifier2 ?Pred_Aff_Country .
+               ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
+               ?NodeClassifier2 <kgnet:targetNode> dblp2022:Author.
+               ?NodeClassifier2 <kgnet:labelNode> dblp2022:Country_Obj.
+               }
+               limit 10
+       """
     # inference_MQuery_NC = """
     #                prefix dblp2022:<https://dblp.org/rdf/schema#>
     #                prefix kgnet:<http://kgnet/>
@@ -399,7 +597,7 @@ if __name__ == '__main__':
     #                }
     #                limit 10
     #        """
-    inference_MQuery_NC = """
+    inference_MQuery_dblp2022_NC_LP = """
                prefix dblp2022:<https://dblp.org/rdf/schema#>
                prefix kgnet:<http://kgnet/>
                select ?Publication ?Title ?Org_Venue ?Pred_Venue  ?Org_author ?Pred_author
@@ -425,10 +623,14 @@ if __name__ == '__main__':
                limit 10
            """
 
-    kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org',KGMeta_endpointUrl="http://206.12.98.118:8890/sparql",RDFEngine=RDFEngine.OpenlinkVirtuoso)
+    # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org',KGMeta_endpointUrl="http://206.12.98.118:8890/sparql",RDFEngine=RDFEngine.OpenlinkVirtuoso)
     # kgnet = KGNET(KG_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query",KGMeta_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query", KG_NamedGraph_IRI='https://dblp2022.org',RDFEngine=RDFEngine.stardog)
-    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_NC2)
-    resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_NC)
+    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_workField_NC)
+    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_NC)
+    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_univ_NC)
+    resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp2022_NC_LP)
+    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_NC)
+    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(nested_Query)
     print(resDF)
     print(MetaQueries)
     #############################################3
