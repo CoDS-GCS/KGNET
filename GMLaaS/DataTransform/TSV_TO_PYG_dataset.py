@@ -1,4 +1,6 @@
 import argparse
+import copy
+
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 import gzip
@@ -397,23 +399,24 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         for rel_list in relations_entites_map[rel]:
             e1, rel, e2 = rel_list
             ############
-            relations_dic[rel]["s_idx"] = relations_dic[rel]["s"]  # .apply(
+            temp_rel_dict=copy.deepcopy(relations_dic[rel])
+            temp_rel_dict["s_idx"] =temp_rel_dict["s"]  # .apply(
             # lambda x: str(x).split("/")[-1])
-            relations_dic[rel]["s_idx"] = relations_dic[rel]["s_idx"].apply(
+            temp_rel_dict["s_idx"] = temp_rel_dict["s_idx"].apply(
                 lambda x: entites_dic[e1 + "_dic"][x] if x in entites_dic[
                     e1 + "_dic"].keys() else -1)
-            relations_dic[rel] = relations_dic[rel][relations_dic[rel]["s_idx"] != -1]
+            temp_rel_dict = temp_rel_dict[temp_rel_dict["s_idx"] != -1]
             ################
             # relations_dic[rel]["o_keys"]=relations_dic[rel]["o"].apply(lambda x:x.split("/")[3] if x.startswith("http") and len(x.split("/")) > 3 else x)
-            relations_dic[rel]["o_idx"] = relations_dic[rel]["o"]  # .apply(
+            temp_rel_dict["o_idx"] = temp_rel_dict["o"]  # .apply(
             # lambda x: str(x).split("/")[-1])
-            relations_dic[rel]["o_idx"] = relations_dic[rel]["o_idx"].apply(
+            temp_rel_dict["o_idx"] = temp_rel_dict["o_idx"].apply(
                 lambda x: entites_dic[e2 + "_dic"][x] if x in entites_dic[
                     e2 + "_dic"].keys() else -1)
-            relations_dic[rel] = relations_dic[rel][relations_dic[rel]["o_idx"] != -1]
+            temp_rel_dict = temp_rel_dict[temp_rel_dict["o_idx"] != -1]
 
-            relations_dic[rel] = relations_dic[rel].sort_values(by="s_idx").reset_index(drop=True)
-            rel_out = relations_dic[rel][["s_idx", "o_idx"]]
+            temp_rel_dict =temp_rel_dict.sort_values(by="s_idx").reset_index(drop=True)
+            rel_out = temp_rel_dict[["s_idx", "o_idx"]]
             if len(rel_out) > 0:
                 map_folder = output_root_path + dataset_name + "/raw/relations/" + e1 + "___" + \
                              rel.split("/")[-1] + "___" + e2

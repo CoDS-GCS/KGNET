@@ -123,47 +123,50 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
     relations_dic = {}
     entites_dic = {}
     for rel in relations_lst:
-        rel_type = rel.split("/")[-1]
-        # rel_type = rel
-        rel_df = g_tsv_df[g_tsv_df["p"] == rel_type].reset_index(drop=True)
-        # print("rel_type ", rel)
-        rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
-        # print(rel_types.columns)
-        # print(len(rel_types))
-        # print('stype', rel_types['stype'])
-        print(rel)
-        s_type = rel_types['stype'].values[0]
-        o_type = rel_types['otype'].values[0]
-        rel_df["s_type"] = s_type
-        rel_df["o_type"] = o_type
-        #########################################################################################
-        rel_entity_types = rel_df[["s_type", "o_type"]].drop_duplicates()
-        list_rel_types = []
-        for idx, row in rel_entity_types.iterrows():
-            list_rel_types.append((row["s_type"], rel, row["o_type"]))
+        try:
+            rel_type = rel.split("/")[-1]
+            # rel_type = rel
+            rel_df = g_tsv_df[g_tsv_df["p"] == rel_type].reset_index(drop=True)
+            # print("rel_type ", rel)
+            rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
+            # print(rel_types.columns)
+            # print(len(rel_types))
+            # print('stype', rel_types['stype'])
+            print(rel)
+            s_type = rel_types['stype'].values[0]
+            o_type = rel_types['otype'].values[0]
+            rel_df["s_type"] = s_type
+            rel_df["o_type"] = o_type
+            #########################################################################################
+            rel_entity_types = rel_df[["s_type", "o_type"]].drop_duplicates()
+            list_rel_types = []
+            for idx, row in rel_entity_types.iterrows():
+                list_rel_types.append((row["s_type"], rel, row["o_type"]))
 
-        relations_entites_map[rel] = list_rel_types
-        # if len(list_rel_types) > 2:
-            # print(len(list_rel_types))
-        relations_dic[rel] = rel_df
-        # e1_list=list(set(relations_dic[rel]["s"].apply(lambda x:str(x).split("/")[:-1])))
-        for rel_pair in list_rel_types:
-            e1, rel, e2 = rel_pair
-            if e1 != "literal" and e1 in entites_dic:
-                entites_dic[e1] = entites_dic[e1].union(
-                    set(rel_df[rel_df["s_type"] == e1]["s"].unique()))  # .apply(
-                # lambda x: str(x).split("/")[-1]).unique()))
-            elif e1 != "literal":
-                entites_dic[e1] = set(rel_df[rel_df["s_type"] == e1]["s"].unique())  # .apply(
-                # lambda x: str(x).split("/")[-1]).unique())
+            relations_entites_map[rel] = list_rel_types
+            # if len(list_rel_types) > 2:
+                # print(len(list_rel_types))
+            relations_dic[rel] = rel_df
+            # e1_list=list(set(relations_dic[rel]["s"].apply(lambda x:str(x).split("/")[:-1])))
+            for rel_pair in list_rel_types:
+                e1, rel, e2 = rel_pair
+                if e1 != "literal" and e1 in entites_dic:
+                    entites_dic[e1] = entites_dic[e1].union(
+                        set(rel_df[rel_df["s_type"] == e1]["s"].unique()))  # .apply(
+                    # lambda x: str(x).split("/")[-1]).unique()))
+                elif e1 != "literal":
+                    entites_dic[e1] = set(rel_df[rel_df["s_type"] == e1]["s"].unique())  # .apply(
+                    # lambda x: str(x).split("/")[-1]).unique())
 
-            if e2 != "literal" and e2 in entites_dic:
-                entites_dic[e2] = entites_dic[e2].union(
-                    set(rel_df[rel_df["o_type"] == e2]["o"].unique()))  # .apply(
-                # lambda x: str(x).split("/")[-1]).unique()))
-            elif e2 != "literal":
-                entites_dic[e2] = set(rel_df[rel_df["o_type"] == e2]["o"].unique())  # .apply(
-                # lambda x: str(x).split("/")[-1]).unique())
+                if e2 != "literal" and e2 in entites_dic:
+                    entites_dic[e2] = entites_dic[e2].union(
+                        set(rel_df[rel_df["o_type"] == e2]["o"].unique()))  # .apply(
+                    # lambda x: str(x).split("/")[-1]).unique()))
+                elif e2 != "literal":
+                    entites_dic[e2] = set(rel_df[rel_df["o_type"] == e2]["o"].unique())  # .apply(
+                    # lambda x: str(x).split("/")[-1]).unique())
+        except Exception as e:
+            print(f"++++++++ DATA_TRANSFORMATION SKIPPING RELATION {rel}: {e} ++++++++")
 
     ############################### Obtain Target node if not explicitly given #########
     if target_node is None:
@@ -446,7 +449,7 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
     # print(dataset_name.split(".")[0] + "_csv_to_Hetrog_time=", end_t - start_t, " sec.")
     dic_results['target_mapping'] = {v : k for k,v in entites_dic[target_node+'_dic'].items()}
     dic_results["csv_to_Hetrog_time"] = (end_t - start_t).total_seconds()
-    print(dic_results)
+    # print(dic_results)
     # pd.DataFrame(dic_results).to_csv(
     #     output_root_path + dataset_name.split(".")[0] + "_PYG_Transformation_times.csv", index=False)
     return dic_results

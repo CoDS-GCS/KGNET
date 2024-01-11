@@ -8,6 +8,7 @@ from GMLaaS.DataTransform.INFERENCE_TSV_TO_PYG import inference_transform_tsv_to
 from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.graph_saint_KGTOSA import graphSaint
 from GMLaaS.models.rgcn.rgcn_link_pred import rgcn_lp
+from GMLaaS.models.MorsE.main import morse
 # from GMLaaS.models.graph_saint_KGTOSA_DEMO import graphSaint
 from GMLaaS.DataTransform.Transform_LP_Dataset import transform_LP_train_valid_test_subsets
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
@@ -217,7 +218,8 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
         transform_LP_train_valid_test_subsets(data_path=KGNET.KGNET_Config.inference_path,
                                               ds_name=dataset_name,
                                               target_rel=meta_dict['subG']['targetEdge'])
-
+        if meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.MorsE:
+            dic_results = morse(dataset_name=dataset_name,root_path=KGNET.KGNET_Config.inference_path,modelID=model_id,)
         dic_results = rgcn_lp(dataset_name=dataset_name,root_path=KGNET.KGNET_Config.inference_path,
                                 loadTrainedModel=1,target_rel=meta_dict['subG']['targetEdge'],list_src_nodes=targetNodes,
                               modelID=model_id,K=topk)
