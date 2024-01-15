@@ -213,7 +213,11 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
             return topKpred(preds, RDFEngine,topk)
             # return topKpred(preds[:1000],topk)
         targetNodes = list(filterTargetNodes(kg_endpoint,targetNodesQuery=targetNodesQuery,apply=False).keys())
-        downloadDataset(dataset_name + '.tsv')
+        if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
+            downloadDataset(dataset_name + '.tsv')
+        elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
+            Constants.utils.DownloadFileFromS3(dataset_name + '.tsv', to_filepath=os.path.join(Constants.KGNET_Config.inference_path, dataset_name)+".tsv", file_type="metadata")
+
 
         transform_LP_train_valid_test_subsets(data_path=KGNET.KGNET_Config.inference_path,
                                               ds_name=dataset_name,
@@ -227,7 +231,11 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
             dic_results = {k : v[0] for k,v in dic_results.items()}
 
         return dic_results
-    downloadDataset(dataset_name + '.zip')
+    if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
+        downloadDataset(dataset_name + '.zip')
+    elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
+        Constants.utils.DownloadFileFromS3(dataset_name + '.zip',to_filepath=os.path.join(Constants.KGNET_Config.inference_path,dataset_name) + ".zip", file_type="metadata")
+        Constants.utils.DownloadFileFromS3(dataset_name + '.param',to_filepath=os.path.join(Constants.KGNET_Config.inference_path,dataset_name) + ".param", file_type="metadata")
     time_subgraph = datetime.datetime.now()
     # subgraph = generate_subgraph(named_graph_uri=named_graph_uri,
     #                              target_rel_uri=meta_dict['subG']['targetEdge'],
@@ -255,7 +263,15 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
     dict_time['transformation_time'] = (datetime.datetime.now() - time_dataTransform).total_seconds()
 
     time_download = datetime.datetime.now()
-    if downloadModel(model_id) and downloadModel(model_id.replace('.model', '.param')):
+    downloaded=False
+    filepath = os.path.join(Constants.KGNET_Config.trained_model_path, model_id)
+    if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
+        downloaded=downloadModel(model_id) and downloadModel(model_id.replace('.model', '.param'))
+    elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
+        downloaded = Constants.utils.DownloadFileFromS3(model_id.replace('.model', ''),to_filepath=filepath) and \
+                     Constants.utils.DownloadFileFromS3(model_id.replace('.model', '.param'),to_filepath=filepath.replace('.model', '.param'),file_type="metadata")
+
+    if downloaded:
         dict_time['model_download_time'] = (datetime.datetime.now() - time_download).total_seconds()
         print('Downloaded model successfully!')
 

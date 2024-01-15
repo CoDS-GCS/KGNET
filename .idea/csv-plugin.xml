@@ -3,56 +3,14 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="/Datasets/DBLP-Springer-Papers/raw/relations/rec___schema#doi___doi/edge.csv">
+        <entry key="/Datasets/dblp2022_Types.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="/Datasets/DBLP-Springer-Papers/raw/relations/rec___schema#doi___doi/edge_reltype.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/DBLP-Springer-Papers/raw/relations/rec___schema#doi___doi/num-edge-list.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/DBLP-Springer-Papers/raw/relations/rec___schema#type___rdf/edge.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/DBLP-Springer-Papers/raw/relations/rec___schema#type___rdf/edge_reltype.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/aifb_Types.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/inference/mapping/labelidx2labelname.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/inference/raw/node-label/Publication/node-label.csv">
+        <entry key="/Datasets/dblp_Types.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -60,20 +18,6 @@
           </value>
         </entry>
         <entry key="/Datasets/lmdb_Types.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/mid-0000052/raw/node-label/Person/node-label.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/Datasets/mid-0000052/raw/triplet-type-list.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

@@ -1,6 +1,6 @@
 ### KGNET is accepted at <a href="https://ieeexplore.ieee.org/document/10184515">ICDE-2023</a>
 # KGNET - A GML-Enabled RDF Engine
-<p><b>Note: We are working on a full release of KGNET with all working functionalities by the end of August </b></p>
+<!--<p><b>Note: We are working on a full release of KGNET with all working functionalities by the end of August </b></p>-->
 <img alt="kgnet_architecture" src="docs/imgs/kgnet.png" width="500"/>
 
 
@@ -42,15 +42,24 @@ conda activate kgnet
   * node classification methods (RGCN) , more methods to be supported soon
 * SPARQL-ML queries
   * Single GML task per query (user defined predicate i.e. kgnet:types/NodeClassifier)
-  * Simple queries ( nested queries , unions , group by ) are not supported
+  * ( nested queries , unions , group by ) queries are not supported
+* RDF Engines
+  * Open-Link Virtuosos
+  * Stardog
 
 ##  KGNET Configration settings
-* Datasets path: path to the trained task sampled subgraph  data 
-* Inference temp data path : temp path to store inference subgraph data
-* trained model path: path to the trained task model file
+* Storage settings either (local file system, Remote File system, S3 storage)
+  * Datasets path: path to the trained task sampled subgraph  data 
+  * Inference data path : temp path to store inference subgraph data
+  * trained model path: path to the trained task model file
+  * Models storage manager API IP/Port : Restful API IP/Port
 * Inference API IP/Port: Restful API IP/Port
-* Model Store API IP/Port : Restful API IP/Port
-* KGMeta KG URL/IRI : Virtuoso endpoint IP/ KG IRI
+* Data KG 
+  * Endpoint url
+  * Named graph URI
+* KGMeta KG  
+  * Endpoint url
+  * Named graph URI
 
 ## 1. Initializing KGNET 
 ### Step 1:  Importing KGNET and setting up the paths.
@@ -58,13 +67,14 @@ Use the following code to import KGNET and set up the path where you want to sto
 ```python
 from KGNET.KGNET import KGNET
 KGNET.KGNET_Config.datasets_output_path="/path/to/datasets/"
+...
 ```
 <u>Note: It is suggested that you observe the default paths inside KGNET/Constants.py and configure them based on your preference.</u>
 
 ### Step 2: Create a KGNET instance and load your Knowledge Graph (KG).
 A KGNET object contains all the necessary details about the KG. You can instantiate a KGNET object with the following example:
 ```python
-kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
+kgnet = KGNET(KG_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query",KGMeta_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query", KG_NamedGraph_IRI='https://dblp2022.org',RDFEngine=RDFEngine.stardog)
 ```
 <u>Note: The above arguments are for the demo scenario. You can replace them with your own KG.</u>
 
@@ -194,6 +204,7 @@ See the full list of supported GML-Operators [here](docs/kgnet_gml_operators.md)
 ## Citing Our Work
 If you find our work useful, please cite it in your research:
 <br>
+```html
 @INPROCEEDINGS{10184515,
   author={Abdallah, Hussein and Mansour, Essam},
   booktitle={2023 IEEE 39th International Conference on Data Engineering (ICDE)}, 
@@ -202,10 +213,30 @@ If you find our work useful, please cite it in your research:
   volume={},
   number={},
   pages={2946-2954},
-  doi={10.1109/ICDE55515.2023.00225}}
+  doi={10.1109/ICDE55515.2023.00225}
+}
 
+
+@article{abdallah2023demonstration,
+  title={Demonstration of SPARQL ML: An Interfacing Language for Supporting Graph Machine Learning for RDF Graphs},
+  author={Abdallah, Hussein and Afandi, Waleed and Mansour, Essam},
+  journal={Proceedings of the VLDB Endowment},
+  volume={16},
+  number={12},
+  pages={3974--3977},
+  year={2023},
+  publisher={VLDB Endowment}
+}
+
+@article{KGTOSA,
+  title={Task-Oriented GNNs Training on Large Knowledge Graphs for Accurate and Efficient Modeling},
+  author={Abdallah, Hussein and Afandi, Waleed and Kalnis, Panos and Mansour, Essam},
+  journal={Proceedings of the VLDB Endowment},
+  publisher={CORR}
+}
+```
 ## Publicity
-This repository is part of our submission to CIDR-2023. We will make it available to the public research community upon acceptance. 
+This repository is part of our submission to ICDE-2023.  
 
 ## Questions
-For any questions please contact us at:<br/> hussein.abdallah@concordia.ca, waleed.afandi@concordia.ca, essam.mansour@concordia.ca  
+For any questions please contact us at:<br/> hussein.abdallah@mail.concordia.ca, waleed.afandi@mail.concordia.ca, essam.mansour@concordia.ca  

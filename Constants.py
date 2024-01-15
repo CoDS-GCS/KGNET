@@ -1,5 +1,9 @@
 import base64
+import os
 from hashlib import sha256
+import requests
+from requests_toolbelt import exceptions
+from requests_toolbelt.downloadutils import stream
 class GNN_Methods:
     Graph_SAINT = "G_SAINT"
     RGCN = "RGCN"
@@ -61,6 +65,10 @@ class GML_Query_Types:
     Delete = "Delete"
     def __init__(self):
        ""
+class FileStorageType:
+    localfile="localfile"
+    remoteFileStore="remoteFileStore"
+    S3="S3"
 class TOSG_Patterns:
     d1h1 = "d1h1"
     d1h2 = "d1h2"
@@ -69,16 +77,30 @@ class TOSG_Patterns:
     def __init__(self):
        ""
 class KGNET_Config:
+    # datasets_output_path = "/mnt/KGNET/Datasets/"
+    # inference_path = datasets_output_path + 'Inference/'
+    # trained_model_path = datasets_output_path + 'trained_models/'
+    # GML_API_URL = "http://206.12.102.12:64647/"
+    # GML_Inference_PORT = "64647"
+    # GML_ModelManager_PORT = "64648"
+    # # GML_ModelManager_URL = "http://206.12.100.114"
+    # GML_ModelManager_URL = "http://0.0.0.0"
+    # KGMeta_IRI = "http://kgnet/"
+    # KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
+
     datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
-    trained_model_path = datasets_output_path + 'trained_models/'
+    trained_model_path = datasets_output_path + 'Inference/'
     GML_API_URL = "http://206.12.102.12:64647/"
     GML_Inference_PORT = "64647"
-    GML_ModelManager_PORT = "64648"
+    # GML_ModelManager_PORT = "64648"
+    GML_ModelManager_PORT = "8443"
     # GML_ModelManager_URL = "http://206.12.100.114"
-    GML_ModelManager_URL = "http://206.12.102.12"
+    # GML_ModelManager_URL = "http://206.12.102.12"
+    GML_ModelManager_URL = "http://206.12.99.253"
     KGMeta_IRI = "http://kgnet/"
     KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
+    fileStorageType=FileStorageType.S3
     def __init__(self):
        ""
 
@@ -179,11 +201,64 @@ class utils:
     @staticmethod
     def get_sha256(s):
         return sha256(s.encode('utf-8')).hexdigest()
+    @staticmethod
+    def uploadFileToS3(filepath,file_type="model"):
+        # Generate a random file for the demo
+        filename = os.path.split(filepath)[-1]
+        # Define the API endpoint and the headers
+        if file_type.lower() == "model":
+            model_api_url = KGNET_Config.GML_ModelManager_URL + ":" + KGNET_Config.GML_ModelManager_PORT + "/model"
+            filepath=filepath+".model" if filename.endswith(".model")==False else filepath
+        elif file_type.lower() == "metadata":
+            model_api_url = KGNET_Config.GML_ModelManager_URL + ":" + KGNET_Config.GML_ModelManager_PORT + "/metadata"
+        headers = {"accept": "application/json"}
+        # Perform the file upload
+        with open(filepath, "rb") as f:
+            response = requests.post(model_api_url, files={"model_file": f}, headers=headers)
+        # Print the response from the server
+        print(response.status_code)
+        print(response.text)
+        # Use the response to get the model's path in S3
+        response_data = response.json()
+        s3_path = response_data.get("s3_path")
+        return s3_path
+
+        # # Fetch the model from the server
+        # get_url = model_api_url+f"/{filename}"
+        # response_get = requests.get(get_url, headers=headers)
+        # Print the status and save the retrieved file for verification if needed
+        # print(response_get.status_code)
+        # Print the content of the retrieved file
+        # print("Content of the retrieved file:")
+        # print(response_get.text)
+        # return response_get.text
+
+    def DownloadFileFromS3(filename,to_filepath,file_type="model"):
+        # Define the API endpoint and the headers
+        if file_type.lower()=="model":
+            model_api_url = KGNET_Config.GML_ModelManager_URL + ":" + KGNET_Config.GML_ModelManager_PORT + "/model/"
+            filename = filename.replace(".model","")
+        elif file_type.lower() == "metadata":
+            model_api_url = KGNET_Config.GML_ModelManager_URL + ":" + KGNET_Config.GML_ModelManager_PORT + "/metadata/"
+        headers = {"accept": "application/json"}
+        # Perform the file download
+        response = requests.get(model_api_url+f"{filename}", stream=True)
+        if os.path.exists(to_filepath):
+            os.remove(to_filepath)
+        try:
+            filename = stream.stream_response_to_file(response,path=to_filepath)
+        except exceptions.StreamingError as e:
+            print(e.message)
+            return False
+        return True
 
 if __name__ == '__main__':
-    input="graph sainr->dblp->NC->03012024"
-    encoded_String=utils.getBase64EncodedVal(input)
-    print("encoded_String=",encoded_String)
-    decoded_String=utils.decodeBase64(encoded_String)
-    print("decoded_String=", decoded_String)
-    print(utils.get_sha256(input))
+    ""
+    # input="graph sainr->dblp->NC->03012024"
+    # encoded_String=utils.getBase64EncodedVal(input)
+    # print("encoded_String=",encoded_String)
+    # decoded_String=utils.decodeBase64(encoded_String)
+    # print("decoded_String=", decoded_String)
+    # print(utils.get_sha256(input))
+    # utils.uploadFileToS3("/home/hussein/Downloads/HMP.pdf",file_type="metadata")
+    # utils.DownloadFileFromS3("mid-4d7c0825f06b2e2fea2866d2ec9e97fca4422649127983dde2a409020b5abadb","/home/hussein/Downloads/4d7c0825f06b2e2fea2866d2ec9e97fca4422649127983dde2a409020b5abadb.model",file_type="model")

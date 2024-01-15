@@ -185,19 +185,31 @@ class KGMeta_Governer(sparqlEndpoint):
 
     def getGMLTaskModelsBasicInfoByID(self, tid):
         mid_query = """PREFIX kgnet: <https://www.kgnet.com/>  
-                           select ?mid as ?s ?p ?o
-                           from <""" + KGNET_Config.KGMeta_IRI + """> where { ?s <kgnet:GMLTask/id> """ + str(tid) + " . ?s <kgnet:GMLTask/modelID> ?mid. ?mid ?p ?o .}"
+                           select (?mid as ?s) ?p ?o
+                           from <""" + KGNET_Config.KGMeta_IRI + """> 
+                           where { ?t <kgnet:GMLTask/id> ?tid.
+                                   ?t <kgnet:GMLTask/modelID> ?mid. 
+                                   ?mid ?p ?o .
+                                   filter(str(?tid)=\"?p_tid\").
+                                 }"""
+        tid=tid.split("tid-")[-1]
+        try:
+            tid=str(int(tid))
+        except:
+           tid=tid
+        mid_query=mid_query.replace("?p_tid",tid)
         res_df = self.executeSparqlquery(mid_query)
-        res_df["s"] = res_df["s"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") else x)
-        res_df["p"] = res_df["p"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") else x)
-        res_df["o"] = res_df["o"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") else x)
+        res_df.columns = ["s", "p", "o"]
+        res_df["s"] = res_df["s"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<")  else x)
+        res_df["p"] = res_df["p"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else x)
+        res_df["o"] = res_df["o"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else x)
         models_lst=res_df[res_df["p"]=="kgnet:GMLModel/id"]["s"].unique().tolist()
         p_list = res_df["p"].unique().tolist()
         models_info_list=[]
         for model_uri in models_lst:
             basic_info = {}
             model_df=res_df[res_df["s"]==model_uri]
-            basic_info["Model ID"] = int(model_uri.split('-')[1])
+            basic_info["Model ID"] = model_uri.split('mid-')[-1]
             basic_info["GNN Method"] = model_df[model_df["p"] == "kgnet:GMLModel/GNNMethod"]["o"].values[0]
             # basic_info["Iinference Time"] = res_df[res_df["p"] == "kgnet:GMLModel/inferenceTime"]["o"].values[0]
             basic_info["Training Memory GB."] = float(
