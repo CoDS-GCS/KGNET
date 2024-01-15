@@ -27,7 +27,9 @@ class Trainer(object):
         self.logger.info(json.dumps(vars(args)))
 
         # state dir
-        self.state_path = os.path.join(args.state_dir, self.name)
+        # self.state_path = os.path.join(args.state_dir, self.name)
+        self.state_path = os.path.join(args.state_dir)
+
         if not os.path.exists(self.state_path):
             os.makedirs(self.state_path)
 
@@ -48,15 +50,22 @@ class Trainer(object):
                  'rgcn': self.rgcn.state_dict(),
                  'kge_model': self.kge_model.state_dict()}
         # delete previous checkpoint
-        for filename in os.listdir(self.state_path):
+        for filename in os.listdir(self.state_path,):
             if self.name in filename.split('.') and os.path.isfile(os.path.join(self.state_path, filename)):
                 os.remove(os.path.join(self.state_path, filename))
         # save checkpoint
-        torch.save(state, os.path.join(self.args.state_dir+self.name+ '.' + str(step) + '.ckpt'))
+        # torch.save(state, os.path.join(self.args.state_dir+self.name+ '.' + str(step) + '.ckpt'))
+        torch.save(state, os.path.join(self.state_path , self.name + '.' + str(step) + '.ckpt'))
 
     def save_model(self, best_step):
-        os.rename(os.path.join(self.state_path+'.' + str(best_step) + '.ckpt'),
-                  os.path.join(self.state_path+ '.model'))
+        os.rename(os.path.join(self.state_path, self.name +'.' + str(best_step) + '.ckpt'),
+                  os.path.join(self.state_path, self.name + '.model'))
+
+    def load_model(self,model_root,model_name):
+        model = torch.load(os.path.join(model_root,model_name))
+        self.ent_init.load_state_dict(model['ent_init'])
+        self.rgcn.load_state_dict(model['rgcn'])
+        self.kge_model.load_state_dict(model['kge_model'])
 
     def write_training_loss(self, loss, step):
         self.writer.add_scalar("training/loss", loss, step)
@@ -68,7 +77,7 @@ class Trainer(object):
         self.writer.add_scalar("evaluation/hits1", results['hits@1'], e)
 
     def before_test_load(self):
-        state = torch.load(os.path.join(self.state_path + '.model'), map_location=self.args.gpu)
+        state = torch.load(os.path.join(self.state_path,self.name + '.model'), map_location=self.args.gpu)
         self.ent_init.load_state_dict(state['ent_init'])
         self.rgcn.load_state_dict(state['rgcn'])
         self.kge_model.load_state_dict(state['kge_model'])
@@ -95,16 +104,26 @@ class Trainer(object):
 
         return ent_emb
 
-    def evaluate(self, ent_emb, eval_dataloader, num_cand='all'):
+    def evaluate(self, ent_emb, eval_dataloader, num_cand='all',inference=False,k=1):
         results = ddict(float)
         count = 0
 
         eval_dataloader.dataset.num_cand = num_cand
 
+        if inference:
+            results = []
+            for batch in eval_dataloader:
+                pos_triple, tail_label, head_label = [b.to(self.args.gpu) for b in batch]
+                pred = self.kge_model((pos_triple, None), ent_emb, mode='tail-batch')
+                _, topk_indices = torch.topk(pred, k, dim=1)
+                results.append(topk_indices)
+            return torch.cat(results,dim=0)
+
         if num_cand == 'all':
             for batch in eval_dataloader:
                 pos_triple, tail_label, head_label = [b.to(self.args.gpu) for b in batch]
                 head_idx, rel_idx, tail_idx = pos_triple[:, 0], pos_triple[:, 1], pos_triple[:, 2]
+                pred = self.kge_model((pos_triple, None), ent_emb, mode='tail-batch')
 
                 # tail prediction
                 pred = self.kge_model((pos_triple, None), ent_emb, mode='tail-batch')
@@ -190,6 +209,14 @@ class Trainer(object):
             results['hits@5'], results['hits@10']))
 
         return results
+
+    def inference(self,triples,k=1):
+        ent_emb = self.get_ent_emb(self.indtest_train_g)
+        # results = self.evaluate(ent_emb, self.indtest_test_dataloader,inference=True,k=k)
+        preds = self.kge_model((triples, None), ent_emb, mode='tail-batch')
+        _, topk_indices = torch.topk(preds, k, dim=1)
+        return topk_indices
+
 
     def evaluate_indtest_test_triples(self, num_cand='all'):
         """do evaluation on test triples of ind-test-graph"""

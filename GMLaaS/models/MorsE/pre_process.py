@@ -186,17 +186,23 @@ def data2pkl_Trans_to_Ind(datapath='data',data_name=None,fsep='\t',logger=None):
     test_f_name = 'test.txt'
     train_df = pd.read_csv(datapath+data_name+"/"+train_f_name, sep=fsep, header=None)
     train_df.columns=["s","p","o"]
-    train_df=train_df.apply(lambda x: x.str.strip())
+#   train_df=train_df.apply(lambda x: x.str.strip())
+    train_df = train_df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
     train_entites_lst = list(set(set(train_df["s"].tolist()).union(set(train_df["o"].tolist()))))
     # train_rel_lst = list(set(train_df["p"].tolist()))
     valid_df = pd.read_csv(datapath+data_name+"/"+valid_f_name, sep=fsep, header=None)
     valid_df.columns=["s","p","o"]
-    valid_df=valid_df.apply(lambda x: x.str.strip())
+    # valid_df=valid_df.apply(lambda x: x.str.strip())
+    valid_df = valid_df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
     valid_entites_lst = list(set(set(valid_df["s"].tolist()).union(set(valid_df["o"].tolist()))))
     # valid_rel_lst = list(set(valid_df["p"].tolist()))
     test_df = pd.read_csv(datapath+data_name+"/"+test_f_name, sep=fsep, header=None)
     test_df.columns=["s","p","o"]
-    test_df=test_df.apply(lambda x: x.str.strip())
+    # test_df=test_df.apply(lambda x: x.str.strip())
+    test_df=test_df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
     test_entites_lst = list(set(set(test_df["s"].tolist()).union(set(test_df["o"].tolist()))))
     # test_rel_lst = list(set(test_df["p"].tolist()))
 
