@@ -64,7 +64,7 @@ def uploadModel(model_path):
             utils.uploadFileToS3(os.path.join(Constants.KGNET_Config.trained_model_path,model_path) ,file_type="model")
             utils.uploadFileToS3(os.path.join(Constants.KGNET_Config.trained_model_path,model_path + '.param'),file_type="metadata")
     except Exception as e:
-        print(e)
+        print("uploadModel Failed:",e)
 
 
 def cmd_run_training_pipeline(path_json=None, path_transformation_py='DataTransform/TSV_TO_PYG_dataset.py',
@@ -90,51 +90,54 @@ def run_training_pipeline(json_args):
                                                       split_rel="random",
                                                       target_rel=json_args["transformation"]["target_rel"],
                                                       similar_target_rels=[],
-                                                      target_node=None,
                                                       output_root_path=json_args["transformation"]["output_root_path"],
-                                                      MINIMUM_INSTANCE_THRESHOLD=json_args["transformation"][
-                                                          "MINIMUM_INSTANCE_THRESHOLD"],
+                                                      MINIMUM_INSTANCE_THRESHOLD=json_args["transformation"]["MINIMUM_INSTANCE_THRESHOLD"],
                                                       test_size=json_args["transformation"]["test_size"],
                                                       valid_size=json_args["transformation"]["valid_size"],
                                                       split_rel_train_value=None,
-                                                      split_rel_valid_value=None)
-
+                                                      split_rel_valid_value=None,
+                                                      labelNodetype=json_args["transformation"]["label_node_type"],
+                                                      targetNodeType=json_args["transformation"]["target_node_type"])
+        print("Task ClassesCount:",transform_results_dict["ClassesCount"])
         if json_args["training"]["GNN_Method"] == Constants.GNN_Methods.Graph_SAINT:
-            train_results_dict = graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=20,
+            train_results_dict = graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005,
+                                            epochs=(json_args["training"]["epochs"] if "epochs" in json_args["training"].keys() else 20),
                                             runs=1, batch_size=20000,
                                             walk_length=2, num_steps=10, loadTrainedModel=0,
                                             dataset_name=json_args["training"]["dataset_name"],
                                             root_path=json_args["training"]["root_path"],
                                             output_path=json_args["training"]["root_path"],
                                             include_reverse_edge=True,
-                                            n_classes=1000,
-                                            emb_size=128,
+                                            n_classes=transform_results_dict["ClassesCount"],
+                                            emb_size=(json_args["training"]["embSize"] if "embSize" in json_args["training"].keys() else 128),
                                             label_mapping=transform_results_dict['label_mapping']
                                             )
             uploadModel(train_results_dict['model_name'])
 
         elif json_args["training"]["GNN_Method"] == Constants.GNN_Methods.RGCN:
-            train_results_dict = rgcn(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005, epochs=5,
+            train_results_dict = rgcn(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005,
+                                      epochs=(json_args["training"]["epochs"] if "epochs" in json_args["training"].keys() else 20),
                                       runs=1, batch_size=20000,
                                       walk_length=2, num_steps=10, loadTrainedModel=0,
                                       dataset_name=json_args["training"]["dataset_name"],
                                       root_path=json_args["training"]["root_path"],
                                       output_path=json_args["training"]["root_path"],
                                       include_reverse_edge=True,
-                                      n_classes=1000,
-                                      emb_size=128)
+                                      n_classes=transform_results_dict["ClassesCount"],
+                                      emb_size=(json_args["training"]["embSize"] if "embSize" in json_args["training"].keys() else 128))
             uploadModel(train_results_dict['model_name'])
 
         elif json_args["training"]["GNN_Method"] == Constants.GNN_Methods.ShaDowGNN:
             train_results_dict = graphShadowSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5, lr=0.005,
-                                                  epochs=5, runs=1, batch_size=20000,
+                                                  epochs= (json_args["training"]["epochs"] if "epochs" in json_args["training"].keys() else 20),
+                                                  runs=1, batch_size=20000,
                                                   walk_length=2, num_steps=10, loadTrainedModel=0,
                                                   dataset_name=json_args["training"]["dataset_name"],
                                                   root_path=json_args["training"]["root_path"],
                                                   output_path=json_args["training"]["root_path"],
                                                   include_reverse_edge=True,
-                                                  n_classes=1000,
-                                                  emb_size=128,
+                                                  n_classes=transform_results_dict["ClassesCount"],
+                                                  emb_size=(json_args["training"]["embSize"] if "embSize" in json_args["training"].keys() else 128),
                                                   label_mapping=transform_results_dict['label_mapping'])
             uploadModel(train_results_dict['model_name'])
 
@@ -147,12 +150,16 @@ def run_training_pipeline(json_args):
             delm='\t', containHeader=False)
         if json_args["training"]["GNN_Method"] == Constants.GNN_Methods.MorsE:
             train_results_dict = run_morse(dataset_name=json_args["training"]["dataset_name"],
-                                           root_path=json_args["training"]["root_path"])
+                                           root_path=json_args["training"]["root_path"],
+                                           epochs=(json_args["training"]["epochs"] if "epochs" in json_args["training"].keys() else 5),
+                                           embSize=(json_args["training"]["embSize"] if "embSize" in json_args["training"].keys() else 128))
 
         elif json_args['training']['GNN_Method'] == Constants.GNN_Methods.RGCN:
             train_results_dict = rgcn_lp(dataset_name=json_args["training"]["dataset_name"],
-                                         root_path=json_args["training"]["root_path"])
-            uploadModel(train_results_dict['model_name'])
+                                         root_path=json_args["training"]["root_path"],
+                                         epochs=(json_args["training"]["epochs"] if "epochs" in json_args["training"].keys() else 5),
+                                         hidden_channels=(json_args["training"]["embSize"] if "embSize" in json_args["training"].keys() else 10))
+        uploadModel(train_results_dict['model_name'])
 
     # UPLOAD DATASET
 

@@ -5,7 +5,7 @@ from MorsE.main import morse
 from MorsE.utils import init_dir,Log
 import Constants
 
-def run_morse(dataset_name,root_path):
+def run_morse(dataset_name,root_path,epochs=None,embSize=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_name', default='FB15K23')
     parser.add_argument('--name', default='FB15K23', type=str)
@@ -62,6 +62,8 @@ def run_morse(dataset_name,root_path):
     args.dataset_name = dataset_name
     args.root_path = root_path
     args.name = args.dataset_name
+    args.emb_dim=128 if embSize is None else embSize
+    args.metatrain_num_epoch = 5 if epochs is None else epochs
     return morse(dataset_name=args.dataset_name, root_path=args.root_path, args=args,
           step=args.step, seed=args.seed)
 

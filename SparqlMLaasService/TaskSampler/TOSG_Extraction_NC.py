@@ -7,6 +7,7 @@ import argparse
 from threading import Thread
 import threading
 from  Constants import RDFEngine
+import validators
 lock = threading.Lock()
 def ExecQueryAndWriteOutput(endpoint_url,query, offset, batch_size,batches_count, f,RDFEngine=RDFEngine.OpenlinkVirtuoso):
     start_t = datetime.datetime.now()
@@ -34,7 +35,24 @@ def ExecQuery(endpoint_url,query):
                'Accept': 'text/tab-separated-values; charset=UTF-8'}
     r = requests.post(endpoint_url, data=body, headers=headers)
     return r.text.split('\n')[1]
-def get_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
+def get_KG_entity_types(graph_uri):
+    query = """select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+              from <""" + graph_uri + """>
+              where
+              {
+                  select  ?s as ?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> as ?p ?o as ?o 
+                  from <""" + graph_uri + """>
+                  where
+                  {
+                       ?s a ?o.
+                  }
+              }
+              offset ?offset
+              limit ?limit 
+           """
+    return query
+
+def get_d1h1_query(graph_uri,target_rel_uri,stype=None,otype=None,tragetNode_filter_statments=None):
     query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
            from <"""+graph_uri+""">
            where
@@ -42,23 +60,44 @@ def get_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
                 select ?s ?p ?o
                 where
                 {
-                ?s <"""+target_rel_uri+"""> ?label.
-                ?s ?p ?o.
-                filter(!isBlank(?o)).\n"""
-
+                ?s <"""+target_rel_uri+"""> ?label. \n"""
+    query+=("" if stype is None else (" ?s a <"+stype+"> ." if validators.url(stype) else "?s a ?stype. \n filter(?stype="+"\""+stype+"\") . \n"))
+    query+=("" if otype is None else ("?label a  <"+otype+"> ." if validators.url(otype) else "?label a ?ltype. \n filter(?ltype="+"\""+otype+"\") . \n"))
+    query+=""" ?s ?p ?o.
+              filter(!isBlank(?o)).\n"""
     if tragetNode_filter_statments:
         query += tragetNode_filter_statments
         for statement in tragetNode_filter_statments:
             query+=statement
+    query += """} }
+          offset ?offset
+          limit ?limit """
 
+    query_o_t = """select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+               from <""" + graph_uri + """>
+               where
+               {
+                    select ?o as ?s 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'  as ?p ?ot as ?o
+                    where
+                    {
+                        ?s <""" + target_rel_uri + """> ?label. \n"""
+    query_o_t += ("" if stype is None else (" ?s a <" + stype + "> ." if validators.url(
+        stype) else "?s a ?stype. \n filter(?stype=" + "\"" + stype + "\") . \n"))
+    query_o_t += ("" if otype is None else ("?label a  <" + otype + "> ." if validators.url(
+        otype) else "?label a ?ltype. \n filter(?ltype=" + "\"" + otype + "\") . \n"))
+    query_o_t += """ ?s ?p ?o.
+                     ?o a ?ot.
+                     filter(!isLiteral(?o)).\n"""
+    if tragetNode_filter_statments:
+        query_o_t += tragetNode_filter_statments
+        for statement in tragetNode_filter_statments:
+            query += statement
+    query_o_t += """} }  
+               offset ?offset
+              limit ?limit """
 
-    query+="""}
-                offset ?offset
-                limit ?limit
-           }
-        """
-    return query
-def get_d2h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
+    return query,query_o_t
+def get_d2h1_query(graph_uri,target_rel_uri,stype=None,otype=None,tragetNode_filter_statments=None):
     query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
             from <"""+graph_uri+""">
             where
@@ -66,17 +105,25 @@ def get_d2h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
                  select ?o2 as ?s  ?p2 as ?p  ?s as ?o
                  where
                  {
-                  ?s <"""+target_rel_uri+"""> ?label.
-                  ?o2 ?p2 ?s.
-                  filter(!isBlank(?o2)).\n"""
-    if tragetNode_filter_statments:
-        query+=tragetNode_filter_statments
-    query+="""\n}
-                limit ?limit 
+                    ?o2 ?p2 ?s.
+                    filter(!isBlank(?o2)).
+                    {
+                        select distinct ?s 
+                        from <"""+graph_uri+""">
+                        where
+                        {
+                            ?s <"""+target_rel_uri+"""> ?label. \n"""
+    query += ("" if stype is None else (" ?s a <" + stype + "> ." if validators.url(stype) else "?s a ?stype. \n filter(?stype=" + "\"" + stype + "\") . \n"))
+    query += ("" if otype is None else ("?label a  <" + otype + "> ." if validators.url(otype) else "?label a ?ltype. \n filter(?ltype=" + "\"" + otype + "\") . \n"))
+    query += ("" if tragetNode_filter_statments is None else tragetNode_filter_statments )
+    query+="""} } }  \n"""
+
+    query+="""  limit ?limit 
                 offset ?offset
             } 
             """
-    return [get_d1h1_query(graph_uri,target_rel_uri,tragetNode_filter_statments),query]
+    query_spo,query_o_types=get_d1h1_query(graph_uri, target_rel_uri, stype=stype, otype=otype,tragetNode_filter_statments=tragetNode_filter_statments)
+    return [query_spo,query_o_types,query]
 def get_d1h2_query(graph_uri,target_rel_uri):
     query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
             from <"""+graph_uri+""">

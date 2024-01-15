@@ -7,6 +7,7 @@ from Constants import utils as kgnet_utils, GML_Operator_Types,GML_Query_Types,K
 from GMLaaS.run_pipeline import run_training_pipeline
 from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
 from SparqlMLaasService.gmlRewriter import gmlQueryParser,gmlQueryRewriter
+from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_KG_entity_types as get_KG_entity_types
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_query as get_NC_d1h1_query
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d2h1_query as get_NC_d2h1_query
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_LP import write_d2h1_TOSG,get_LP_d1h1_query,get_LP_d2h1_query
@@ -33,12 +34,17 @@ class gmlInsertOperator(gmlOperator):
                     tragetNode_filter_statments+=filter_vals[idx]+".\n"
 
         if task_var == GML_Operator_Types.NodeClassification:
-            target_rel_uri=query_dict["insertJSONObject"]["GMLTask"]["targetEdge"]
+            stype=query_dict["insertJSONObject"]["GMLTask"]["targetNode"]
+            otype = query_dict["insertJSONObject"]["GMLTask"]["labelNode"] if "labelNode" in query_dict["insertJSONObject"]["GMLTask"].keys() else None
+            target_rel_uri = query_dict["insertJSONObject"]["GMLTask"]["targetEdge"]
             named_graph_uri=query_dict["insertJSONObject"]["GMLTask"]["namedGraphURI"]
+            types_query=get_KG_entity_types(graph_uri=named_graph_uri)
             if TOSG=="d1h1":
-                query=[get_NC_d1h1_query(graph_uri=named_graph_uri,target_rel_uri=target_rel_uri,tragetNode_filter_statments=tragetNode_filter_statments)]
+                query_spo,query_o_types=get_NC_d1h1_query(graph_uri=named_graph_uri, target_rel_uri=target_rel_uri,tragetNode_filter_statments=tragetNode_filter_statments, stype=stype, otype=otype)
+                query=[query_spo,query_o_types]
             elif TOSG=="d2h1":
-                query=get_NC_d2h1_query(graph_uri=named_graph_uri,target_rel_uri=target_rel_uri,tragetNode_filter_statments=tragetNode_filter_statments)
+                query=get_NC_d2h1_query(graph_uri=named_graph_uri,target_rel_uri=target_rel_uri,tragetNode_filter_statments=tragetNode_filter_statments,stype=stype,otype=otype)
+            # query.append(types_query)
             self.KG_sparqlEndpoint.execute_sparql_multithreads(query,output_path,start_offset=0, batch_size=10**5, threads_count=16,rows_count=None)
         if task_var == GML_Operator_Types.LinkPrediction:
             target_rel_uri=query_dict["insertJSONObject"]["GMLTask"]["targetEdge"]
@@ -88,13 +94,17 @@ class gmlInsertOperator(gmlOperator):
                 "test_size": 0.1,
                 "valid_size": 0.1,
                 "MINIMUM_INSTANCE_THRESHOLD": 6,
-                "output_root_path": KGNET_Config.datasets_output_path
+                "output_root_path": KGNET_Config.datasets_output_path,
+                "target_node_type": query_dict["insertJSONObject"]["GMLTask"]["targetNode"],
+                "label_node_type": (query_dict["insertJSONObject"]["GMLTask"]["labelNode"] if "labelNode" in query_dict["insertJSONObject"]["GMLTask"].keys() else None)
             },
             "training":
                 {"dataset_name": ds_name,
                  "n_classes": 1000,
                  "root_path":  KGNET_Config.datasets_output_path,
                  "GNN_Method":query_dict["insertJSONObject"]["GMLTask"]["GNNMethod"],
+                 "epochs": (query_dict["insertJSONObject"]["GMLTask"]["epochs"] if "epochs" in query_dict["insertJSONObject"]["GMLTask"].keys() else None),
+                 "embSize": (query_dict["insertJSONObject"]["GMLTask"]["embSize"] if "embSize" in query_dict["insertJSONObject"]["GMLTask"].keys() else None)
                  }
         }
         return train_pipeline_dict
@@ -147,11 +157,11 @@ class gmlInferenceOperator(gmlOperator):
         self.GML_Query_Type = GML_Query_Types.Inference
     def executeQuery(self, query):
         gmlqp = gmlQueryParser(query)
-        dataInferQ,dataQ,tragetNodesq, kmetaq,model_id = gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(), self.KGMeta_Governer_obj).rewrite_gml_query()
+        dataInferQ,dataQ,tragetNodesq, kgmeta_model_queries_dict,model_ids = gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(), self.KGMeta_Governer_obj).rewrite_gml_query()
         # print("KGMeta task select query= \n",kmetaq)
         # print("SPARQL candidate query form 2= \n",dataInferQ)
         # print("SPARQLdata only Query=\n", dataQ)
-        return dataInferQ,dataQ,tragetNodesq,kmetaq,model_id
+        return dataInferQ,dataQ,tragetNodesq,kgmeta_model_queries_dict,model_ids
 
 if __name__ == '__main__':
     ""
