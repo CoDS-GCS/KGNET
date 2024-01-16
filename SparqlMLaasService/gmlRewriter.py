@@ -2,6 +2,8 @@ import json
 import rdflib
 import re
 from rdflib.plugins.sparql.parser import parseQuery as rdflibParseQuery
+from rdflib.plugins.sparql.parserutils import CompValue
+from pyparsing.results import ParseResults
 import Constants
 
 """ Production """
@@ -69,6 +71,59 @@ clf_fxn = {#'nodeclassifier':'getNodeClass',
             'types/nodeclassifier':'getNodeClass_v2',
             'kgnet:types/nodeClassifier':'getNodeClass_v2'
           }
+class gmlQueryFormatter:
+    pre_keywords_lst = ['ParseResults', 'PrefixDecl_', 'SelectQuery_', '\'projection\'', 'vars_',
+                    '\'datasetClause\'', '\'where\'', 'Filter_', 'OptionalGraphPattern_','GroupOrUnionGraphPattern_''GroupGraphPatternSub_', 'SubSelect_']
+    post_keywords_lst = [ "{}),"]
+    # '[', ']'
+    @staticmethod
+    def format_gml_query_tree(gml_statments_dict,str_result="",indent=""):
+        subselect_lst=[]
+        for key in gml_statments_dict.keys():
+            if str(key) in ['query_type','from','limit','offset'] and gml_statments_dict[key] is not None:
+                str_result+=indent+str(key)+": "+gml_statments_dict[key]+"\n"
+            elif str(key) == 'prefixes:':
+                str_result += str(key) + " \n"
+                for prefix in gml_statments_dict[key]:
+                    str_result+=indent+"\t|"+prefix+":"+gml_statments_dict[key][prefix]+"\n"
+            elif str(key) == 'select':
+                str_result += indent+"projection_variables:" + "\n"
+                for var in gml_statments_dict[key]:
+                    str_result+=indent+"\t|Type:"+var['type']+"\tName:"+var['name']
+                    if 'args' in var.keys():
+                        str_result +="\t|args:"+str(var['args'])
+                    str_result +="\n"
+            elif str(key) == 'triples':
+                str_result += indent+"triples:" + "\n"
+                for t in gml_statments_dict[key]:
+                    str_result += indent+"\t|"+str(t)+"\n"
+            elif str(key) == 'optional_triples' and len(gml_statments_dict[key])>0:
+                str_result += indent+"optional_triples:" + "\n"
+                for t in gml_statments_dict[key]:
+                    str_result += indent+"\t|" + str(t) + "\n"
+            elif str(key) == 'Filter' and len(gml_statments_dict[key])>0:
+                str_result += indent+"filters:" + "\n"
+                for t in gml_statments_dict[key]:
+                    str_result += indent+"\t|" + str(t) + "\n"
+            elif str(key) == 'SubSelect':
+                subselect_lst.append(gml_statments_dict[key])
+        for subselect in subselect_lst:
+            str_result += indent + "SubSelect query:" + "\n"
+            str_result=gmlQueryFormatter.format_gml_query_tree(subselect,str_result,indent+"\t|")
+        return str_result
+
+    @staticmethod
+    def format_gml_query_str(gml_query):
+        for keyword in gmlQueryFormatter.pre_keywords_lst:
+            gml_query=gml_query.replace(keyword,"\n"+keyword)
+        for keyword in gmlQueryFormatter.post_keywords_lst:
+            gml_query = gml_query.replace(keyword, keyword+"\n")
+        gml_query = gml_query.replace("\n \n", "\n")
+        return gml_query
+
+    @staticmethod
+    def highlight_gml_query_str(self, gml_query):
+        return gmlQueryFormatter.format_gml_query(gml_query)
 
 class gmlQueryParser:
     """
@@ -79,7 +134,7 @@ class gmlQueryParser:
     The flow of of this module is as following:
         -> extract ()
         -> gen_queries ()
-        -> filter_triples ()
+        -> split_data_gml_triples ()
         -> prep_gml_vars ()
         -> construct_gml_q ()
         -> construct_data_q ()
@@ -88,10 +143,136 @@ class gmlQueryParser:
     def __init__(self,gmlquery):
        self.gmlquery=gmlquery
        self.query_statments ={}
+    def breakdown_Sparql_Where_statment(self,where_part):
+        projection_variable_lst = []
+        for s in where_part['projection']:
+            var_dict = {}
+            if 'var' in s.keys():
+                var_dict['type']='variable'
+                var_dict['name']=str(s['var'])
+                var_dict['variable'] = s['var']
+            elif 'expr' in s.keys():
+                var_dict['type'] = 'function'
+                expr_variable=s['expr']
+                while ((type(expr_variable) is rdflib.plugins.sparql.parserutils.Expr)
+                        and (expr_variable.name.split('_')[-1] not in ['Builtin_','Function'])
+                        and 'expr' in expr_variable.keys()):
+                    expr_variable=expr_variable['expr']
+                if expr_variable.name.startswith('Builtin_'):
+                    exp_func=expr_variable.name.split("_")[1]
+                    var_dict["name"]= exp_func
+                    var_dict['args'] = {}
+                    for idx,key in enumerate(expr_variable.keys()):
+                        expr_arg = expr_variable[key]
+                        while (type(expr_arg) is rdflib.plugins.sparql.parserutils.Expr) and 'expr' in expr_arg:
+                            expr_arg = expr_arg['expr']
+                        if type(expr_arg) is rdflib.term.Variable:
+                            var_dict['args']["arg"+str(idx)] = expr_arg
+                elif expr_variable.name=='Function':
+                    exp_func=expr_variable['iri']['prefix']+":"+expr_variable['iri']['localname']
+                    expr_variable = expr_variable['expr']
+                    var_dict["name"]= exp_func
+                    var_dict['args']={}
+                    for idx,expr_arg in enumerate(expr_variable):
+                        while (type(expr_arg) is rdflib.plugins.sparql.parserutils.Expr) and 'expr' in expr_arg:
+                            expr_arg = expr_arg['expr']
+                        if type(expr_arg) is rdflib.term.Variable:
+                            var_dict['args']["arg"+str(idx)] = expr_arg
+            if 'evar' in s.keys():
+                var_dict['alias']=s['evar']
+            projection_variable_lst.append(var_dict)
+
+        from_graph=None
+        if 'datasetClause' in where_part:
+             from_graph= str(where_part['datasetClause'][0]['default'])
+        triples_list = []
+        optional_triples_list = []
+        filter_stmt_list = []
+        SubSelect=None
+        for where_stmt in where_part['where']['part']:
+            if where_stmt.name == "TriplesBlock":
+                for t in where_stmt['triples']:  # iterating through the triples
+                    triples = {}
+                    # subject = str(t[0])
+                    subject = t[0]
+                    if isinstance(t[1], rdflib.term.Variable):  # if predicate is a variable
+                        # predicate = str(t[1])
+                        predicate = t[1]
+                    elif isinstance(t[1]['part'][0]['part'][0]['part'],
+                                    rdflib.term.URIRef):  # else if predicate is a URI
+                        predicate = str(t[1]['part'][0]['part'][0]['part'])
+                    else:  # else it is a prefix:postfix pair
+                        p_prefix = str(t[1]['part'][0]['part'][0]['part']['prefix'])
+                        p_lName = str(t[1]['part'][0]['part'][0]['part']['localname'])
+                        predicate = (p_prefix, p_lName)
+
+                    object_ = t[2]
+                    if not isinstance(object_, (
+                            rdflib.term.Variable, rdflib.term.URIRef,
+                            rdflib.term.Literal)):  # if object is not a URI or Variabel
+                        # object_prefix = str(object_['prefix'])
+                        if "prefix" in object_:
+                            object_prefix = object_['prefix']
+                            object_lName = object_['localname']
+                            object_ = (object_prefix, object_lName)
+
+                    triples['subject'] = subject
+                    triples['predicate'] = predicate
+                    # triples['object'] = str(object_)
+                    triples['object'] = object_
+                    triples_list.append(triples)
+            elif where_stmt.name == "OptionalGraphPattern":
+                for t in where_stmt['graph']['part'][0]['triples']:  # iterating through the triples
+                    triples = {}
+                    # subject = str(t[0])
+                    subject = t[0]
+                    if isinstance(t[1], rdflib.term.Variable):  # if predicate is a variable
+                        # predicate = str(t[1])
+                        predicate = t[1]
+                    elif isinstance(t[1]['part'][0]['part'][0]['part'],
+                                    rdflib.term.URIRef):  # else if predicate is a URI
+                        predicate = str(t[1]['part'][0]['part'][0]['part'])
+                    else:  # else it is a prefix:postfix pair
+                        p_prefix = str(t[1]['part'][0]['part'][0]['part']['prefix'])
+                        p_lName = str(t[1]['part'][0]['part'][0]['part']['localname'])
+                        predicate = (p_prefix, p_lName)
+
+                    object_ = t[2]
+                    if not isinstance(object_, (
+                            rdflib.term.Variable, rdflib.term.URIRef,
+                            rdflib.term.Literal)):  # if object is not a URI or Variabel
+                        # object_prefix = str(object_['prefix'])
+                        if "prefix" in object_:
+                            object_prefix = object_['prefix']
+                            object_lName = object_['localname']
+                            object_ = (object_prefix, object_lName)
+
+                    triples['subject'] = subject
+                    triples['predicate'] = predicate
+                    # triples['object'] = str(object_)
+                    triples['object'] = object_
+                    optional_triples_list.append(triples)
+            elif where_stmt.name == "Filter":  ## Optional triples
+                filter_expr = where_stmt['expr']
+                while len(filter_expr.keys()) != 3:
+                    filter_expr = filter_expr['expr']
+                if len(filter_expr.keys()) == 3:
+                    filter_variable = filter_expr['expr']['expr']['expr']
+                    filter_operator = filter_expr['op']
+                    filter_value = filter_expr['other']['expr']['expr']
+                    filter_stmt_list.append({'variable': str(filter_variable), 'operator': str(filter_operator),
+                                             'value': str(filter_value)})
+            elif where_stmt.name == "GroupOrUnionGraphPattern":  ## Nested Select
+                if where_stmt['graph'][0].name=='SubSelect':
+                    SubSelect=where_stmt['graph'][0]
+        where_limit = where_part['limitoffset']['limit'] if 'limitoffset' in where_part.keys() and 'limit' in where_part['limitoffset'].keys() else None
+        where_offset = where_part['limitoffset']['offset'] if 'limitoffset' in where_part.keys() and 'offset' in where_part['limitoffset'].keys() else None
+        return  projection_variable_lst,from_graph,triples_list,optional_triples_list ,filter_stmt_list,SubSelect,where_limit,where_offset
     def parse_select(self):
         query = rdflibParseQuery(self.gmlquery)
+        # formatted_gml_query = gmlQueryFormatter.format_gml_query_tree(query)
+        # formatted_gml_query=gmlQueryFormatter.format_gml_query_str(str(query))
         flag_prefix = False
-
         query_type = ""
         if len(query) >= 2 and query[0][0].name == 'PrefixDecl':  # check if prefix exist in the query
             flag_prefix = True
@@ -108,49 +289,27 @@ class gmlQueryParser:
                 dict_prefix[p['prefix']] = str(p['iri'])
             self.query_statments['prefixes'] = dict_prefix
 
-        select = []
-        for s in where_part['projection']:  # SELECT variables of the query
-            # print(s)
-            select.append(str(s['var']))
-        self.query_statments['select'] = select
-        if 'datasetClause' in where_part:
-            self.query_statments['from'] = str(where_part['datasetClause'][0]['default'])
-        triples_list = []
-        for t in where_part['where']['part'][0]['triples']:  # iterating through the triples
-            # for t in where_part['where']['part']: # iterating through the triples
-            # t = t['triples'][0]
-            triples = {}
-            # subject = str(t[0])
-            subject = t[0]
-            if isinstance(t[1], rdflib.term.Variable):  # if predicate is a variable
-                # predicate = str(t[1])
-                predicate = t[1]
-            elif isinstance(t[1]['part'][0]['part'][0]['part'], rdflib.term.URIRef):  # else if predicate is a URI
-                predicate = str(t[1]['part'][0]['part'][0]['part'])
-            else:  # else it is a prefix:postfix pair
-                p_prefix = str(t[1]['part'][0]['part'][0]['part']['prefix'])
-                p_lName = str(t[1]['part'][0]['part'][0]['part']['localname'])
-                predicate = (p_prefix, p_lName)
-
-            object_ = t[2]
-            if not isinstance(object_, (
-            rdflib.term.Variable, rdflib.term.URIRef, rdflib.term.Literal)):  # if object is not a URI or Variabel
-                # object_prefix = str(object_['prefix'])
-                if "prefix" in object_:
-                    object_prefix = object_['prefix']
-                    object_lName = object_['localname']
-                    object_ = (object_prefix, object_lName)
-
-            triples['subject'] = subject
-            triples['predicate'] = predicate
-            # triples['object'] = str(object_)
-            triples['object'] = object_
-            triples_list.append(triples)
+        projection_variable_lst, from_graph, triples_list, optional_triples_list, filter_stmt_list, SubSelect,where_limit,where_offset = self.breakdown_Sparql_Where_statment(where_part)
+        self.query_statments['select'] = projection_variable_lst
+        self.query_statments['from'] = from_graph
         self.query_statments['triples'] = triples_list
-        self.query_statments['limit'] = where_part['limitoffset']['limit'] if 'limitoffset' in where_part.keys() and 'limit' in \
-                                                                where_part['limitoffset'].keys() else None
-        self.query_statments['offset'] = where_part['limitoffset']['offset'] if 'limitoffset' in where_part.keys() and 'offset' in \
-                                                                  where_part['limitoffset'].keys() else None
+        self.query_statments['optional_triples'] = optional_triples_list
+        self.query_statments['Filter'] = filter_stmt_list
+        self.query_statments['limit'] = where_limit
+        self.query_statments['offset'] = where_offset
+        SubSelect_stmts=self.query_statments
+        while SubSelect is not None:
+            SubSelect_stmts['SubSelect'] = {}
+            SubSelect_stmts["SubSelect"]["query_type"] = SubSelect.name
+            projection_variable_lst, from_graph, triples_list, optional_triples_list, filter_stmt_list, SubSelect, where_limit, where_offset = self.breakdown_Sparql_Where_statment(SubSelect)
+            SubSelect_stmts['SubSelect']['select'] = projection_variable_lst
+            SubSelect_stmts['SubSelect']['from'] = from_graph
+            SubSelect_stmts['SubSelect']['triples'] = triples_list
+            SubSelect_stmts['SubSelect']['optional_triples'] = optional_triples_list
+            SubSelect_stmts['SubSelect']['Filter'] = filter_stmt_list
+            SubSelect_stmts['SubSelect']['limit'] = where_limit
+            SubSelect_stmts['SubSelect']['offset'] = where_offset
+            SubSelect_stmts=SubSelect_stmts['SubSelect']
         return self.query_statments
     def parse_insert(self):
         self.query_statments["queryType"] = 'insertQuery'
@@ -210,11 +369,16 @@ class gmlQueryRewriter:
         if len(self.query_dict['select']) > 0:
             string_q += 'SELECT'
             for item in self.query_dict['select']:
-                s = f" ?{item}"
+                if item['type']=='variable':
+                    s = f" ?{item['name']} "
+                elif item['type'] == 'function':
+                    s = f" {item['name']}( "
+                    for k,v in item['args'].items():
+                        s+=f" ?{v}, "
                 string_q += s
         string_q += "\n WHERE { \n"
 
-        data_triples, gml_triples = self.filter_triples()
+        data_triples, gml_triples = self.split_data_gml_triples()
         dict_gml_var_dict,prep_gml_vars = self.prep_gml_vars(gml_triples)
         # string_gml += self.get_KGMeta_gmlOperatorQuery(dict_gml_var_dict, data_triples)
         # gml_query_res_df=self.KGMeta_Governer.executeSparqlquery(string_gml)
@@ -233,7 +397,8 @@ class gmlQueryRewriter:
         sparql_candidate_query,kg_data_query,gmlop_targetNode_queries_dict,model_ids = self.get_breakdown_queries(dict_gml_var_dict, data_triples)
         return (sparql_candidate_query, kg_data_query,gmlop_targetNode_queries_dict,kgmeta_model_queries_dict,model_ids)
 
-    def filter_triples(self):
+    def split_data_gml_triples(self):
+        '''split query triples into data and GML triples sets'''
         KGNET_LOOKUP = ['kgnet', '<kgnet']
         data_triples = []
         gml_triples = []
@@ -519,12 +684,12 @@ class gmlQueryRewriter:
             string_q_target_nodes+= 'SELECT distinct ?s \n'
             labels_dict= { str(v):k for k,v in label_variables_dict.items()}
             for item in query['select']:
-                if item in labels_dict.keys():
-                    target_label = item+target_label_postfix
-                    target_variable=str(target_variables_dict[labels_dict[item]])
-                    string_q+= f'\n (kgnetML:getKeyValue_v2({self.set_syntax(rdflib.term.Variable(target_variable))},{self.set_syntax(rdflib.term.Variable(target_label))}) as {self.set_syntax(rdflib.term.Variable(item))} ) '
+                if item['name'] in labels_dict.keys():
+                    target_label =  item['name']+target_label_postfix
+                    target_variable=str(target_variables_dict[labels_dict[item['name']]])
+                    string_q+= f'\n (kgnetML:getKeyValue_v2({self.set_syntax(rdflib.term.Variable(target_variable))},{self.set_syntax(rdflib.term.Variable(target_label))}) as {self.set_syntax(rdflib.term.Variable(item["name"]))} ) '
                     continue
-                s = f" ?{item} "
+                s = f" ?{ item['name']} "
                 string_q+=s
                 string_q_dataonly+=s
 
@@ -567,11 +732,11 @@ class gmlQueryRewriter:
         string_q+="}" # for WHERE
         string_q_dataonly += "} "  # for WHERE
         string_q_target_nodes+= "} "
-        if "limit" in query:
+        if "limit" in query.keys():
             string_q+= f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
             string_q_dataonly += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
             # string_q_target_nodes += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
-        if "offset" in query:
+        if "offset" in query.keys():
             string_q += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
             string_q_dataonly += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
             # string_q_target_nodes += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
@@ -759,3 +924,4 @@ if __name__ == '__main__':
     limit 100
     
     """
+

@@ -495,6 +495,7 @@ if __name__ == '__main__':
     inference_query_wikidata_award_workField_univ_NC = """prefix wiki:<http://www.wikidata.org/entity/>
                                prefix kgnet:<http://kgnet/>
                                select ?human ?awardLabel ?workFieldLabel ?univ_label
+                               from <http://wikikg-v2>
                                where
                                {
                                     ?pred_award_ent  <http://www.w3.org/2000/01/rdf-schema#label> ?awardLabel.
@@ -503,8 +504,7 @@ if __name__ == '__main__':
                                     filter(?awardLabel='Royal Medal').
                                     filter(?workFieldLabel='number theory').
                                     {
-                                       select ?human ?univ (IRI(?pred_award) as ?pred_award_ent) (IRI(?pred_work) as ?pred_work_ent)
-                                       from <http://wikikg-v2>
+                                       select ?human ?univ (wiki:CONTAINS(?pred_award,?mm) as ?pred_award_ent) (IRI(?pred_work) as ?pred_work_ent)
                                        where
                                        {
                                            ?human wiki:P166 ?award.
@@ -531,12 +531,12 @@ if __name__ == '__main__':
                                 }
                            """
     nested_Query=""" select  (count(*) as ?s)
+                from <http://wikikg-v2>
                 where
                 {
                     ?s ?p ?o.
                     {
                         select distinct ?s
-                        from <http://wikikg-v2>
                         where
                         {
                            ?s <http://www.wikidata.org/entity/P69> ?o.
@@ -628,8 +628,8 @@ if __name__ == '__main__':
     # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_workField_NC)
     # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_NC)
     # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_univ_NC)
-    resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp2022_NC_LP)
-    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_NC)
+    # resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp2022_NC_LP)
+    resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_NC)
     # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(nested_Query)
     print(resDF)
     print(MetaQueries)

@@ -6,7 +6,7 @@ import Constants
 from Constants import utils as kgnet_utils, GML_Operator_Types,GML_Query_Types,KGNET_Config
 from GMLaaS.run_pipeline import run_training_pipeline
 from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
-from SparqlMLaasService.gmlRewriter import gmlQueryParser,gmlQueryRewriter
+from SparqlMLaasService.gmlRewriter import gmlQueryParser,gmlQueryRewriter,gmlQueryFormatter
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_KG_entity_types as get_KG_entity_types
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_query as get_NC_d1h1_query
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d2h1_query as get_NC_d2h1_query
@@ -157,7 +157,10 @@ class gmlInferenceOperator(gmlOperator):
         self.GML_Query_Type = GML_Query_Types.Inference
     def executeQuery(self, query):
         gmlqp = gmlQueryParser(query)
-        dataInferQ,dataQ,tragetNodesq, kgmeta_model_queries_dict,model_ids = gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(), self.KGMeta_Governer_obj).rewrite_gml_query()
+        q_stmt=gmlqp.extractQueryStatmentsDict()
+        formatted_gml_query = gmlQueryFormatter.format_gml_query_tree(gmlqp.query_statments)
+        print("formatted_gml_query=", formatted_gml_query)
+        dataInferQ,dataQ,tragetNodesq, kgmeta_model_queries_dict,model_ids = gmlQueryRewriter(q_stmt, self.KGMeta_Governer_obj).rewrite_gml_query()
         # print("KGMeta task select query= \n",kmetaq)
         # print("SPARQL candidate query form 2= \n",dataInferQ)
         # print("SPARQLdata only Query=\n", dataQ)
