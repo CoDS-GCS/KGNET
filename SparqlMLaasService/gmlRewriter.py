@@ -66,11 +66,14 @@ lis_targetNodeTypes = ['kgnet:targetnode']
 lis_labelTypes = ['kgnet:labelnode']
 lis_targetEdgeTypes = ['kgnet:targetedge']
 
-clf_fxn = {#'nodeclassifier':'getNodeClass',
-            'nodeclassifier':'getNodeClass_v2',
-            'types/nodeclassifier':'getNodeClass_v2',
-            'kgnet:types/nodeClassifier':'getNodeClass_v2'
-          }
+clf_fxn = {  # 'nodeclassifier':'getNodeClass',
+    'nodeclassification': 'getNodeClass_v2',
+    'type/nodeclassification': 'getNodeClass_v2',
+    'kgnet:type/nodeclassification': 'getNodeClass_v2',
+    'type/linkprediction': 'getLinkPred',
+    'kgnet:type/linkprediction': 'getLinkPred',
+    'linkprediction': 'getLinkPred'}
+
 class gmlQueryFormatter:
     pre_keywords_lst = ['ParseResults', 'PrefixDecl_', 'SelectQuery_', '\'projection\'', 'vars_',
                     '\'datasetClause\'', '\'where\'', 'Filter_', 'OptionalGraphPattern_','GroupOrUnionGraphPattern_''GroupGraphPatternSub_', 'SubSelect_']
@@ -87,6 +90,8 @@ class gmlQueryFormatter:
                 for prefix in gml_statments_dict[key]:
                     str_result+=indent+"\t|"+prefix+":"+gml_statments_dict[key][prefix]+"\n"
             elif str(key) == 'select':
+                if 'modifier' in gml_statments_dict.keys() and gml_statments_dict['modifier'] is not None:
+                    str_result += indent + "modifier:" + gml_statments_dict['modifier']+"\n"
                 str_result += indent+"projection_variables:" + "\n"
                 for var in gml_statments_dict[key]:
                     str_result+=indent+"\t|Type:"+var['type']+"\tName:"+var['name']
@@ -145,6 +150,9 @@ class gmlQueryParser:
        self.query_statments ={}
     def breakdown_Sparql_Where_statment(self,where_part):
         projection_variable_lst = []
+        modifier=None
+        if 'modifier' in where_part.keys():
+            modifier=where_part['modifier']
         for s in where_part['projection']:
             var_dict = {}
             if 'var' in s.keys():
@@ -261,19 +269,20 @@ class gmlQueryParser:
                     filter_operator = filter_expr['op']
                     filter_value = filter_expr['other']['expr']['expr']
                     filter_stmt_list.append({'variable': str(filter_variable), 'operator': str(filter_operator),
-                                             'value': str(filter_value)})
+                                             'value': filter_value.string})
             elif where_stmt.name == "GroupOrUnionGraphPattern":  ## Nested Select
                 if where_stmt['graph'][0].name=='SubSelect':
                     SubSelect=where_stmt['graph'][0]
         where_limit = where_part['limitoffset']['limit'] if 'limitoffset' in where_part.keys() and 'limit' in where_part['limitoffset'].keys() else None
         where_offset = where_part['limitoffset']['offset'] if 'limitoffset' in where_part.keys() and 'offset' in where_part['limitoffset'].keys() else None
-        return  projection_variable_lst,from_graph,triples_list,optional_triples_list ,filter_stmt_list,SubSelect,where_limit,where_offset
+        return  modifier,projection_variable_lst,from_graph,triples_list,optional_triples_list ,filter_stmt_list,SubSelect,where_limit,where_offset
     def parse_select(self):
         query = rdflibParseQuery(self.gmlquery)
         # formatted_gml_query = gmlQueryFormatter.format_gml_query_tree(query)
         # formatted_gml_query=gmlQueryFormatter.format_gml_query_str(str(query))
         flag_prefix = False
         query_type = ""
+        distinct=False
         if len(query) >= 2 and query[0][0].name == 'PrefixDecl':  # check if prefix exist in the query
             flag_prefix = True
             prefix_part = query[0]
@@ -289,8 +298,10 @@ class gmlQueryParser:
                 dict_prefix[p['prefix']] = str(p['iri'])
             self.query_statments['prefixes'] = dict_prefix
 
-        projection_variable_lst, from_graph, triples_list, optional_triples_list, filter_stmt_list, SubSelect,where_limit,where_offset = self.breakdown_Sparql_Where_statment(where_part)
+        modifier,projection_variable_lst, from_graph, triples_list, optional_triples_list, filter_stmt_list, SubSelect,where_limit,where_offset = self.breakdown_Sparql_Where_statment(where_part)
         self.query_statments['select'] = projection_variable_lst
+        if modifier:
+            self.query_statments['modifier'] = modifier
         self.query_statments['from'] = from_graph
         self.query_statments['triples'] = triples_list
         self.query_statments['optional_triples'] = optional_triples_list
@@ -301,8 +312,10 @@ class gmlQueryParser:
         while SubSelect is not None:
             SubSelect_stmts['SubSelect'] = {}
             SubSelect_stmts["SubSelect"]["query_type"] = SubSelect.name
-            projection_variable_lst, from_graph, triples_list, optional_triples_list, filter_stmt_list, SubSelect, where_limit, where_offset = self.breakdown_Sparql_Where_statment(SubSelect)
+            modifier,projection_variable_lst, from_graph, triples_list, optional_triples_list, filter_stmt_list, SubSelect, where_limit, where_offset = self.breakdown_Sparql_Where_statment(SubSelect)
             SubSelect_stmts['SubSelect']['select'] = projection_variable_lst
+            if modifier:
+                SubSelect_stmts['SubSelect']['modifier'] = modifier
             SubSelect_stmts['SubSelect']['from'] = from_graph
             SubSelect_stmts['SubSelect']['triples'] = triples_list
             SubSelect_stmts['SubSelect']['optional_triples'] = optional_triples_list
@@ -378,7 +391,7 @@ class gmlQueryRewriter:
                 string_q += s
         string_q += "\n WHERE { \n"
 
-        data_triples, gml_triples = self.split_data_gml_triples()
+        data_triples, gml_triples,gml_and_dependant_variables = self.split_data_gml_triples()
         dict_gml_var_dict,prep_gml_vars = self.prep_gml_vars(gml_triples)
         # string_gml += self.get_KGMeta_gmlOperatorQuery(dict_gml_var_dict, data_triples)
         # gml_query_res_df=self.KGMeta_Governer.executeSparqlquery(string_gml)
@@ -394,27 +407,88 @@ class gmlQueryRewriter:
             best_mid = self.KGMeta_Governer.OptimizeForBestModel(tid)
             # dict_gml_var_dict['$m']=Constants.KGNET_Config.GML_API_URL+"gml_inference/mid/"+gml_query_res_df['mID'].values[0].replace('"', "")
             dict_gml_var_dict[gml_op]['$m'] = Constants.KGNET_Config.GML_API_URL + "gml_inference/mid/" + str(best_mid).replace('"', "")
-        sparql_candidate_query,kg_data_query,gmlop_targetNode_queries_dict,model_ids = self.get_breakdown_queries(dict_gml_var_dict, data_triples)
+        sparql_candidate_query,kg_data_query,gmlop_targetNode_queries_dict,model_ids = self.get_breakdown_queries(dict_gml_var_dict, data_triples,gml_and_dependant_variables)
         return (sparql_candidate_query, kg_data_query,gmlop_targetNode_queries_dict,kgmeta_model_queries_dict,model_ids)
 
     def split_data_gml_triples(self):
-        '''split query triples into data and GML triples sets'''
+        '''split query triples into data and GML triples lists. return list of data triples,gml triples, and gml variables '''
         KGNET_LOOKUP = ['kgnet', '<kgnet']
         data_triples = []
         gml_triples = []
-        for t in self.query_dict['triples']:
-            values = t.values()
-            flagT_gml = False
-            # print(t,'\n')
-            for v in values:
-                # if isinstance(v,tuple) and v[0].lower() in KGNET_LOOKUP:
-                if isinstance(v, str) and v.split(':')[0] in KGNET_LOOKUP:
-                    gml_triples.append(t)
-                    flagT_gml = True
-                    break
-            if not flagT_gml:
-                data_triples.append(t)
-        return (data_triples, gml_triples)
+        ########## split based on KGNET Prefix ################
+        q_dict = self.query_dict
+        while True:
+            for triple_type in ['triples','optional_triples']:
+                triples=q_dict[triple_type]
+                for t in triples:
+                    values = t.values()
+                    flagT_gml = False
+                    # print(t,'\n')
+                    for v in values:
+                        if isinstance(v, str) and v.split(':')[0] in KGNET_LOOKUP:
+                            gml_triples.append(t)
+                            flagT_gml = True
+                            break
+                    if not flagT_gml:
+                        data_triples.append(t)
+            if "SubSelect" in q_dict.keys():
+                q_dict=q_dict["SubSelect"]
+            else:
+                break
+        ################## list GML variables ###################
+        gml_and_dependant_variables=[]
+        for triple in gml_triples:
+            s,p,o=triple.values()
+            if isinstance(s,rdflib.term.Variable) and s not in gml_and_dependant_variables:
+                gml_and_dependant_variables.append(s)
+            if isinstance(o,rdflib.term.Variable) and o not in gml_and_dependant_variables:
+                gml_and_dependant_variables.append(o)
+        ######## Dependent Object Variables ###############
+        q_dict = self.query_dict
+        query_levels_lst=[]
+        while True: ## order is important , start by nested select varibles (buttom up)
+            query_levels_lst.insert(0,q_dict)
+            if "SubSelect" in q_dict.keys():
+                q_dict = q_dict["SubSelect"]
+            else:
+                break
+        for q_level in query_levels_lst:
+            q_level_triples=q_level['triples']
+            for triple in q_level_triples:
+                s, p, o = triple.values()
+                if s in gml_and_dependant_variables:
+                    # if isinstance(p, rdflib.term.Variable) and p not in gml_variables:
+                    #     gml_variables.append(p)
+                    if isinstance(o, rdflib.term.Variable) and o not in gml_and_dependant_variables:
+                        gml_and_dependant_variables.append(o)
+                if p in gml_and_dependant_variables:
+                    # if isinstance(s, rdflib.term.Variable) and s not in gml_variables:
+                    #     gml_variables.append(s)
+                    if isinstance(o, rdflib.term.Variable) and o not in gml_and_dependant_variables:
+                        gml_and_dependant_variables.append(o)
+            ####### Dependent select variables ################
+            for var in q_dict['select']:
+                if var['type']=='variable':
+                    if 'alias' in var.keys() and var['name'] in gml_and_dependant_variables and var['alias'] not in gml_and_dependant_variables:
+                        gml_and_dependant_variables.append(var['alias'])
+                elif var['type'] == 'function' and 'alias' in var.keys() and 'args' in var.keys() and var['alias'] not in gml_and_dependant_variables:
+                    for val in var['args'].values():
+                        if val in gml_and_dependant_variables and var['alias'] not in gml_and_dependant_variables:
+                            gml_and_dependant_variables.append(var['alias'])
+                            break
+
+        # ################## remove GML dependant triples from data triples ###################
+        # to_remove_triples=[]
+        # set()
+        # for triple in data_triples:
+        #     s, p, o = triple.values()
+        #     if (s in gml_and_dependant_variables or p in gml_and_dependant_variables or o in gml_and_dependant_variables) and p not in gml_variables: ## keep GML user defined perdicate in data triples
+        #         to_remove_triples.append(triple)
+        # for remove_t in to_remove_triples:
+        #     data_triples.remove(remove_t)
+        #     # gml_triples.append(remove_t)
+        #####################################################################
+        return (data_triples, gml_triples,gml_and_dependant_variables)
 
     def prep_gml_vars(self, gml_dict):
         """The  prep_gml_vars () function takes input the gml dictionary of SPARQL-ML BGP statements and identifies the classification type,
@@ -474,34 +548,6 @@ class gmlQueryRewriter:
                 if MISC not in dict_vars.keys():
                     dict_vars[MISC] = []
                 dict_vars[MISC].append(triple)
-
-
-        # if LINKPREDICTOR in gml_operator_type :
-        #     for triple in gml_dict:
-        #         # print(triple)
-        #         if isinstance(triple['object'], rdflib.term.URIRef) and triple['object'].lower() in lis_classTypes:
-        #             dict_vars['gml_operator_class'] = {'subject': triple["subject"], "predicate": triple["predicate"],"object": rdflib.term.URIRef('kgnet:type/GMLTask')}
-        #             dict_vars['gml_operator_type'] = {'subject': triple["subject"],"predicate": rdflib.term.URIRef('kgnet:GMLTask/taskType'),"object": rdflib.term.URIRef('kgnet:type/linkPrediction')}
-        #             # dict_vars['gml_operator']= triple#['object']
-        #             continue
-        #
-        #         if isinstance(triple['predicate'], str) and triple['predicate'].lower() in lis_targetEdgeTypes:
-        #             triple['predicate'] = rdflib.term.URIRef('kgnet:GMLTask/targetEdge')
-        #             dict_vars['targetEdge'] = triple  # ['object']         # if the triple is the target type
-        #             continue
-        #         elif isinstance(triple['predicate'], str) and triple['predicate'].lower() in ["kgnet:gnnmethod"]:
-        #             triple['subject'] = rdflib.term.Variable('gmlModel')
-        #             triple['predicate'] = rdflib.term.URIRef('kgnet:GMLModel/GNNMethod')
-        #             dict_vars['GNNMethod'] = triple  # ['object']         # if the triple is the target type
-        #             continue
-        #         else:
-        #             if MISC not in dict_vars.keys():
-        #                 dict_vars[MISC] = []
-        #             dict_vars[MISC].append(triple)
-        #
-        # if GRAPHCLASSIFIER in gml_operator_type:
-        #     raise NotImplementedError("Graph Classification not yet supported")
-
         return dict_vars,gml_operator_type
 
     def set_syntax (self,var):
@@ -630,13 +676,170 @@ class gmlQueryRewriter:
 
         return GML_taskId_Query_dict
     def get_target_label_variables(self,query,userDefinedPredicate):
-        for triple in query['triples']:
-            if triple['predicate']==userDefinedPredicate:
-                return triple['subject'],triple['object']
+        query_part=query
+        while True:
+            query_triples=query_part['triples']
+            for triple in query_triples:
+                if triple['predicate']==userDefinedPredicate:
+                    return triple['subject'],triple['object']
+            if 'SubSelect' in query_part.keys():
+                query_part=query_part['SubSelect']
+            else:
+                break
         return None
 
+    def ReWrite_QueryLevel_Statments(self, query,userDefinedPredicate_lst, gmlOperatorType_dict, userDefinedPredicate_dict,target_variables_dict, label_variables_dict,list_data_T, model_uri_dict,gml_target_label_postfix,gml_and_dependant_variables):
+        string_q=string_q_dataonly=string_q_target_nodes=""
+        gml_and_dependant_variables_names=[str(elem) for elem in gml_and_dependant_variables]
+        ############################## Projection Variables #######################
+        if len(query['select'])>0:
+            string_q+='SELECT'
+            string_q_dataonly+='SELECT'
+            if 'modifier' in query.keys() and query['modifier'] is not None:
+                string_q+=f" {query['modifier']} "
+                string_q_dataonly += f" {query['modifier']} "
+            string_q_target_nodes+= 'SELECT distinct ?s \n'
+            labels_dict= { str(v):k for k,v in label_variables_dict.items()}
+            for item in query['select']:
+                if item['type']=='variable':
+                    if item['name'] in labels_dict.keys():
+                        target_label =  item['name']+gml_target_label_postfix
+                        target_variable=str(target_variables_dict[labels_dict[item['name']]])
+                        string_q+= f'\n (kgnetML:getKeyValue_v2({self.set_syntax(rdflib.term.Variable(target_variable))},{self.set_syntax(rdflib.term.Variable(target_label))}) as {self.set_syntax(rdflib.term.Variable(item["name"]))} ) '
+                        continue
+                    s = f" ?{ item['name']} "
+                    string_q+=s
+                    if (item['name'] not in gml_and_dependant_variables_names) and ("alias" not in item.keys() or item["alias"] not in gml_and_dependant_variables_names):
+                        string_q_dataonly+=s
+                elif item['type'] == 'function':
+                    s = f"{item['name']}( "
+                    for arg,val in item['args'].items():
+                        if str(val) in labels_dict.keys():
+                            target_label = str(val) + gml_target_label_postfix
+                            target_variable = str(target_variables_dict[labels_dict[str(val)]])
+                            s+= f'kgnetML:getKeyValue_v2({self.set_syntax(rdflib.term.Variable(target_variable))},{self.set_syntax(rdflib.term.Variable(target_label))})'
+                            continue
+                        else:
+                            s+="?"+val+","
+                    s=s[0:-1]+") "
+                    if "alias" in item.keys():
+                        s=s+") as ?"+item["alias"]+" "
+                    else:
+                        s = s + ") as ?fun_" + str(item["name"])+ ") "
+                    string_q+=s
+                    ########################## Check if function dependent on GML variable #####################
+                    if (item['name'] not in gml_and_dependant_variables_names) and ("alias" not in item.keys() or str(item["alias"]) not in gml_and_dependant_variables_names):
+                        has_gml_arg=False
+                        for arg in item['args'].values():
+                            if (str(arg)  in gml_and_dependant_variables_names):
+                                has_gml_arg=True
+                                break
+                        if has_gml_arg==False:
+                            string_q_dataonly+=s
+        ############################## Projection Variables #######################
+        if "from" in query.keys() and query['from'] is not None:
+            string_q += "\nfrom <" + query['from'] + "> "
+            string_q_dataonly += "\nfrom <" + query['from'] + "> "
+            string_q_target_nodes += "\nfrom <" + query['from'] + "> "
+        ############################## Where Block Start  #######################
+        string_q += "$\nWHERE\n{\n$"
+        string_q_dataonly += "\nWHERE\n{ \n"
+        string_q_target_nodes += "\nWHERE\n{ \n"
+        ############################## BGP Triples/Optinal  #######################
+        gml_label_as_subject_triples={}
+        all_triples={'triples':query['triples'],'optional':query['optional_triples']}
+        for k,triples in all_triples.items():
+            for triple in triples:
+                if triple in list_data_T:
+                    string_t = ""
+                    s = triple['subject']  # if not isinstance(triple['subject'], tuple) else triple['subject'][1]
+                    p = triple['predicate']  # if not isinstance(triple['predicate'], tuple) else triple['predicate'][1]
+                    o = triple['object']  # if not isinstance(triple['object'], tuple) else triple['object'][1]
+                    s = self.set_syntax(s)
+                    p = self.set_syntax(p)
+                    o = self.set_syntax(o)
+                    if str(triple['predicate']) in userDefinedPredicate_lst:
+                        gml_op = list(userDefinedPredicate_dict.keys())[userDefinedPredicate_lst.index(str(triple['predicate']))]
+                        sub_query = '\n{'
+                        sub_query += f"SELECT (kgnetML:{clf_fxn[gmlOperatorType_dict[gml_op].lower()]}(\"{model_uri_dict[gml_op]}\",?$API_JSON_{str(gml_op)}$) \n as {self.set_syntax(label_variables_dict[str(gml_op)]) + gml_target_label_postfix} )"
+                        sub_query += ' WHERE {}}\n'
+                        string_q += sub_query
+                        continue
+                    if ('SubSelect' not in query.keys() or str(triple['subject']) not in [str(elem['alias']) if 'alias' in elem.keys() else str(elem['name']) for elem in query['SubSelect']['select']])   and str(triple['subject']) in gml_and_dependant_variables_names:
+                        if 'triples' not in gml_label_as_subject_triples.keys():
+                            gml_label_as_subject_triples['triples']=[]
+                        gml_label_as_subject_triples['triples'].append(triple)
+                        continue
+                    # s=set_syntax(s)
+                    # p=set_syntax(p)
+                    if k=='optional':
+                        string_t += "optional{ "+f"{s} {p} {o}"+ ". }\n"
+                    else:
+                        string_t += f"{s} {p} {o} .\n"
+                    string_q += string_t
+                    if str(triple['subject']) not in gml_and_dependant_variables_names and str(triple['predicate']) not in gml_and_dependant_variables_names and str(triple['object']) not in gml_and_dependant_variables_names:
+                        string_q_dataonly += string_t
+                        string_q_target_nodes += string_t
+        ############################## BGP Filters  #######################
+        for filter in query['Filter']:
+            string_t = "filter(?"+ filter['variable']+" "+filter['operator']+" \""+str(filter['value'])+"\").\n"
+            if  ('SubSelect' not in query.keys()) and str(filter['variable']) in gml_and_dependant_variables_names:
+                # or str(filter['variable']) not in [str(elem['alias']) if 'alias' in elem.keys() else str(elem['name']) for elem in query['SubSelect']['select']]
+                if 'filters' not in gml_label_as_subject_triples.keys():
+                    gml_label_as_subject_triples['filters'] = []
+                gml_label_as_subject_triples['filters'].append(filter)
+            else:
+                string_q += string_t
+                if str(filter['variable']) not in gml_and_dependant_variables_names:
+                    string_q_dataonly += string_t
+                    string_q_target_nodes += string_t
+        ###################### Sub Select ##########################
+        if "SubSelect" in query.keys():
+            string_q += "$$SubSelect$$\n"
+            string_q_dataonly += "$$SubSelect$$\n"
+            string_q_target_nodes += "$$SubSelect$$\n"
+        ################### Where Block End ########################
+        string_q += "}"
+        string_q_dataonly += "} "
+        string_q_target_nodes += "} "
+        ################### Limit and Offset ####################
+        if "limit" in query.keys():
+            string_q += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
+            string_q_dataonly += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
+            # string_q_target_nodes += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
+        if "offset" in query.keys():
+            string_q += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
+            string_q_dataonly += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
+            # string_q_target_nodes += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
+        # string_q_dataonly += "\n} filter(!isBlank(?o)). }"
+        ################ gml_label_as_subject_triples Replacement Model Infernce string with IRI ##################
+        if len(gml_label_as_subject_triples.keys())>0:
+            gml_label_as_subject_subselect_projection = "select distinct"
+            gml_label_as_subject_subselect_triples = ""
+            if 'triples' in gml_label_as_subject_triples.keys():
+                for triple in gml_label_as_subject_triples['triples']:
+                    s,p,o = triple['subject'],triple['predicate'],triple['object']
+                    s,p,o = self.set_syntax(s), self.set_syntax(p),self.set_syntax(o)
+                    gml_label_as_subject_subselect_triples+=f"{s} {p} {o} .\n"
+                    if str(triple['subject']) in [str(elem) for elem in label_variables_dict.values()]:
+                        gml_label_as_subject_subselect_projection+=" (IRI"
+                        target_label = str(triple['subject'])  + gml_target_label_postfix
+                        target_variable = str(target_variables_dict[labels_dict[str(triple['subject'])]])
+                        gml_label_as_subject_subselect_projection += f'(kgnetML:getKeyValue_v2({self.set_syntax(rdflib.term.Variable(target_variable))},{self.set_syntax(rdflib.term.Variable(target_label))})) as {self.set_syntax(rdflib.term.Variable(triple["subject"]))} ) '
+                for var in query['select']: ## add nested select variables
+                    if var['type']=='variable' and var['name'] not in gml_and_dependant_variables_names:
+                        gml_label_as_subject_subselect_projection+=" ?"+var['name']+" "
+            if 'filters' in gml_label_as_subject_triples.keys():
+                for filter in gml_label_as_subject_triples['filters']:
+                    gml_label_as_subject_subselect_triples+= "filter(?" + filter['variable'] + " " + filter['operator'] + " \"" + str(filter['value']) + "\").\n"
+            string_q=string_q.replace("$\nWHERE\n{\n$","\nWHERE\n{\n"+gml_label_as_subject_subselect_triples+"\n{\n"+gml_label_as_subject_subselect_projection+"\nwhere{\n")
+            string_q+="\n}\n}"
+        else:
+            string_q = string_q.replace("$\nWHERE\n{\n$","\nWHERE\n{\n")
 
-    def ReWrite_SPARQL_ML_Query(self, query, gmlOperatorType_dict, userDefinedPredicate_dict, target_node_edge_dict, list_data_T, model_uri_dict):
+        return string_q,string_q_dataonly,string_q_target_nodes
+
+    def ReWrite_SPARQL_ML_Query(self, query, gmlOperatorType_dict, userDefinedPredicate_dict, target_node_edge_dict, list_data_T, model_uri_dict,gml_and_dependant_variables):
         '''
         rewrite SPARQL_ML query to generate  (candidateSparqlQuery,KG_DataQuery, and KG_kgTargetNodesQueries) and list mof model URIs
         '''
@@ -645,14 +848,6 @@ class gmlQueryRewriter:
         string_q_target_nodes = ""
         string_gml = ""
         target_label_postfix = '_dic'
-        #################################################
-        clf_fxn = {  # 'nodeclassifier':'getNodeClass',
-            'nodeclassification': 'getNodeClass_v2',
-            'type/nodeclassification': 'getNodeClass_v2',
-            'kgnet:type/nodeclassification': 'getNodeClass_v2',
-            'type/linkprediction': 'getLinkPred',
-            'kgnet:type/linkprediction': 'getLinkPred',
-            'linkprediction': 'getLinkPred'}
 
         if len(query['prefixes']) >0:
             for prefix,uri in query['prefixes'].items():
@@ -677,71 +872,18 @@ class gmlQueryRewriter:
             target_variable,label_variable=self.get_target_label_variables(query,userDefinedPredicate_dict[gml_op])
             target_variables_dict[str(gml_op)]=target_variable
             label_variables_dict[str(gml_op)]=label_variable
-
-        if len(query['select'])>0:
-            string_q+='SELECT'
-            string_q_dataonly+='SELECT'
-            string_q_target_nodes+= 'SELECT distinct ?s \n'
-            labels_dict= { str(v):k for k,v in label_variables_dict.items()}
-            for item in query['select']:
-                if item['name'] in labels_dict.keys():
-                    target_label =  item['name']+target_label_postfix
-                    target_variable=str(target_variables_dict[labels_dict[item['name']]])
-                    string_q+= f'\n (kgnetML:getKeyValue_v2({self.set_syntax(rdflib.term.Variable(target_variable))},{self.set_syntax(rdflib.term.Variable(target_label))}) as {self.set_syntax(rdflib.term.Variable(item["name"]))} ) '
-                    continue
-                s = f" ?{ item['name']} "
-                string_q+=s
-                string_q_dataonly+=s
-
-        string_q += "\n from <" + query['from'] + "> \n" if 'from' in query else ""
-        string_q+= "WHERE { \n"
-        string_q_dataonly +="from <"+query['from']+"> \n" if 'from' in query else ""
-        string_q_dataonly += "WHERE { \n"
-        string_q_target_nodes += "from <" + query['from'] + "> \n" if 'from' in query else ""
-        string_q_target_nodes += "WHERE { \n"
-
+        ################### Query and one SubQuery level ##########################
+        query_level=query
         userDefinedPredicate_lst = [str(elem) for elem in list(userDefinedPredicate_dict.values())]
-        for triple in list_data_T:
-            string_t = ""
-            s = triple['subject'] #if not isinstance(triple['subject'], tuple) else triple['subject'][1]
-            p = triple['predicate'] #if not isinstance(triple['predicate'], tuple) else triple['predicate'][1]
-            o = triple['object'] #if not isinstance(triple['object'], tuple) else triple['object'][1]
-
-            s = self.set_syntax(s)
-            p = self.set_syntax(p)
-            o = self.set_syntax(o)
-
-            if str(triple['predicate'])  in userDefinedPredicate_lst:
-                # if p.replace('?','').lower() in self.set_syntax(userDefinedPredicate).lower():
-                # target_type = get_rdfType(list_data_T, target_node)
-                gml_op = list(userDefinedPredicate_dict.keys())[userDefinedPredicate_lst.index(str(triple['predicate']))]
-                # target_type = self.get_rdfType(list_data_T, target_node) if self.get_rdfType(list_data_T,target_node) is not None else target_node
-                sub_query = '{'
-                sub_query += f"SELECT (kgnetML:{clf_fxn[gmlOperatorType_dict[gml_op].lower()]}(\"{model_uri_dict[gml_op]}\",?$API_JSON_{str(gml_op)}$) \n as {self.set_syntax(label_variables_dict[str(gml_op)])+target_label_postfix} )"
-                sub_query += ' WHERE {}} '
-                string_q += sub_query
-                continue
-            # s=set_syntax(s)
-            # p=set_syntax(p)
-            string_t += f"{s} {p} {o} .\n"
-            string_q +=string_t
-            string_q_dataonly +=string_t
-            string_q_target_nodes +=string_t
-
-        # string_q+="}" # for SELECT
-        string_q+="}" # for WHERE
-        string_q_dataonly += "} "  # for WHERE
-        string_q_target_nodes+= "} "
-        if "limit" in query.keys():
-            string_q+= f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
-            string_q_dataonly += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
-            # string_q_target_nodes += f'\n LIMIT {query["limit"]}' if query["limit"] is not None else ""
-        if "offset" in query.keys():
-            string_q += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
-            string_q_dataonly += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
-            # string_q_target_nodes += f'\n offset {query["offset"]}' if query["offset"] is not None else ""
-        # string_q_dataonly += "\n} filter(!isBlank(?o)). }"
-
+        outer_string_q,outer_string_q_dataonly,outer_string_q_target_nodes=self.ReWrite_QueryLevel_Statments(query_level,userDefinedPredicate_lst, gmlOperatorType_dict, userDefinedPredicate_dict, target_variables_dict,label_variables_dict,list_data_T, model_uri_dict,target_label_postfix,gml_and_dependant_variables)
+        if "SubSelect" in query_level.keys():
+            sub_string_q, sub_string_q_dataonly, sub_string_q_target_nodes = self.ReWrite_QueryLevel_Statments(query_level['SubSelect'],userDefinedPredicate_lst, gmlOperatorType_dict, userDefinedPredicate_dict, target_variables_dict,label_variables_dict,list_data_T, model_uri_dict,target_label_postfix,gml_and_dependant_variables)
+            outer_string_q=outer_string_q.replace("$$SubSelect$$","\n{\n"+sub_string_q+"\n}\n")
+            outer_string_q_dataonly="\n"+outer_string_q_dataonly.replace("$$SubSelect$$", "\n{\n"+sub_string_q_dataonly+"\n}\n")
+            outer_string_q_target_nodes="\n"+outer_string_q_target_nodes.replace("$$SubSelect$$", "\n{\n"+sub_string_q_target_nodes+"\n}\n" )
+        string_q+=outer_string_q
+        string_q_dataonly+=outer_string_q_dataonly
+        string_q_target_nodes+=outer_string_q_target_nodes
         ####################### create inference API-JSON object #####################
         API_JSON_dict={}
         for gml_op in model_uri_dict.keys():
@@ -756,7 +898,6 @@ class gmlQueryRewriter:
             if "kgnet:graph/sparqlendpoint" in  kg_df_p_list:
                 # API_JSON += "\"sparqlEndpointURL\" : \"" + kg_df[kg_df["p"] == "kgnet:graph/sparqlendpoint"]["o"].values[0].replace("\"","") + "\", "
                 API_JSON += "\"sparqlEndpointURL\" : \"" + self.KGMeta_Governer.endpointUrl + "\", "
-
             for triple in query['triples'] :
                 if str(triple['subject'])==str(gml_op) and str(triple['predicate']).lower()=='kgnet:topk':
                     API_JSON += "\"topk\" : "+str(triple['object'])+", "
@@ -783,7 +924,7 @@ class gmlQueryRewriter:
 
         return string_q ,string_q_dataonly,string_q_target_nodes_dict,[elem.split("/")[-1] for elem in model_uri_dict.values()]
 
-    def get_breakdown_queries(self, dict_gml_var, list_data_T):
+    def get_breakdown_queries(self, dict_gml_var, list_data_T,gml_and_dependant_variables):
         gmlOperatorType={}
         userDefinedPredicate={}
         target_node_edge={}
@@ -800,7 +941,7 @@ class gmlQueryRewriter:
             elif gmlOperatorType[gml_op].lower() == "kgnet:type/linkprediction":
                 target_node_edge[gml_op] = dict_gml_var[gml_op]['targetEdge']['object'] if not isinstance(dict_gml_var[gml_op]['targetEdge']['object'],tuple) else  dict_gml_var[gml_op]['targetEdge']['object'][1]
                 # data_infer_query,data_query,target_nodes_query,model_id = self.format_data_query(self.query_dict,gmlOperatorType, userDefinedPredicate,target_node_edge_dict=target_edge, list_data_T=list_data_T, model_uri_dict=dict_gml_var['$m'])
-        data_infer_query,data_query,target_nodes_query,model_id = self.ReWrite_SPARQL_ML_Query(self.query_dict, gmlOperatorType, userDefinedPredicate, target_node_edge_dict=target_node_edge, list_data_T=list_data_T, model_uri_dict=model_uri_dict)
+        data_infer_query,data_query,target_nodes_query,model_id = self.ReWrite_SPARQL_ML_Query(self.query_dict, gmlOperatorType, userDefinedPredicate, target_node_edge_dict=target_node_edge, list_data_T=list_data_T, model_uri_dict=model_uri_dict,gml_and_dependant_variables=gml_and_dependant_variables)
         return data_infer_query ,data_query,target_nodes_query,model_id
 
     def rewrite_gml_query (self):

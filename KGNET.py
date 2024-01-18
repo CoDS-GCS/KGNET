@@ -492,25 +492,27 @@ if __name__ == '__main__':
                             limit 100
                         """
 
-    inference_query_wikidata_award_workField_univ_NC = """prefix wiki:<http://www.wikidata.org/entity/>
+    inference_query_wikidata_award_workField_univ_NC = """
+                               prefix wiki:<http://www.wikidata.org/entity/>
                                prefix kgnet:<http://kgnet/>
-                               select ?human ?awardLabel ?workFieldLabel ?univ_label
+                               select ?human ?univ_label ?pred_awardLabel ?pred_workFieldLabel 
                                from <http://wikikg-v2>
                                where
                                {
-                                    ?pred_award_ent  <http://www.w3.org/2000/01/rdf-schema#label> ?awardLabel.
-                                    ?pred_work_ent  <http://www.w3.org/2000/01/rdf-schema#label> ?workFieldLabel.
-                                    optional {?univ <http://www.w3.org/2000/01/rdf-schema#label> ?univ_label. }
-                                    filter(?awardLabel='Royal Medal').
-                                    filter(?workFieldLabel='number theory').
+                                    ?pred_award_ent  <http://www.w3.org/2000/01/rdf-schema#label> ?pred_awardLabel.
+                                    ?pred_work_ent  <http://www.w3.org/2000/01/rdf-schema#label> ?pred_workFieldLabel.
+                                    filter(?pred_awardLabel='Royal Medal').
+                                    filter(?pred_workFieldLabel='number theory').
                                     {
-                                       select ?human ?univ (wiki:CONTAINS(?pred_award,?mm) as ?pred_award_ent) (IRI(?pred_work) as ?pred_work_ent)
+                                       select distinct ?human ?univ_label (IRI(?pred_award) as ?pred_award_ent) (IRI(?pred_work) as ?pred_work_ent)
                                        where
                                        {
                                            ?human wiki:P166 ?award.
                                            ?human a "human".
                                            ?human wiki:P69 ?univ .
-            
+                                           ?univ <http://www.w3.org/2000/01/rdf-schema#label> ?univ_label.                                           
+                                           #optional {?univ <http://www.w3.org/2000/01/rdf-schema#label> ?univ_label. }
+                                                       
                                            ?award a "science_or_engineering_award".
                                            ?human ?NodeClassifier ?pred_award.
                                            ?NodeClassifier a <kgnet:types/NodeClassifier>.
@@ -530,6 +532,43 @@ if __name__ == '__main__':
                                     }
                                 }
                            """
+
+    inference_query_wikidata_award_workField_univ_NC_v2 = """
+                                   prefix wiki:<http://www.wikidata.org/entity/>
+                                   prefix kgnet:<http://kgnet/>
+                                   select ?human ?univ_label ?pred_awardLabel ?pred_workFieldLabel 
+                                   from <http://wikikg-v2>
+                                   where
+                                   {                 
+                                       ?human wiki:P166 ?award.
+                                       ?human a "human".
+                                       ?human wiki:P69 ?univ .
+                                       #optional {?univ <http://www.w3.org/2000/01/rdf-schema#label> ?univ_label }.
+                                       ?univ <http://www.w3.org/2000/01/rdf-schema#label> ?univ_label.
+
+                                       ?award a "science_or_engineering_award".
+                                       ?human ?NodeClassifier ?pred_award.
+                                       ?NodeClassifier a <kgnet:types/NodeClassifier>.
+                                       ?NodeClassifier <kgnet:targetNode> "human".
+                                       ?NodeClassifier <kgnet:labelNode> "science_or_engineering_award".
+                                       ?NodeClassifier <kgnet:targetEdge> "http://www.wikidata.org/entity/P166".
+
+                                       ?human wiki:P101 ?work.
+                                       ?work a "area_of_mathematics".
+                                       ?human ?NodeClassifier2 ?pred_work.
+                                       ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
+                                       ?NodeClassifier2 <kgnet:targetNode> "human".
+                                       ?NodeClassifier2 <kgnet:labelNode> "area_of_mathematics".
+                                       ?NodeClassifier2 <kgnet:targetEdge> "http://www.wikidata.org/entity/P101".
+                                       
+                                       ?pred_award  <http://www.w3.org/2000/01/rdf-schema#label> ?pred_awardLabel.
+                                       ?pred_work  <http://www.w3.org/2000/01/rdf-schema#label> ?pred_workFieldLabel. 
+                                       filter(?pred_awardLabel='Royal Medal').
+                                       filter(?pred_workFieldLabel='number theory').                        
+                                  }
+                                #limit 100                                    
+                               """
+
     nested_Query=""" select  (count(*) as ?s)
                 from <http://wikikg-v2>
                 where
@@ -627,12 +666,14 @@ if __name__ == '__main__':
     # kgnet = KGNET(KG_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query",KGMeta_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query", KG_NamedGraph_IRI='https://dblp2022.org',RDFEngine=RDFEngine.stardog)
     # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_workField_NC)
     # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_NC)
-    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_univ_NC)
+    resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_univ_NC)
+    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_univ_NC_v2)
     # resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp2022_NC_LP)
-    resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_NC)
+    #resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_NC)
     # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(nested_Query)
     print(resDF)
     print(MetaQueries)
+    print("candidateSparqlQuery=",MetaQueries['candidateSparqlQuery'])
     #############################################3
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='http://www.RVO.net/', KG_Prefix="RVO")
     # kgnet.uploadKG(ttl_file_url="http://206.12.89.16/CodsData/KGNET/KGs/OBA.nt",name="Landenportaal-Rijksdienst voor Ondernemend Nederland (RVO)",description="information about countries around the globe with the objectives of these country monitors",domain="geometric")
