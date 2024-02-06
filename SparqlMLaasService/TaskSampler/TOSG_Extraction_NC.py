@@ -51,7 +51,16 @@ def get_KG_entity_types(graph_uri):
               limit ?limit 
            """
     return query
-
+def get_d1h1_TargetListquery(graph_uri,target_lst):
+    query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+           from <"""+graph_uri+""">
+           where
+           {
+             ?s ?p ?o
+             values ?s {$VT_Values$}
+             }"""
+    query=query.replace("$VT_Values$"," ".join(target_lst))
+    return query
 def get_d1h1_query(graph_uri,target_rel_uri,stype=None,otype=None,tragetNode_filter_statments=None):
     query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
            from <"""+graph_uri+""">

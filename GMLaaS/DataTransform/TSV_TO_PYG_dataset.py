@@ -12,7 +12,7 @@ import gc
 import copy
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-
+import multiprocessing
 def compress_gz(f_path):
     f_in = open(f_path, 'rb')
     f_out = gzip.open(f_path + ".gz", 'wb')
@@ -27,7 +27,68 @@ def delete_multiple_element(list_object, indices):
         if idx < len(list_object):
             list_object.pop(idx)
    
-            
+def write_entity_mapping(item):
+    key,val,output_root_path,dataset_name=item
+    val = pd.DataFrame(list(val), columns=['ent name']).astype(
+        'str').sort_values(by="ent name").reset_index(drop=True)
+    val = val.drop_duplicates()
+    val["ent idx"] = val.index
+    val = val[["ent idx", "ent name"]]
+    dic_res = pd.Series(val["ent idx"].values,index=val["ent name"]).to_dict()
+    # print("key=",entites_dic[key+"_dic"])
+    map_folder = output_root_path + dataset_name + "/mapping"
+    try:
+        os.stat(map_folder)
+    except:
+        os.makedirs(map_folder)
+    val.to_csv(map_folder + "/" + key + "_entidx2name.csv", index=None)
+    compress_gz(map_folder + "/" + key + "_entidx2name.csv")
+    return (key, val,dic_res )
+def write_relations_mapping(item):
+    to_remove=None
+    relations_entites_map_rel,relations_dic_rel,entites_dic,output_root_path,dataset_name,rel_idx=item
+    for rel_list in relations_entites_map_rel:
+        e1, rel, e2 = rel_list
+        # ('human', 'P1038', 'Unknown_Entity')
+        temp_relations_dic = copy.deepcopy(relations_dic_rel)
+        temp_relations_dic["s_idx"] = temp_relations_dic["s"]  # .apply(
+        # lambda x: str(x).split("/")[-1])
+        temp_relations_dic["s_idx"] = temp_relations_dic["s_idx"].apply(
+            lambda x: entites_dic[e1 + "_dic"][x] if x in entites_dic[
+                e1 + "_dic"].keys() else -1)
+        temp_relations_dic = temp_relations_dic[temp_relations_dic["s_idx"] != -1]
+        ################
+        # relations_dic[rel]["o_keys"]=relations_dic[rel]["o"].apply(lambda x:x.split("/")[3] if x.startswith("http") and len(x.split("/")) > 3 else x)
+        temp_relations_dic["o_idx"] = temp_relations_dic["o"]
+        temp_relations_dic["o_idx"] = temp_relations_dic["o_idx"].apply(
+            lambda x: entites_dic[e2 + "_dic"][x] if x in entites_dic[
+                e2 + "_dic"].keys() else -1)
+        temp_relations_dic = temp_relations_dic[temp_relations_dic["o_idx"] != -1]
+
+        temp_relations_dic = temp_relations_dic.sort_values(by="s_idx").reset_index(drop=True)
+        rel_out = temp_relations_dic[["s_idx", "o_idx"]]
+        if len(rel_out) > 0:
+            map_folder = output_root_path + dataset_name + "/raw/relations/" + e1 + "___" + \
+                         rel.split("/")[-1] + "___" + e2
+            try:
+                os.stat(map_folder)
+            except:
+                os.makedirs(map_folder)
+            rel_out.to_csv(map_folder + "/edge.csv", index=None, header=None)
+            compress_gz(map_folder + "/edge.csv")
+            ########## write relations num #################
+            f = open(map_folder + "/num-edge-list.csv", "w")
+            f.write(str(len(temp_relations_dic)))
+            f.close()
+            compress_gz(map_folder + "/num-edge-list.csv")
+            ##################### write relations idx #######################
+            rel_out["rel_idx"] = rel_idx
+            rel_idx_df = rel_out["rel_idx"]
+            rel_idx_df.to_csv(map_folder + "/edge_reltype.csv", header=None, index=None)
+            compress_gz(map_folder + "/edge_reltype.csv")
+        else:
+            to_remove=[e1, str(rel).split("/")[-1], e2]
+    return to_remove
 ###################### Zip Folder to OGB Format
 # zip -r mag_ComputerProgramming_papers_venue_QM3.zip mag_ComputerProgramming_papers_venue_QM3/ -i '*.gz'
 def define_rel_types(g_tsv_df):
@@ -83,13 +144,13 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         print("g_tsv_df columns=", g_tsv_df.columns())
     unique_p_lst = g_tsv_df["p"].unique().tolist()
     ########################delete non target nodes #####################
-    if labelNodetype is not None:
-        all_labelNodetype_lst = g_tsv_df[(g_tsv_df["p"] == "type") & (g_tsv_df["o"] == labelNodetype)]["s"].unique().tolist()
-        all_target_nodes_set=set(g_tsv_df[g_tsv_df["p"] == target_rel]["s"].unique().tolist())
-        all_labelNodetype_target_nodes_set = set(g_tsv_df[(g_tsv_df["p"] == target_rel) &(g_tsv_df["o"].isin(all_labelNodetype_lst))]["s"].unique().tolist())
-        non_target_nodes_set=all_target_nodes_set-all_labelNodetype_target_nodes_set
-        g_tsv_df=g_tsv_df[~g_tsv_df["s"].isin(non_target_nodes_set)]
-        g_tsv_df=g_tsv_df[~g_tsv_df["o"].isin(non_target_nodes_set)]
+    # if labelNodetype is not None:
+    #     all_labelNodetype_lst = g_tsv_df[(g_tsv_df["p"] == "type") & (g_tsv_df["o"] == labelNodetype)]["s"].unique().tolist()
+    #     all_target_nodes_set=set(g_tsv_df[g_tsv_df["p"] == target_rel]["s"].unique().tolist())
+    #     all_labelNodetype_target_nodes_set = set(g_tsv_df[(g_tsv_df["p"] == target_rel) &(g_tsv_df["o"].isin(all_labelNodetype_lst))]["s"].unique().tolist())
+    #     non_target_nodes_set=all_target_nodes_set-all_labelNodetype_target_nodes_set
+    #     g_tsv_df=g_tsv_df[~g_tsv_df["s"].isin(non_target_nodes_set)]
+    #     g_tsv_df=g_tsv_df[~g_tsv_df["o"].isin(non_target_nodes_set)]
 
     relations_lst = g_tsv_df["p"].unique().astype("str").tolist()
     relations_lst = [rel for rel in relations_lst if rel not in similar_target_rels]
@@ -159,7 +220,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     print("Encode Entities of Relations")
     for rel in tqdm(relations_lst):
         rel_type = rel.split("/")[-1]
-        # rel_type = rel
+        # rel_type = rel812
         rel_df = g_tsv_df[g_tsv_df["p"] == rel_type].reset_index(drop=True)
         # print("rel_type ", rel)
         list_rel_types = []
@@ -214,26 +275,19 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     # print("len of entites_dic[" + targetNodeType + "]=", len(entites_dic[targetNodeType]))
     ############################ write entites index #################################
     print("write entites mappings")
-    for key in tqdm(list(entites_dic.keys())):
-        entites_dic[key] = pd.DataFrame(list(entites_dic[key]), columns=['ent name']).astype(
-            'str').sort_values(by="ent name").reset_index(drop=True)
-        entites_dic[key] = entites_dic[key].drop_duplicates()
-        entites_dic[key]["ent idx"] = entites_dic[key].index
-        entites_dic[key] = entites_dic[key][["ent idx", "ent name"]]
-        entites_dic[key + "_dic"] = pd.Series(entites_dic[key]["ent idx"].values,
-                                              index=entites_dic[key]["ent name"]).to_dict()
-        # print("key=",entites_dic[key+"_dic"])
-        map_folder = output_root_path + dataset_name + "/mapping"
-        try:
-            os.stat(map_folder)
-        except:
-            os.makedirs(map_folder)
-        entites_dic[key].to_csv(map_folder + "/" + key + "_entidx2name.csv", index=None)
-        compress_gz(map_folder + "/" + key + "_entidx2name.csv")
+    # for key in tqdm(list(entites_dic.keys())):
+    with multiprocessing.Pool() as pool:
+        # tqdm(pool.imap(write_entity_mapping, list(entites_dic.keys())), total=len(list(entites_dic.keys())))
+        items=[(key,entites_dic[key],output_root_path,dataset_name) for key in list(entites_dic.keys())]
+        res=tqdm(pool.imap(write_entity_mapping,items),total=len(items))
+        pool.close()
+        pool.join()
+    for (key,val1,val2) in res:
+        # print(key)
+        entites_dic[key]=val1
+        entites_dic[key+"_dic"] = val2
     #################### write nodes statistics ######################
-    lst_node_has_feat = [
-        list(
-            filter(lambda entity: str(entity).endswith("_dic") == False, list(entites_dic.keys())))]
+    lst_node_has_feat = [list(filter(lambda entity: str(entity).endswith("_dic") == False, list(entites_dic.keys())))]
     lst_node_has_label = lst_node_has_feat.copy()
     lst_num_node_dict = lst_node_has_feat.copy()
     lst_has_feat = []
@@ -426,57 +480,22 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     ###################### write entites relations for nodes only (non literals) #########################
     idx = 0
     print("write entites relations")
-    for rel in tqdm(relations_dic):
-        for rel_list in relations_entites_map[rel]:
-            e1, rel, e2 = rel_list
-            # ('human', 'P1038', 'Unknown_Entity')
-            temp_relations_dic = copy.deepcopy(relations_dic[rel])
-            temp_relations_dic["s_idx"] = temp_relations_dic["s"]  # .apply(
-            # lambda x: str(x).split("/")[-1])
-            temp_relations_dic["s_idx"] = temp_relations_dic["s_idx"].apply(
-                lambda x: entites_dic[e1 + "_dic"][x] if x in entites_dic[
-                    e1 + "_dic"].keys() else -1)
-            temp_relations_dic= temp_relations_dic[temp_relations_dic["s_idx"] != -1]
-            ################
-            # relations_dic[rel]["o_keys"]=relations_dic[rel]["o"].apply(lambda x:x.split("/")[3] if x.startswith("http") and len(x.split("/")) > 3 else x)
-            temp_relations_dic["o_idx"] = temp_relations_dic["o"]
-            temp_relations_dic["o_idx"] = temp_relations_dic["o_idx"].apply(
-                lambda x: entites_dic[e2 + "_dic"][x] if x in entites_dic[
-                    e2 + "_dic"].keys() else -1)
-            temp_relations_dic = temp_relations_dic[temp_relations_dic["o_idx"] != -1]
+    with multiprocessing.Pool() as pool:
+        # tqdm(pool.imap(write_entity_mapping, list(entites_dic.keys())), total=len(list(entites_dic.keys())))
+        items = [(relations_entites_map[rel], relations_dic[rel], entites_dic, output_root_path, dataset_name,  relations_df[relations_df["rel name"] == rel.split("/")[-1]]["rel idx"].values[0]) for rel in relations_dic.keys()]
+        res = tqdm(pool.imap(write_relations_mapping, items), total=len(items))
+        pool.close()
+        pool.join()
+    for res_key in res:
+        if res_key is not None:
+            lst_relations.remove(res_key)
 
-            temp_relations_dic = temp_relations_dic.sort_values(by="s_idx").reset_index(drop=True)
-            rel_out = temp_relations_dic[["s_idx", "o_idx"]]
-            if len(rel_out) > 0:
-                map_folder = output_root_path + dataset_name + "/raw/relations/" + e1 + "___" + \
-                             rel.split("/")[-1] + "___" + e2
-                try:
-                    os.stat(map_folder)
-                except:
-                    os.makedirs(map_folder)
-                rel_out.to_csv(map_folder + "/edge.csv", index=None, header=None)
-                compress_gz(map_folder + "/edge.csv")
-                ########## write relations num #################
-                f = open(map_folder + "/num-edge-list.csv", "w")
-                f.write(str(len(temp_relations_dic)))
-                f.close()
-                compress_gz(map_folder + "/num-edge-list.csv")
-                ##################### write relations idx #######################
-                rel_idx = \
-                    relations_df[relations_df["rel name"] == rel.split("/")[-1]]["rel idx"].values[0]
-                rel_out["rel_idx"] = rel_idx
-                rel_idx_df = rel_out["rel_idx"]
-                rel_idx_df.to_csv(map_folder + "/edge_reltype.csv", header=None, index=None)
-                compress_gz(map_folder + "/edge_reltype.csv")
-            else:
-                lst_relations.remove([e1, str(rel).split("/")[-1], e2])
-
-            pd.DataFrame(lst_relations).to_csv(
-                output_root_path + dataset_name + "/raw/triplet-type-list.csv",
-                header=None, index=None)
-            compress_gz(output_root_path + dataset_name + "/raw/triplet-type-list.csv")
-            #####################Zip Folder ###############3
-        shutil.make_archive(output_root_path + dataset_name, 'zip',
+    pd.DataFrame(lst_relations).to_csv(
+        output_root_path + dataset_name + "/raw/triplet-type-list.csv",
+        header=None, index=None)
+    compress_gz(output_root_path + dataset_name + "/raw/triplet-type-list.csv")
+    #####################Zip Folder ###############
+    shutil.make_archive(output_root_path + dataset_name, 'zip',
                             root_dir=output_root_path, base_dir=dataset_name)
     end_t = datetime.datetime.now()
     dic_results["csv_to_Hetrog_time"] = (end_t - start_t).total_seconds()
