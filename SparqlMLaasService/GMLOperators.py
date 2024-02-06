@@ -7,12 +7,13 @@ from Constants import utils as kgnet_utils, GML_Operator_Types,GML_Query_Types,K
 from GMLaaS.run_pipeline import run_training_pipeline
 from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
 from SparqlMLaasService.gmlRewriter import gmlQueryParser,gmlQueryRewriter
+from SparqlMLaasService.QueryFormatter import gmlQueryFormatter
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_KG_entity_types as get_KG_entity_types
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_query as get_NC_d1h1_query
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d2h1_query as get_NC_d2h1_query
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_LP import write_d2h1_TOSG,get_LP_d1h1_query,get_LP_d2h1_query
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
-import datetime
+from datetime import datetime
 class gmlOperator():
     def __init__(self,KG_sparqlEndpoint):
         self.KG_sparqlEndpoint = KG_sparqlEndpoint
@@ -61,7 +62,7 @@ class gmlInsertOperator(gmlOperator):
             #                 query_dict["insertJSONObject"]["GMLTask"]["targetEdge"] + "->" + \
             #                 query_dict["insertJSONObject"]["GMLTask"]["GNNMethod"] + "->" +\
             #                 str(datetime.datetime.now().timestamp())
-            next_model_id = str(datetime.datetime.now().timestamp())
+            next_model_id = str(datetime.now().timestamp())
             next_model_id = kgnet_utils.get_sha256(next_model_id)
         else:
             next_model_id = self.KGMeta_Governer_obj.getNextGMLModelID()
@@ -73,7 +74,7 @@ class gmlInsertOperator(gmlOperator):
             #                 query_dict["insertJSONObject"]["GMLTask"]["namedGraphURI"] + "->" + \
             #                 query_dict["insertJSONObject"]["GMLTask"]["targetEdge"]+"->"+ \
             #                str(datetime.datetime.now().timestamp())
-            next_task_id = str(datetime.datetime.now().timestamp())
+            next_task_id = str(datetime.now().timestamp())
             next_task_id = kgnet_utils.get_sha256(next_task_id)
         else:
             next_task_id = self.KGMeta_Governer_obj.getNextGMLTaskID()
@@ -155,13 +156,27 @@ class gmlInferenceOperator(gmlOperator):
         self.KGMeta_Governer_obj = KGMeta_Governer_obj
         self.KG_sparqlEndpoint = KG_sparqlEndpoint
         self.GML_Query_Type = GML_Query_Types.Inference
-    def executeQuery(self, query):
+    def executeQuery(self, query,in_pipline=True):
         gmlqp = gmlQueryParser(query)
-        dataInferQ,dataQ,tragetNodesq, kgmeta_model_queries_dict,model_ids = gmlQueryRewriter(gmlqp.extractQueryStatmentsDict(), self.KGMeta_Governer_obj).rewrite_gml_query()
-        # print("KGMeta task select query= \n",kmetaq)
-        # print("SPARQL candidate query form 2= \n",dataInferQ)
-        # print("SPARQLdata only Query=\n", dataQ)
-        return dataInferQ,dataQ,tragetNodesq,kgmeta_model_queries_dict,model_ids
+        start_time=datetime.now()
+        if in_pipline==True:
+            res_df,exectuted_Queries,=gmlqp.exec_query_plan()
+            return res_df,exectuted_Queries,(datetime.now()-start_time).total_seconds()
+        else:
+            st = datetime.now()
+            q_stmt=gmlqp.extractQueryStatmentsDict()
+            formatted_gml_query = gmlQueryFormatter.format_gml_query_tree(gmlqp.query_statments)
+            print("formatted_gml_query=", formatted_gml_query)
+            dataInferQ,dataQ,tragetNodesq, kgmeta_model_queries_dict,model_ids = gmlQueryRewriter(q_stmt, self.KGMeta_Governer_obj).rewrite_gml_query()
+            print(f"Query Parse and Rewrite Time:{(datetime.now()-st).total_seconds()} Sec")
+            st=datetime.now()
+            df_res = self.KG_sparqlEndpoint.executeSparqlquery(dataInferQ)
+            print(f"SPARQL Query Exec Time:{(datetime.now() - st).total_seconds()} Sec")
+            # print("KGMeta task select query= \n",kmetaq)
+            # print("SPARQL candidate query form 2= \n",dataInferQ)
+            # print("SPARQLdata only Query=\n", dataQ)
+            df_res=df_res.applymap(lambda x: str(x)[1:-1])
+            return df_res,dataInferQ,dataQ,tragetNodesq,kgmeta_model_queries_dict,model_ids,(datetime.now()-start_time).total_seconds()
 
 if __name__ == '__main__':
     ""

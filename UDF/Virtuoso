@@ -1,0 +1,170 @@
+CREATE PROCEDURE DB.DBA.get_doPostJson(IN  url STRING,IN json_body STRING)
+{
+declare  hdr,tmp,prox,tree any;
+declare  opts,http_headers String;
+log_message('url');
+log_message(url);
+log_message('json_body');
+log_message(json_body);
+/*json_body:='{}';*/
+http_headers:='Content-Type:application/json\r\n';
+tmp :=  http_client_ext
+(url=>url,http_method=>'POST',body=>json_body,http_headers=>http_headers,headers=>hdr, proxy=>NULL);
+log_message('tmp');
+/*log_message(length(tmp));*/
+log_message(tmp);
+return tmp;
+}
+#############################################################
+CREATE PROCEDURE DB.DBA.getNodeClass_v2(IN  model_uri STRING,IN  infer_api_json STRING)
+{
+declare  url,req_body String;
+declare  hdr,tmp,prox,tree any;
+/**********************************************************/
+req_body :='{\"page\":';
+req_body :=concat(req_body,'1');
+req_body :=concat(req_body,',');
+req_body :=concat(req_body,'\"size\":');
+req_body :=concat(req_body,'1000');
+req_body :=concat(req_body,'}');
+/**********************************************************/
+log_message('infer_api_json=');
+log_message(infer_api_json);
+req_body:=infer_api_json;
+/**********************************************************/
+log_message('model_uri=');
+log_message(model_uri);
+/**********************************************************/
+tmp := get_doPostJson(model_uri,req_body);
+/* log_message('get_doPostJson=');*/
+log_message(tmp);
+/*tree := json_parse(tmp);
+log_message(tree);*/
+return tmp;
+}
+#################################################
+CREATE PROCEDURE DB.DBA.getLinkPred(IN  model_uri STRING,IN  infer_json_obj STRING)
+{
+declare  url,req_body String;
+declare  hdr,tmp,prox,tree any;
+/**********************************************************/
+req_body :='{\"page\":';
+req_body :=concat(req_body,'1');
+req_body :=concat(req_body,',');
+req_body :=concat(req_body,'\"size\":');
+req_body :=concat(req_body,'1000');
+req_body :=concat(req_body,'}');
+/**********************************************************/
+req_body :=infer_json_obj;
+log_message('req_body=');
+log_message(req_body);
+/**********************************************************/
+log_message('model_uri=');
+log_message(model_uri);
+/**********************************************************/
+tmp := get_doPostJson(model_uri,req_body);
+/* log_message('get_doPostJson=');
+log_message(tmp);
+tree := json_parse(tmp);
+log_message(tree);*/
+return tmp;
+}
+#############################################
+CREATE PROCEDURE DB.DBA.getKeyValue_v2(IN  dic_key STRING,IN  dic vector)
+{
+ declare val any;
+/* log_message(dic);
+ log_message(type(dic_key));*/
+ val :=get_keyword(dic_key,json_parse(dic),'None');
+/* log_message(val);*/
+ return val;
+}
+#################################################################################################### OTHERS ############################################################
+CREATE PROCEDURE DB.DBA.getKeyValue(IN  dic_key STRING,IN  dic vector)
+{
+ return get_keyword(dic_key,json_parse(dic));
+}
+###########################################################
+CREATE PROCEDURE DB.DBA.getNodeClass(IN  model_uri STRING,IN  targetNodes_uri STRING)
+{
+declare  url,req_body String;
+declare  hdr,tmp,prox,tree any;
+/**********************************************************/
+req_body :='{\"page\":';
+req_body :=concat(req_body,'1');
+req_body :=concat(req_body,',');
+req_body :=concat(req_body,'\"size\":');
+req_body :=concat(req_body,'1000');
+req_body :=concat(req_body,'}');
+/**********************************************************/
+tmp := get_doPostJson(model_uri,req_body);
+/*tree := json_parse (tmp);
+tree :=aref(tree,3);
+return tree;*/
+return tmp;
+}
+###############################################################
+CREATE PROCEDURE DB.DBA.getSingleNodeClass(IN  model_uri STRING,IN  node_uri STRING)
+{
+declare  url,req_body String;
+declare  hdr,tmp,prox,tree any;
+/**********************************************************/
+req_body :='{\"paper\":';
+req_body :=concat(req_body,'\"'||node_uri||'\"');
+req_body :=concat(req_body,',');
+req_body :=concat(req_body,'\"page\":');
+req_body :=concat(req_body,'0');
+req_body :=concat(req_body,',');
+req_body :=concat(req_body,'\"size\":');
+req_body :=concat(req_body,'1');
+req_body :=concat(req_body,'}');
+/**********************************************************/
+log_message('req_body=');
+log_message(req_body);
+log_message('model_uri=');
+log_message(model_uri);
+tmp := get_doPostJson(model_uri,req_body);
+log_message('get_doPostJson=');
+/*log_message(tmp);
+tree := json_parse(tmp);
+log_message(tree);*/
+return tmp;
+}
+#########################################################################
+CREATE PROCEDURE DB.DBA.getNodeClass_MT(IN  API_Calls STRING,IN threads_count INT :=20)
+{
+declare  url,req_body,API_url,API_req_body String;
+declare  hdr,tmp,prox,tree,res,err,aq,th_ids any;
+/**********************************************************/
+tree := json_parse(API_Calls);
+/*######## tree length = 2+ (#keys*2); The First two keys are data structure header############*/
+/*return get_keyword('aa',tree);*/
+/*return length(tree[5]);*/
+/*return tree[5][3];*/
+declare X integer;
+X := 2;
+API_url:='';
+API_req_body:='';
+tmp:='';
+res:=vector();
+th_ids:=vector();
+aq := async_queue (threads_count);
+FOR (; X < length(tree) ; X := X + 2)
+    {
+       API_url:=tree[X];
+       API_req_body:=decode_base64(tree[X+1]);
+       /*##########serial API calls#########*/
+       /*tmp:=concat(tmp,getNodeClass_v2(API_url,API_req_body));
+       res:=vector_concat(res,vector(API_url,tmp));*/
+       /*##########Parallel API calls###########*/
+       tmp:=aq_request(aq, 'DB.DBA.getNodeClass_v2', vector(API_url,API_req_body));
+       th_ids:=vector_concat(th_ids,vector(API_url,tmp));
+    }
+    /*########## collect threads Results ###########*/
+    FOR (X:=0; X < length(th_ids) ; X := X + 2)
+    {res:=vector_concat(res,vector(th_ids[X],aq_wait(aq, th_ids[X+1], 1, err)));}
+/*tree := json_parse(decode_base64(req_body));*/
+return get_keyword(API_url,res);
+/*return length(th_ids);*/
+}
+#########################################################################################

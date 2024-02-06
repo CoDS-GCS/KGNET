@@ -25,8 +25,10 @@ class InferenceRequest(BaseModel):
     named_graph_uri : str
     sparqlEndpointURL : str
     RDFEngine : str
-    dataQuery : List[str]
-    targetNodesQuery : str
+    dataQuery : List[str]=None
+    targetNodesQuery : str=None
+    targetNodesList:List[str] =None
+    TOSG_Pattern:str=TOSG_Patterns.d1h1
     topk: int = 1
 
 
@@ -38,7 +40,9 @@ async def run_inference(mid:str,inference_request: InferenceRequest):
     RDFEngine = inference_request.RDFEngine
     dataQuery = inference_request.dataQuery
     targetNodesQuery = inference_request.targetNodesQuery
+    targetNodesList=inference_request.targetNodesList
     topk = inference_request.topk
+    TOSG_Pattern=inference_request.TOSG_Pattern
     # try:
     #     dic_results = perform_inference(model_id = model_id,named_graph_uri = named_graph_uri,
     #                   targetNode_filter_statements = dataQuery,
@@ -51,7 +55,7 @@ async def run_inference(mid:str,inference_request: InferenceRequest):
     dic_results = perform_inference(model_id = model_id, named_graph_uri = named_graph_uri,
                                     dataQuery= dataQuery, sparqlEndpointURL = sparqlEndpointURL,
                                     targetNodesQuery = targetNodesQuery,
-                                    topk = topk,RDFEngine=RDFEngine)
+                                    topk = topk,RDFEngine=RDFEngine,targetNodesList=targetNodesList,TOSG_Pattern=TOSG_Pattern)
     return dic_results#['y_pred']
     # return {
     #     "model_id": model_id,
