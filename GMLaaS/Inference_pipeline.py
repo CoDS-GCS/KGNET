@@ -2,6 +2,7 @@ import os
 import shutil
 import shutil
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_query as get_NC_d1h1_query
+from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_TargetListquery as get_NC_d1h1_TargetListquery
 from SparqlMLaasService.GMLOperators import gmlOperator
 from KGNET import KGNET
 from KGNET import Constants
@@ -16,6 +17,7 @@ from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 from model_manager import downloadModel,downloadDataset
 import datetime
 import pandas as pd
+from Constants import *
 
 # output_path = Constants.KGNET_Config.inference_path
 inference_file = os.path.join(Constants.KGNET_Config.inference_path, 'inference.tsv')
@@ -166,15 +168,20 @@ def get_rel_types(named_graph_uri, graphPrefix, sparqlEndpointURL):
         return types_file
 
 
-def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery = "",apply = True,):
-    print("targetNodesQuery=",targetNodesQuery)
-    targetNodes = kg_endpoint.executeSparqlquery(targetNodesQuery)
-    print("targetNodes.columns",targetNodes.columns)
-    targetNodes["s"]=targetNodes["s"].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else str(x))
-    # print("targetNodes.columns=",targetNodes.columns)
-    targetNodes = targetNodes.applymap(lambda x: x.strip('"'))['s'].to_dict()
-    targetNodes = {v: k for k, v in targetNodes.items()}
-
+def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery = None,targetNodesList=None,TOSG_Pattern=TOSG_Patterns.d1h1,graph_uri=None,apply = True,):
+    if targetNodesQuery is not None:
+        print("targetNodesQuery=",targetNodesQuery)
+        targetNodes = kg_endpoint.executeSparqlquery(targetNodesQuery)
+        print("targetNodes.columns", targetNodes.columns)
+        targetNodes["s"] = targetNodes["s"].apply(
+            lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else str(x))
+        # print("targetNodes.columns=",targetNodes.columns)
+        targetNodes = targetNodes.applymap(lambda x: x.strip('"'))['s'].to_dict()
+        targetNodes = {v: k for k, v in targetNodes.items()}
+    elif targetNodesList is not None and len(targetNodesList)>0:
+        targetNodes=[ str(elem).strip()[1:-1] if str(elem).strip().startswith("<") else str(elem).strip() for elem in targetNodesList]
+    else:
+        return None
     if not apply:
         return targetNodes
 
@@ -182,12 +189,11 @@ def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery
     return filtered_pred
 
 
-def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk,RDFEngine,demo = True):
+def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk,RDFEngine,demo = True,targetNodesList=None,TOSG_Pattern=TOSG_Patterns.d1h1):
     if RDFEngine:
         kg_endpoint = sparqlEndpoint(sparqlEndpointURL,RDFEngine=RDFEngine)
     else:
         kg_endpoint = sparqlEndpoint(sparqlEndpointURL)
-
     dict_time = {}
     if not os.path.exists(Constants.KGNET_Config.inference_path):
         os.makedirs(Constants.KGNET_Config.inference_path)
@@ -299,7 +305,7 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
     else:
         return {'error': 'Model not found'}
     dict_time['inference_time'] = (datetime.datetime.now() - time_inference).total_seconds()
-    dic_results['y_pred'] = filterTargetNodes(kg_endpoint,predictions=dic_results['y_pred'],targetNodesQuery=targetNodesQuery)
+    dic_results['y_pred'] = filterTargetNodes(kg_endpoint,predictions=dic_results['y_pred'],targetNodesQuery=targetNodesQuery,targetNodesList=targetNodesList,graph_uri=named_graph_uri)
     # shutil.rmtree(Constants.KGNET_Config.inference_path)
     # dict_time.update(dic_results['y_pred'])
     # dic_results['y_pred'] = dic_results['y_pred'].update({'Inference_Time':dict_time})
