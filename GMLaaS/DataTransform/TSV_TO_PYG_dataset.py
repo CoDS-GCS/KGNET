@@ -19,14 +19,11 @@ def compress_gz(f_path):
     f_out.writelines(f_in)
     f_out.close()
     f_in.close()
-
-
 def delete_multiple_element(list_object, indices):
     indices = sorted(indices, reverse=True)
     for idx in indices:
         if idx < len(list_object):
             list_object.pop(idx)
-   
 def write_entity_mapping(item):
     key,val,output_root_path,dataset_name=item
     val = pd.DataFrame(list(val), columns=['ent name']).astype(
@@ -89,13 +86,62 @@ def write_relations_mapping(item):
         else:
             to_remove=[e1, str(rel).split("/")[-1], e2]
     return to_remove
+def encode_entities(item):
+    relations_lst,g_tsv_df,g_tsv_types_df,len_entities_isa_df,entities_isa_dict=item
+    relations_entites_map = {}
+    relations_dic = {}
+    entites_dic = {}
+    for rel in tqdm(relations_lst):
+        rel_type = rel.split("/")[-1]
+        # rel_type = rel812
+        rel_df = g_tsv_df[g_tsv_df["p"] == rel_type].reset_index(drop=True)
+        # print("rel_type ", rel)
+        list_rel_types = []
+        if len_entities_isa_df > 0:
+            rel_df["s_type"] = rel_df["s"].apply(lambda x:entities_isa_dict[x] if str(x) in entities_isa_dict.keys() else "Subject-"+rel_type)
+            rel_df["o_type"] = rel_df["o"].apply(lambda x: entities_isa_dict[x] if str(x) in entities_isa_dict.keys() else "Object-"+rel_type)
+        else:
+            rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
+            s_type = rel_types['stype'].values[0]
+            o_type = rel_types['otype'].values[0]
+            rel_df["s_type"] = s_type
+            rel_df["o_type"] = o_type
+
+        for idx,row in rel_df[["s_type","o_type"]].drop_duplicates().iterrows():
+            list_rel_types.append((row["s_type"], rel, row["o_type"]))
+        relations_entites_map[rel] = list_rel_types
+            # if len(list_rel_types) > 2:
+                # print(len(list_rel_types))
+        relations_dic[rel] = rel_df
+        # e1_list=list(set(relations_dic[rel]["s"].apply(lambda x:str(x).split("/")[:-1])))
+        for rel_pair in list_rel_types:
+            e1, rel, e2 = rel_pair
+            # if e1 == "human":
+            #     print("e1=", e1)
+
+            if e1 != "literal" and e1 in entites_dic:
+                entites_dic[e1] = entites_dic[e1].union(
+                    set(rel_df[rel_df["s_type"] == e1]["s"].unique()))  # .apply(
+                # lambda x: str(x).split("/")[-1]).unique()))
+            elif e1 != "literal":
+                entites_dic[e1] = set(rel_df[rel_df["s_type"] == e1]["s"].unique())  # .apply(
+                # lambda x: str(x).split("/")[-1]).unique())
+
+            if e2 != "literal" and e2 in entites_dic:
+                entites_dic[e2] = entites_dic[e2].union(
+                    set(rel_df[rel_df["o_type"] == e2]["o"].unique()))  # .apply(
+                # lambda x: str(x).split("/")[-1]).unique()))
+            elif e2 != "literal":
+                entites_dic[e2] = set(rel_df[rel_df["o_type"] == e2]["o"].unique())  # .apply(
+                # lambda x: str(x).split("/")[-1]).unique())
+    return (entites_dic,relations_entites_map,relations_dic)
 ###################### Zip Folder to OGB Format
 # zip -r mag_ComputerProgramming_papers_venue_QM3.zip mag_ComputerProgramming_papers_venue_QM3/ -i '*.gz'
 def define_rel_types(g_tsv_df):
     g_tsv_df["p"]
 
 def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path
-                         ,MINIMUM_INSTANCE_THRESHOLD=9,test_size=0.1,valid_size=0.1,split_rel_train_value=None,split_rel_valid_value=None,Header_row=None,targetNodeType=None,labelNodetype=None):
+                         ,MINIMUM_INSTANCE_THRESHOLD=21,test_size=0.1,valid_size=0.1,split_rel_train_value=None,split_rel_valid_value=None,Header_row=None,targetNodeType=None,labelNodetype=None):
     dic_results = {}  # args.dic_results #{}
     start_t = datetime.datetime.now()
     if dataset_types == "":
@@ -182,26 +228,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         os.makedirs(map_folder)
     relations_df.to_csv(map_folder + "/relidx2relname.csv", index=None)
     compress_gz(map_folder + "/relidx2relname.csv")
-    ############################### create labels index ########################
-    if labelNodetype is None:
-        label_idx_df = pd.DataFrame(g_tsv_df[g_tsv_df["p"] == target_rel]["o"].apply(lambda x: str(x).strip()).unique().tolist(),columns=["label name"])
-    else:
-        all_labels_df=g_tsv_df[g_tsv_df["s"].isin(g_tsv_df[g_tsv_df["p"] == target_rel]["o"])]
-        label_idx_df = pd.DataFrame(all_labels_df[(all_labels_df["p"]=="type") & (all_labels_df["o"]==labelNodetype)]["s"].apply(lambda x: str(x).strip()).unique().tolist(),columns=["label name"])
-    dic_results["ClassesCount"] = len(label_idx_df)
-    try:
-        label_idx_df["label name"] = label_idx_df["label name"].astype("int64")
-        label_idx_df = label_idx_df.sort_values(by=["label name"]).reset_index(drop=True)
-    except:
-        label_idx_df["label name"] = label_idx_df["label name"].astype("str")
-        label_idx_df = label_idx_df.sort_values(by=["label name"]).reset_index(drop=True)
-
-    label_idx_df["label idx"] = label_idx_df.index
-    label_idx_df = label_idx_df[["label idx", "label name"]]
-    label_idx_df.to_csv(map_folder + "/labelidx2labelname.csv", index=None)
-    compress_gz(map_folder + "/labelidx2labelname.csv")
-
-    ###########################################prepare relations mapping#################################
+    ###########################################prepare entities encoding#################################
     relations_entites_map = {}
     relations_dic = {}
     entites_dic = {}
@@ -218,61 +245,39 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         entities_isa_dict=dict(zip(entities_isa_df.s, entities_isa_df.o))
     ###########################################################
     print("Encode Entities of Relations")
-    for rel in tqdm(relations_lst):
-        rel_type = rel.split("/")[-1]
-        # rel_type = rel812
-        rel_df = g_tsv_df[g_tsv_df["p"] == rel_type].reset_index(drop=True)
-        # print("rel_type ", rel)
-        list_rel_types = []
-        if len(entities_isa_df) > 0:
-            rel_df["s_type"] = rel_df["s"].apply(lambda x:entities_isa_dict[x] if str(x) in entities_isa_dict.keys() else "Subject-"+rel_type)
-            rel_df["o_type"] = rel_df["o"].apply(lambda x: entities_isa_dict[x] if str(x) in entities_isa_dict.keys() else "Object-"+rel_type)
-        else:
-            rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
-            s_type = rel_types['stype'].values[0]
-            o_type = rel_types['otype'].values[0]
-            rel_df["s_type"] = s_type
-            rel_df["o_type"] = o_type
-
-        for idx,row in rel_df[["s_type","o_type"]].drop_duplicates().iterrows():
-            list_rel_types.append((row["s_type"], rel, row["o_type"]))
-        relations_entites_map[rel] = list_rel_types
-            # if len(list_rel_types) > 2:
-                # print(len(list_rel_types))
-        relations_dic[rel] = rel_df
-        # e1_list=list(set(relations_dic[rel]["s"].apply(lambda x:str(x).split("/")[:-1])))
-        for rel_pair in list_rel_types:
-            e1, rel, e2 = rel_pair
-            # if e1 == "human":
-            #     print("e1=", e1)
-
-            if e1 != "literal" and e1 in entites_dic:
-                entites_dic[e1] = entites_dic[e1].union(
-                    set(rel_df[rel_df["s_type"] == e1]["s"].unique()))  # .apply(
-                # lambda x: str(x).split("/")[-1]).unique()))
-            elif e1 != "literal":
-                entites_dic[e1] = set(rel_df[rel_df["s_type"] == e1]["s"].unique())  # .apply(
-                # lambda x: str(x).split("/")[-1]).unique())
-
-            if e2 != "literal" and e2 in entites_dic:
-                entites_dic[e2] = entites_dic[e2].union(
-                    set(rel_df[rel_df["o_type"] == e2]["o"].unique()))  # .apply(
-                # lambda x: str(x).split("/")[-1]).unique()))
-            elif e2 != "literal":
-                entites_dic[e2] = set(rel_df[rel_df["o_type"] == e2]["o"].unique())  # .apply(
-                # lambda x: str(x).split("/")[-1]).unique())
+    nthreads=16
+    chunksize=int(len(relations_lst)/nthreads)
+    chunksize= 5 if chunksize<5 else chunksize
+    chunks=[relations_lst[i:(i+chunksize)] for i in range(0,len(relations_lst),chunksize)]
+    with multiprocessing.Pool() as pool:
+        items=[(chunk,g_tsv_df, g_tsv_types_df, len(entities_isa_df), entities_isa_dict) for chunk in chunks]
+        res=tqdm(pool.imap(encode_entities,items),total=len(items))
+        pool.close()
+        pool.join()
+        ############ Union Mappings ##########
+    for (ch_entites_dic,ch_relations_entites_map,ch_relations_dic) in res:
+        for key in ch_entites_dic.keys():
+            if key in entites_dic:
+                entites_dic[key]=entites_dic[key].union(ch_entites_dic[key])
+            else:
+                entites_dic[key] = ch_entites_dic[key]
+        for key in ch_relations_entites_map.keys():
+            if key in relations_entites_map:
+                relations_entites_map[key]=relations_entites_map[key].union(ch_relations_entites_map[key])
+            else:
+                relations_entites_map[key] = ch_relations_entites_map[key]
+        for key in ch_relations_dic.keys():
+            if key in relations_dic:
+                relations_dic[key]=relations_dic[key].union(ch_relations_dic[key])
+            else:
+                relations_dic[key] = ch_relations_dic[key]
 
     ############################### Obtain Target node if not explicitly given #########
     if targetNodeType is None:
         targetNodeType = list(g_tsv_types_df[g_tsv_types_df['ptype'] == target_rel]['stype'].value_counts().to_dict().keys())[0]
-
     ############################### Make sure all target nodes have label ###########
-    target_subjects_lst = g_tsv_df[g_tsv_df["p"] == target_rel]["s"].unique().tolist()  # .apply(
-    # lambda x: str(x).split("/")[-1]).unique().tolist()
-    # print("len of target_subjects_lst=", len(target_subjects_lst))
-    # target_subjects_dic= {k: entites_dic['rec'][k] for k in target_subjects_lst}
-    entites_dic[targetNodeType] = set.intersection(entites_dic[targetNodeType], set(target_subjects_lst))
-    # print("len of entites_dic[" + targetNodeType + "]=", len(entites_dic[targetNodeType]))
+    # target_subjects_lst = g_tsv_df[g_tsv_df["p"] == target_rel]["s"].unique().tolist()
+    # entites_dic[targetNodeType] = set.intersection(entites_dic[targetNodeType], set(target_subjects_lst))
     ############################ write entites index #################################
     print("write entites mappings")
     # for key in tqdm(list(entites_dic.keys())):
@@ -308,7 +313,6 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     lst_node_has_feat.append(lst_has_feat)
     lst_node_has_label.append(lst_has_label)
     lst_num_node_dict.append(lst_num_node)
-
     lst_relations = []
 
     for key in list(relations_entites_map.keys()):
@@ -327,17 +331,35 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         output_root_path + dataset_name + "/raw/nodetype-has-feat.csv", header=None,
         index=None)
     compress_gz(output_root_path + dataset_name + "/raw/nodetype-has-feat.csv")
-
-    pd.DataFrame(lst_node_has_label).to_csv(
-        output_root_path + dataset_name + "/raw/nodetype-has-label.csv",
-        header=None, index=None)
+    pd.DataFrame(lst_node_has_label).to_csv(output_root_path + dataset_name + "/raw/nodetype-has-label.csv",header=None, index=None)
     compress_gz(output_root_path + dataset_name + "/raw/nodetype-has-label.csv")
-
-    pd.DataFrame(lst_num_node_dict).to_csv(
-        output_root_path + dataset_name + "/raw/num-node-dict.csv", header=None,
-        index=None)
+    pd.DataFrame(lst_num_node_dict).to_csv(output_root_path + dataset_name + "/raw/num-node-dict.csv", header=None,index=None)
     compress_gz(output_root_path + dataset_name + "/raw/num-node-dict.csv")
+    ############################### create labels index ########################
+    target_labels_df = g_tsv_df[g_tsv_df["p"] == target_rel]
+    target_labels_df = target_labels_df[target_labels_df["s"].isin(entites_dic[targetNodeType+"_dic"])]
+    representative_labels_lst=[k for k,v in target_labels_df["o"].value_counts().to_dict().items() if v>=MINIMUM_INSTANCE_THRESHOLD]
+    target_labels_df=target_labels_df[target_labels_df["o"].isin(representative_labels_lst)]
+    if labelNodetype is None:
+        label_idx_df = pd.DataFrame(target_labels_df["o"].apply(lambda x: str(x).strip()).unique().tolist(),
+                                    columns=["label name"])
+    else:
+        all_labels_df = g_tsv_df[g_tsv_df["s"].isin(target_labels_df["o"])]
+        label_idx_df = pd.DataFrame(
+            all_labels_df[(all_labels_df["p"] == "type") & (all_labels_df["o"] == labelNodetype)]["s"].apply(
+                lambda x: str(x).strip()).unique().tolist(), columns=["label name"])
+    dic_results["ClassesCount"] = len(label_idx_df)
+    try:
+        label_idx_df["label name"] = label_idx_df["label name"].astype("int64")
+        label_idx_df = label_idx_df.sort_values(by=["label name"]).reset_index(drop=True)
+    except:
+        label_idx_df["label name"] = label_idx_df["label name"].astype("str")
+        label_idx_df = label_idx_df.sort_values(by=["label name"]).reset_index(drop=True)
 
+    label_idx_df["label idx"] = label_idx_df.index
+    label_idx_df = label_idx_df[["label idx", "label name"]]
+    label_idx_df.to_csv(output_root_path + dataset_name + "/mapping/labelidx2labelname.csv", index=None)
+    compress_gz(output_root_path + dataset_name + "/mapping/labelidx2labelname.csv")
     ############################### create label relation index  ######################
     label_idx_df["label idx"] = label_idx_df["label idx"].astype("int64")
     # label_idx_df["label name"] = label_idx_df["label name"].apply(lambda x: str(x).split("/")[-1])
@@ -350,29 +372,26 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     labels_rel_df = labels_rel_df.sort_values(['s', 'o'], ascending=[True, True])
     labels_rel_df = labels_rel_df.drop_duplicates(subset=["s"], keep='first')
     ###############################################################################
-    rel_type = target_rel
-    rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
-    # s_type = rel_types['stype'].values[0]
-    # o_type = rel_types['otype'].values[0]
-    s_label_type = targetNodeType
-    # o_label_type = o_type
+    target_without_labels_set = set(entites_dic[targetNodeType + "_dic"]) - set(labels_rel_df["s"].tolist())
+    traget_with_dummy_label_dic = {(entites_dic[targetNodeType + "_dic"][elem] if elem in entites_dic[
+            targetNodeType + "_dic"].keys() else -1): -1 for elem in target_without_labels_set}
+    traget_with_dummy_label_df=pd.DataFrame({'s_idx':traget_with_dummy_label_dic.keys(),'o_idx':traget_with_dummy_label_dic.values()})
     label_type = targetNodeType
-    labels_rel_df["s_idx"] = labels_rel_df["s"]  # .apply(
-    # lambda x: str(x).split("/")[-1])
+    labels_rel_df["s_idx"] = labels_rel_df["s"]
     labels_rel_df["s_idx"] = labels_rel_df["s_idx"].astype("str")
-    # print("entites_dic=", list(entites_dic.keys()))
     labels_rel_df["s_idx"] = labels_rel_df["s_idx"].apply(
-        lambda x: entites_dic[s_label_type + "_dic"][x] if x in entites_dic[
-            s_label_type + "_dic"].keys() else -1)
-    labels_rel_df_notfound = labels_rel_df[labels_rel_df["s_idx"] == -1]
+        lambda x: entites_dic[targetNodeType + "_dic"][x] if x in entites_dic[
+            targetNodeType + "_dic"].keys() else -1)
     labels_rel_df = labels_rel_df[labels_rel_df["s_idx"] != -1]
-    labels_rel_df = labels_rel_df.sort_values(by=["s_idx"]).reset_index(drop=True)
-
     labels_rel_df["o_idx"] = labels_rel_df["o"]  # .apply(lambda x: str(x).split("/")[-1])
     labels_rel_df["o_idx"] = labels_rel_df["o_idx"].apply(
         lambda x: label_idx_dic[str(x)] if str(x) in label_idx_dic.keys() else -1)
+    labels_rel_df=labels_rel_df[["s_idx","o_idx"]]
+    labels_rel_df=pd.concat([labels_rel_df,traget_with_dummy_label_df]) ## append dummy target nodes
+    labels_rel_df = labels_rel_df.sort_values(by=["s_idx"]).reset_index(drop=True)
+
     out_labels_df = labels_rel_df[["o_idx"]]
-    map_folder = output_root_path + dataset_name + "/raw/node-label/" + s_label_type
+    map_folder = output_root_path + dataset_name + "/raw/node-label/" + targetNodeType
     try:
         os.stat(map_folder)
     except:
@@ -393,23 +412,20 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
             split_df = g_tsv_df[(g_tsv_df["p"] == split_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"]))]
         else:
             split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
-
+    ####################### filter for traget node types only ###############
+    split_df = split_df[split_df["s"].isin(entites_dic[targetNodeType+"_dic"])]
+    split_df = split_df[~split_df["s"].isin(target_without_labels_set)] ## exclude dummy label target nodes
     ########## remove target node  with multi labels ################
     target_label_dict = split_df["s"].value_counts().to_dict()
     target_nodes_to_keep_lst = list(k for k, v in target_label_dict.items() if v == 1)
-    # print("target nodes count=", len(target_label_dict.keys()))
-    # print("target_nodes_to_keep_lst count=", len(target_nodes_to_keep_lst))
     split_df = split_df[split_df["s"].isin(target_nodes_to_keep_lst)]
     ########## remove labels with less than MINIMUM_INSTANCE_THRESHOLD samples################
     labels_dict = split_df["o"].value_counts().to_dict()
-    labels_to_keep_lst = list(k for k, v in labels_dict.items() if v >= MINIMUM_INSTANCE_THRESHOLD)  # 9
-    # print("labels_dict count=", len(labels_dict.keys()))
-    # print("labels_to_keep count=", len(labels_to_keep_lst))
+    labels_to_keep_lst = list(k for k, v in labels_dict.items() if v >= MINIMUM_INSTANCE_THRESHOLD)
     split_df = split_df[split_df["o"].isin(labels_to_keep_lst)]
     #############################################################
-    s_label_type = targetNodeType
-    split_df["s"] = split_df["s"].astype("str").apply(lambda x: entites_dic[s_label_type + "_dic"][str(x)] if x in entites_dic[
-        s_label_type + "_dic"] else -1)
+    split_df["s"] = split_df["s"].astype("str").apply(lambda x: entites_dic[targetNodeType + "_dic"][str(x)] if x in entites_dic[
+        targetNodeType + "_dic"] else -1)
 
     split_df = split_df[split_df["s"] != -1]
     label_type_values_lst = list(entites_dic[label_type + "_dic"].values())
