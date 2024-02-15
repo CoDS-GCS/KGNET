@@ -141,7 +141,7 @@ def define_rel_types(g_tsv_df):
     g_tsv_df["p"]
 
 def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path
-                         ,MINIMUM_INSTANCE_THRESHOLD=21,test_size=0.1,valid_size=0.1,split_rel_train_value=None,split_rel_valid_value=None,Header_row=None,targetNodeType=None,labelNodetype=None):
+                         ,MINIMUM_INSTANCE_THRESHOLD=21,test_size=0.1,valid_size=0.1,split_rel_train_value=None,split_rel_valid_value=None,Header_row=None,targetNodeType=None,labelNodetype=None,nthreads=6):
     dic_results = {}  # args.dic_results #{}
     start_t = datetime.datetime.now()
     if dataset_types == "":
@@ -245,11 +245,10 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         entities_isa_dict=dict(zip(entities_isa_df.s, entities_isa_df.o))
     ###########################################################
     print("Encode Entities of Relations")
-    nthreads=16
     chunksize=int(len(relations_lst)/nthreads)
     chunksize= 5 if chunksize<5 else chunksize
     chunks=[relations_lst[i:(i+chunksize)] for i in range(0,len(relations_lst),chunksize)]
-    with multiprocessing.Pool() as pool:
+    with multiprocessing.Pool(nthreads) as pool:
         items=[(chunk,g_tsv_df, g_tsv_types_df, len(entities_isa_df), entities_isa_dict) for chunk in chunks]
         res=tqdm(pool.imap(encode_entities,items),total=len(items))
         pool.close()
@@ -281,7 +280,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     ############################ write entites index #################################
     print("write entites mappings")
     # for key in tqdm(list(entites_dic.keys())):
-    with multiprocessing.Pool() as pool:
+    with multiprocessing.Pool(nthreads) as pool:
         # tqdm(pool.imap(write_entity_mapping, list(entites_dic.keys())), total=len(list(entites_dic.keys())))
         items=[(key,entites_dic[key],output_root_path,dataset_name) for key in list(entites_dic.keys())]
         res=tqdm(pool.imap(write_entity_mapping,items),total=len(items))
@@ -438,14 +437,14 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
 
     ########## Random Splitting ###########
     if split_rel.lower() == 'random':
-        dic_results["testSize"] = test_size
-        dic_results["validSize"] = valid_size
-        dic_results["trainSize"] = 1 - (valid_size + test_size)
-        new_test_size =  (test_size + valid_size)
-        valid_size = (valid_size) / (test_size + valid_size)
-        test_size=new_test_size
-        # print("Test % ", test_size)
-        # print("Valid % ", valid_size)
+        dic_results["testSize"] = test_size*valid_size
+        dic_results["validSize"] = test_size*valid_size
+        dic_results["trainSize"] = 1 - (test_size)
+        # new_test_size =  (test_size + valid_size)
+        # valid_size = (valid_size) / (test_size + valid_size)
+        # test_size=new_test_size
+        # # print("Test % ", test_size)
+        # # print("Valid % ", valid_size)
         X_train, X_test, y_train, y_test = train_test_split(split_df["s"].tolist(), split_df["o"].tolist(),
                                                             test_size=test_size, random_state=42,
                                                             stratify=split_df["o"].tolist())
@@ -496,14 +495,14 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     ###################### write entites relations for nodes only (non literals) #########################
     idx = 0
     print("write entites relations")
-    with multiprocessing.Pool() as pool:
+    with multiprocessing.Pool(nthreads) as pool:
         # tqdm(pool.imap(write_entity_mapping, list(entites_dic.keys())), total=len(list(entites_dic.keys())))
         items = [(relations_entites_map[rel], relations_dic[rel], entites_dic, output_root_path, dataset_name,  relations_df[relations_df["rel name"] == rel.split("/")[-1]]["rel idx"].values[0]) for rel in relations_dic.keys()]
         res = tqdm(pool.imap(write_relations_mapping, items), total=len(items))
         pool.close()
         pool.join()
     for res_key in res:
-        if res_key is not None:
+        if res_key is not None and res_key in lst_relations:
             lst_relations.remove(res_key)
 
     pd.DataFrame(lst_relations).to_csv(
@@ -526,14 +525,14 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='TSV to PYG')
     #parser.add_argument('--csv_path', type=str, default="")
-    parser.add_argument('--target_rel', type=str, default="https://dblp.org/rdf/schema#publishedIn") # https://dblp.org/rdf/schema#publishedIn
+    parser.add_argument('--target_rel', type=str, default="http://www.wikidata.org/entity/P27") # https://dblp.org/rdf/schema#publishedIn
     #split_data_type
     #size of train # if random then in % else specific value for train and valid split
     #size of valid
-    parser.add_argument('--dataset_name',type=str, default="DBLP-Springer-Papers") # name of generated zip file
+    parser.add_argument('--dataset_name',type=str, default="WikiKG") # name of generated zip file
     #parser.add_argument('--dataset_csv',type=str, default="")
-    parser.add_argument('--dataset_name_csv',type=str, default="DBLP-Springer-Papers")  # csv/tsv , input dataset name
-    parser.add_argument('--dataset_types',type=str, default="") # path to the 'types' file containing relatiolns
+    parser.add_argument('--dataset_name_csv',type=str, default="WikiKG")  # csv/tsv , input dataset name
+    parser.add_argument('--dataset_types',type=str, default="/media/hussein/WindowsData/WikiKG_V2_2015/WikiKG2015_v2_Types.csv") # path to the 'types' file containing relatiolns
     #parser.add_argument('--split_by', type=dict, default={}) replaced by train and valid args
     parser.add_argument('--split_rel', type=str, default="random") # https://dblp.org/rdf/schema#yearOfPublication #default = random # TODO could be null in some rows
     parser.add_argument('--split_rel_train_value', type=int, default=0)
@@ -544,8 +543,8 @@ if __name__ == '__main__':
     # parser.add_argument('--targetNodeType',type=str, default = "")
     #parser.add_argument('--dic_results',type=dict, default = "")
     parser.add_argument('--Literals2Nodes',type=bool, default = False) # convert literal vals into nodes (eg name of paper )or ignore 
-    parser.add_argument('--output_root_path',type=str, default = "../../Datasets/")
-    parser.add_argument('--MINIMUM_INSTANCE_THRESHOLD',type=int, default = 3)
+    parser.add_argument('--output_root_path',type=str, default = "/media/hussein/WindowsData/WikiKG_V2_2015/")
+    parser.add_argument('--MINIMUM_INSTANCE_THRESHOLD',type=int, default = 21)
 
     args = parser.parse_args()
     dataset_name = args.dataset_name  # "biokg_Drug_Classification" # Name of the dataset
@@ -557,7 +556,7 @@ if __name__ == '__main__':
     similar_target_rels = args.similar_target_rels  # ["https://www.biokg.org/SUBCLASS", "https://www.biokg.org/SUPERCLASS"]
     Literals2Nodes = args.Literals2Nodes  # False
     output_root_path = args.output_root_path  # "/home/ubuntu/flora_tests/biokg/data/"
-    transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path,args.MINIMUM_INSTANCE_THRESHOLD,args.test_size,args.valid_size,args.split_rel_train_value,args.split_rel_valid_value,Header_row=True)
+    transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path,args.MINIMUM_INSTANCE_THRESHOLD,args.test_size,args.valid_size,args.split_rel_train_value,args.split_rel_valid_value,Header_row=None)
 
 
 
