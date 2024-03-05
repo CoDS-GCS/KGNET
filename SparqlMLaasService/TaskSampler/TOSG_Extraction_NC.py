@@ -51,16 +51,42 @@ def get_KG_entity_types(graph_uri):
               limit ?limit 
            """
     return query
+# def get_d1h1_TargetListquery(graph_uri,target_lst):
+#     query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+#            from <"""+graph_uri+""">
+#            where
+#            {
+#              ?s ?p ?o
+#              values ?s {$VT_Values$}
+#              }"""
+#     query=query.replace("$VT_Values$"," ".join(target_lst))
+#     return query
 def get_d1h1_TargetListquery(graph_uri,target_lst):
     query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
            from <"""+graph_uri+""">
            where
            {
-             ?s ?p ?o
+             ?s ?p ?o.
              values ?s {$VT_Values$}
-             }"""
+           }"""
+    query_o_type = """
+    select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+    from <""" + graph_uri + """>
+    where
+    {
+       select  (?o as ?s) ('http://www.w3.org/1999/02/22-rdf-syntax-ns#type' as ?p) (?otype as ?o)
+       where
+       {
+         ?s ?p ?o.
+         ?o a ?otype.
+         values ?s {$VT_Values$}
+       }
+    }
+    #offset ?offset
+    #limit ?limit"""
     query=query.replace("$VT_Values$"," ".join(target_lst))
-    return query
+    query_o_type = query_o_type.replace("$VT_Values$", " ".join(target_lst))
+    return [query,query_o_type]
 def get_d1h1_query(graph_uri,target_rel_uri,stype=None,otype=None,tragetNode_filter_statments=None):
     query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
            from <"""+graph_uri+""">

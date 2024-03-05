@@ -1,22 +1,21 @@
 import argparse
 import sys
 # import os
-GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/MorsE"
+GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/MorsE/"
 sys.path.insert(0,GMLaaS_models_path)
 # sys.path.append(sys.path.append(os.getcwd()+'/MorsE'))
 # print('current dir is '+os.getcwd())
 # print(sys.path)
 
-from utils import init_dir, set_seed, get_num_rel
+from morseUtils import init_dir, set_seed, get_num_rel
 from meta_trainer import MetaTrainer
 from post_trainer import PostTrainer
-import os
 import os.path as osp
 from subgraph import gen_subgraph_datasets
 from pre_process import data2pkl,data2pkl_Trans_to_Ind
 from resource import *
 import datetime
-from utils import Log
+from morseUtils import Log
 from Constants import *
 import pandas as pd
 import torch
