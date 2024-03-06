@@ -16,7 +16,7 @@ from GMLaaS.models.rgcn_KGTOSA import rgcn
 from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.graph_MorsE import run_morse
 from GMLaaS.models.rgcn.rgcn_link_pred import rgcn_lp
-from GMLaaS.model_manager import uploadModelToServer, uploadDatasetToServer
+from GMLaaS.model_manager import uploadModelToServer, uploadDatasetToServer,uploadEmbToServer
 from GMLaaS.models.evaluater import Evaluator
 from Constants import *
 
@@ -57,9 +57,16 @@ def format_args(task, json_args, path_script):
 
 def uploadModel(model_path):
     try:
+        emb_path = os.path.join(KGNET_Config.emb_store_path,model_path+'_wise.zip')
         if Constants.KGNET_Config.fileStorageType==Constants.FileStorageType.remoteFileStore:
             uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,model_path + '.model'))
             uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,model_path + '.param'))
+            if os.path.exists(emb_path):
+                print('Uploading WISE version..')
+                uploadEmbToServer(emb_path)
+                uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path,model_path + '_wise.model'))
+                uploadModelToServer(os.path.join(Constants.KGNET_Config.trained_model_path, model_path + '_wise.param'))
+
         elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
             utils.uploadFileToS3(os.path.join(Constants.KGNET_Config.trained_model_path,model_path) ,file_type="model")
             utils.uploadFileToS3(os.path.join(Constants.KGNET_Config.trained_model_path,model_path + '.param'),file_type="metadata")

@@ -1,7 +1,7 @@
 import torch
 from torch import optim
 import numpy as np
-from utils import get_posttrain_train_valid_dataset
+from morseUtils import get_posttrain_train_valid_dataset
 from torch.utils.data import DataLoader
 from datasets import KGETrainDataset, KGEEvalDataset
 from trainer import Trainer

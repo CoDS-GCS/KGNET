@@ -1,7 +1,7 @@
 from torch.utils.tensorboard import SummaryWriter
 import os
 import json
-from utils import Log
+from morseUtils import Log
 from torch.utils.data import DataLoader
 from ent_init_model import EntInit
 from rgcn_model import RGCN
@@ -9,7 +9,7 @@ from kge_model import KGEModel
 import torch
 import torch.nn.functional as F
 from collections import defaultdict as ddict
-from utils import get_indtest_test_dataset_and_train_g
+from morseUtils import get_indtest_test_dataset_and_train_g
 from datasets import KGEEvalDataset
 
 

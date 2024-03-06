@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset, DataLoader
 import lmdb
-from utils import deserialize
+from morseUtils import deserialize
 import numpy as np
 import torch
 

@@ -1,3 +1,6 @@
+import sys
+GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models"
+sys.path.insert(0,GMLaaS_models_path)
 from copy import copy
 import json
 import argparse
@@ -25,10 +28,8 @@ import statistics
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import cross_val_score
 import traceback
-import sys
 # sys.path.insert(0, '/media/hussein/UbuntuData/GithubRepos/KGNET/GMLaaS/models/')
-GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models"
-sys.path.insert(0,GMLaaS_models_path)
+
 # print("sys.path=",sys.path)
 from ogb.nodeproppred import PygNodePropPredDataset
 from evaluater import Evaluator
@@ -39,7 +40,7 @@ import faulthandler
 faulthandler.enable()
 from model import Model
 import pickle
-
+from kgwise_utils import store_emb
 faulthandler.enable()
 import pickle
 
@@ -585,9 +586,18 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
 
             with open(os.path.join(logs_path, model_name +'_log.metadata'), "w") as outfile:
                 json.dump(dic_results, outfile)
-            torch.save(model.state_dict(), os.path.join(model_path , model_name)+".model")
-            with open (os.path.join(model_path , model_name)+".param",'wb') as f:
-                pickle.dump(dict_model_param,f)
+            """ Saving complete model"""
+            torch.save(model.state_dict(), os.path.join(model_path, model_name) + ".model")
+            """ Saving model embed in emd store"""
+            store_emb(model=model,model_name=model_name+'_wise',)
+            """ Decoupling weights and embds"""
+            model.emb_dict = None
+            torch.save(model.state_dict(), os.path.join(model_path, model_name) + "_wise.model")
+            dic_results["data_obj"] = data.to_dict()
+            with open(os.path.join(model_path, model_name) + ".param", 'wb') as f:
+                pickle.dump(dict_model_param, f)
+            with open(os.path.join(model_path, model_name) + "_wise.param", 'wb') as f:
+                pickle.dump(dict_model_param, f)
 
             dic_results["data_obj"] = data.to_dict()
         # except Exception as e:

@@ -1,4 +1,4 @@
-### KGNET is accepted at <a href="https://ieeexplore.ieee.org/document/10184515">ICDE-2023</a>
+### KGNET is to be published at <a href="https://ieeexplore.ieee.org/document/10184515">ICDE-2023</a>
 # KGNET - A GML-Enabled RDF Engine
 <!--<p><b>Note: We are working on a full release of KGNET with all working functionalities by the end of August </b></p>-->
 <img alt="kgnet_architecture" src="docs/imgs/kgnet.png" width="500"/>
@@ -231,7 +231,6 @@ If you find our work useful, please cite it in your research:
 @article{KGTOSA,
   title={Task-Oriented GNNs Training on Large Knowledge Graphs for Accurate and Efficient Modeling},
   author={Abdallah, Hussein and Afandi, Waleed and Kalnis, Panos and Mansour, Essam},
-  journal={Proceedings of the VLDB Endowment},
   publisher={CORR}
 }
 ```

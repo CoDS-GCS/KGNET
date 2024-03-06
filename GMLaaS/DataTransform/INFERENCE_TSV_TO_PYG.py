@@ -5,7 +5,9 @@ import gzip
 import datetime
 import os
 import shutil
-
+from concurrent.futures import ProcessPoolExecutor, as_completed,ThreadPoolExecutor
+from multiprocessing import Manager,Queue
+import multiprocessing
 
 from sklearn.model_selection import train_test_split
 
@@ -23,39 +25,120 @@ def delete_multiple_element(list_object, indices):
     for idx in indices:
         if idx < len(list_object):
             list_object.pop(idx)
-   
-            
+
+
+def process_relation(rel, g_tsv_df, g_tsv_types_df, entites_dic, relations_entites_map, relations_dic):
+    try:
+        rel_type = rel.split("/")[-1]
+        rel_df = g_tsv_df[g_tsv_df["p"] == rel_type].reset_index(drop=True)
+        rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
+        s_type = rel_types['stype'].values[0]
+        o_type = rel_types['otype'].values[0]
+        rel_df["s_type"] = s_type
+        rel_df["o_type"] = o_type
+
+        rel_entity_types = rel_df[["s_type", "o_type"]].drop_duplicates()
+        list_rel_types = []
+        for idx, row in rel_entity_types.iterrows():
+            list_rel_types.append((row["s_type"], rel, row["o_type"]))
+
+        relations_entites_map[rel] = list_rel_types
+        relations_dic[rel] = rel_df
+        for rel_pair in list_rel_types:
+            e1, rel, e2 = rel_pair
+            if e1 != "literal" and e1 in entites_dic:
+                entites_dic[e1] = entites_dic[e1].union(set(rel_df[rel_df["s_type"] == e1]["s"].unique()))
+            elif e1 != "literal":
+                entites_dic[e1] = set(rel_df[rel_df["s_type"] == e1]["s"].unique())
+
+            if e2 != "literal" and e2 in entites_dic:
+                entites_dic[e2] = entites_dic[e2].union(set(rel_df[rel_df["o_type"] == e2]["o"].unique()))
+            elif e2 != "literal":
+                entites_dic[e2] = set(rel_df[rel_df["o_type"] == e2]["o"].unique())
+        return
+    except Exception as e:
+        print(f"++++++++ DATA_TRANSFORMATION SKIPPING RELATION {rel}: {e} ++++++++")
+
+
+def process_key(key, entites_dic, output_root_path, dataset_name):
+    try:
+        df = pd.DataFrame(list(entites_dic[key]), columns=['ent name']).astype('str').sort_values(by="ent name").reset_index(drop=True)
+        df = df.drop_duplicates()
+        df["ent idx"] = df.index
+        df = df[["ent idx", "ent name"]]
+        entites_dic[key + "_dic"] = pd.Series(df["ent idx"].values, index=df["ent name"]).to_dict()
+
+        map_folder = os.path.join(output_root_path, dataset_name, "mapping")
+        os.makedirs(map_folder, exist_ok=True)
+        df.to_csv(os.path.join(map_folder, f"{key}_entidx2name.csv.gz"), index=None,compression='gzip')
+        # compress_gz(os.path.join(map_folder, f"{key}_entidx2name.csv"))
+
+    except Exception as e:
+        print(f"Error processing key {key}: {e}")
+
+def write_relations(rel_list, relations_dic, entites_dic, relations_df, output_root_path, dataset_name):
+    e1, rel, e2 = rel_list[0]
+    relations_dic[rel]["s_idx"] = relations_dic[rel]["s"]
+    relations_dic[rel]["s_idx"] = relations_dic[rel]["s_idx"].apply(
+        lambda x: entites_dic[e1 + "_dic"][x] if x in entites_dic[e1 + "_dic"].keys() else -1)
+    relations_dic[rel] = relations_dic[rel][relations_dic[rel]["s_idx"] != -1]
+
+    relations_dic[rel]["o_idx"] = relations_dic[rel]["o"]
+    relations_dic[rel]["o_idx"] = relations_dic[rel]["o_idx"].apply(
+        lambda x: entites_dic[e2 + "_dic"][x] if x in entites_dic[e2 + "_dic"].keys() else -1)
+    relations_dic[rel] = relations_dic[rel][relations_dic[rel]["o_idx"] != -1]
+
+    relations_dic[rel] = relations_dic[rel].sort_values(by="s_idx").reset_index(drop=True)
+    rel_out = relations_dic[rel][["s_idx", "o_idx"]]
+    if len(rel_out) > 0:
+        map_folder = output_root_path + dataset_name + "/raw/relations/" + e1 + "___" + \
+                     rel.split("/")[-1] + "___" + e2
+        try:
+            os.makedirs(map_folder, exist_ok=True)
+        except:
+            # pass
+            print(f'^^^^^^^^^^^ Error exporting {rel_list[0]}')
+        rel_out.to_csv(os.path.join(map_folder, "edge.csv.gz"), index=None, header=None,compression='gzip')
+        ########## write relations num #################
+        # with open(os.path.join(map_folder, "num-edge-list.csv.gz"), "w") as f:
+        #     f.write(str(len(relations_dic[rel])))
+        pd.DataFrame({0:[len(relations_dic[rel])]}).to_csv(os.path.join(map_folder, "num-edge-list.csv.gz"),header=None, index=None,compression='gzip')
+        ##################### write relations idx #######################
+        rel_idx = relations_df[relations_df["rel name"] == rel.split("/")[-1]]["rel idx"].values[0]
+        rel_out["rel_idx"] = rel_idx
+        rel_out["rel_idx"].to_csv(os.path.join(map_folder, "edge_reltype.csv.gz"), header=None, index=None,compression='gzip')
+        return True
+    else:
+        return False
+
 ###################### Zip Folder to OGB Format
 # zip -r mag_ComputerProgramming_papers_venue_QM3.zip mag_ComputerProgramming_papers_venue_QM3/ -i '*.gz'
 def define_rel_types(g_tsv_df):
     g_tsv_df["p"]
 
-def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,target_rel,output_root_path
-                         ,Header_row=None,target_node=None):
+def inference_transform_tsv_to_PYG(dataset_name, dataset_name_csv, dataset_types, target_rel, output_root_path
+                                   , Header_row=None, targetNodeType=None):
     dic_results = {}  # args.dic_results #{}
     start_t = datetime.datetime.now()
     if dataset_types == "":
         dataset_types = output_root_path + dataset_name_csv + "_types.csv"
 
     if Header_row is None:
-        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t")
+        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t",header=Header_row)
         g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=None)
         g_tsv_df.columns=["s","p","o"]
         g_tsv_types_df.columns=['stype','ptype', 'otype']
     else:
-        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t")
-        g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore')
+        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t",header=Header_row)
+        g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=None)
 
-
+    g_tsv_df.columns = ["s", "p", "o"]
+    g_tsv_types_df.columns = ['stype', 'ptype', 'otype']
     #################### Remove '/' from the predicate of the Graph (tsv) ##############################
     g_tsv_df["p"] = g_tsv_df["p"].apply(lambda x: x.split('/')[-1].split('#')[-1])
     target_rel = target_rel.split('/')[-1].split('#')[-1]
     ##################Check if headers are present in _types file
-    # if any(col not in g_tsv_types_df.columns for col in ['stype', 'ptype', 'otype']):
-    #     old_columns = g_tsv_types_df.columns
-    #     g_tsv_types_df = g_tsv_types_df.append(pd.Series(old_columns, index=g_tsv_types_df.columns), ignore_index=True)
-    #     g_tsv_types_df = g_tsv_types_df.rename(
-    #         columns={old_columns[0]: 'stype', old_columns[1]: 'ptype', old_columns[2]: 'otype'})
+
     g_tsv_types_df.columns = ['stype', 'ptype', 'otype']
 
     # dataset_name += "_Discipline"
@@ -72,7 +155,7 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
         # print("len of g_tsv_df after dropna  ", len(g_tsv_df))
     except:
         print("g_tsv_df columns=", g_tsv_df.columns())
-    unique_p_lst = g_tsv_df["p"].unique().tolist()
+    # unique_p_lst = g_tsv_df["p"].unique().tolist()
     ########################delete non target nodes #####################
     relations_lst = g_tsv_df["p"].unique().astype("str").tolist()
     #relations_lst = [rel for rel in relations_lst if rel not in similar_target_rels]
@@ -99,8 +182,8 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
         os.stat(map_folder)
     except:
         os.makedirs(map_folder)
-    relations_df.to_csv(map_folder + "/relidx2relname.csv", index=None)
-    compress_gz(map_folder + "/relidx2relname.csv")
+    relations_df.to_csv(map_folder + "/relidx2relname.csv.gz", index=None,compression='gzip')
+    # compress_gz(map_folder + "/relidx2relname.csv")
     ############################### create labels index ########################
     label_idx_df = pd.DataFrame(
         g_tsv_df[g_tsv_df["p"] == target_rel]["o"].apply(lambda x: str(x).strip()).unique().tolist(),
@@ -115,24 +198,20 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
 
     label_idx_df["label idx"] = label_idx_df.index
     label_idx_df = label_idx_df[["label idx", "label name"]]
-    label_idx_df.to_csv(map_folder + "/labelidx2labelname.csv", index=None)
-    compress_gz(map_folder + "/labelidx2labelname.csv")
+    label_idx_df.to_csv(map_folder + "/labelidx2labelname.csv.gz", index=None,compression='gzip')
+    # compress_gz(map_folder + "/labelidx2labelname.csv")
 
     ###########################################prepare relations mapping#################################
     relations_entites_map = {}
     relations_dic = {}
     entites_dic = {}
+    time_start_process_rln = datetime.datetime.now()
+    """Orig process_relation"""
     for rel in relations_lst:
         try:
             rel_type = rel.split("/")[-1]
-            # rel_type = rel
             rel_df = g_tsv_df[g_tsv_df["p"] == rel_type].reset_index(drop=True)
-            # print("rel_type ", rel)
             rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
-            # print(rel_types.columns)
-            # print(len(rel_types))
-            # print('stype', rel_types['stype'])
-            print(rel)
             s_type = rel_types['stype'].values[0]
             o_type = rel_types['otype'].values[0]
             rel_df["s_type"] = s_type
@@ -144,59 +223,105 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
                 list_rel_types.append((row["s_type"], rel, row["o_type"]))
 
             relations_entites_map[rel] = list_rel_types
-            # if len(list_rel_types) > 2:
-                # print(len(list_rel_types))
             relations_dic[rel] = rel_df
-            # e1_list=list(set(relations_dic[rel]["s"].apply(lambda x:str(x).split("/")[:-1])))
             for rel_pair in list_rel_types:
                 e1, rel, e2 = rel_pair
                 if e1 != "literal" and e1 in entites_dic:
                     entites_dic[e1] = entites_dic[e1].union(
                         set(rel_df[rel_df["s_type"] == e1]["s"].unique()))  # .apply(
-                    # lambda x: str(x).split("/")[-1]).unique()))
                 elif e1 != "literal":
                     entites_dic[e1] = set(rel_df[rel_df["s_type"] == e1]["s"].unique())  # .apply(
-                    # lambda x: str(x).split("/")[-1]).unique())
 
                 if e2 != "literal" and e2 in entites_dic:
                     entites_dic[e2] = entites_dic[e2].union(
                         set(rel_df[rel_df["o_type"] == e2]["o"].unique()))  # .apply(
-                    # lambda x: str(x).split("/")[-1]).unique()))
+
                 elif e2 != "literal":
                     entites_dic[e2] = set(rel_df[rel_df["o_type"] == e2]["o"].unique())  # .apply(
-                    # lambda x: str(x).split("/")[-1]).unique())
+
         except Exception as e:
             print(f"++++++++ DATA_TRANSFORMATION SKIPPING RELATION {rel}: {e} ++++++++")
 
+    """ Parallel process_relation"""
+    # manager = Manager()
+    # entites_dic = manager.dict()
+    # relations_entites_map = manager.dict()
+    # relations_dic = manager.dict()
+    #
+
+    # with multiprocessing.Pool() as pool:
+    #     pool.starmap(process_relation, [(rel, g_tsv_df, g_tsv_types_df, entites_dic, relations_entites_map, relations_dic) for rel in relations_lst])
+
+
+    # with ThreadPoolExecutor() as executor:
+    #     futures = [executor.submit(process_relation, rel, g_tsv_df, g_tsv_types_df, entites_dic, relations_entites_map, relations_dic)
+    #                for rel in relations_lst]
+        # for future in as_completed(futures):
+        #     pass
+
+
+    # print(f'Done, vars: emb_dict {entites_dic}\n relations_entites_map: {relations_entites_map}\n relations_dic:{relations_dic}')
+
     ############################### Obtain Target node if not explicitly given #########
-    if target_node is None:
-        target_node = list(g_tsv_types_df[g_tsv_types_df['ptype'] == target_rel]['stype'])[0]
+    time_end_process_rln = (datetime.datetime.now() - time_start_process_rln).total_seconds()
+    print (f'Process Relation Done! at {time_end_process_rln} s')
+    if targetNodeType is None:
+        # targetNodeType = list(g_tsv_types_df[g_tsv_types_df['ptype'] == target_rel]['stype'])[0]
+        targetNodeType = \
+        list(g_tsv_types_df[g_tsv_types_df['ptype'] == target_rel]['stype'].value_counts().to_dict().keys())[0]
 
     ############################### Make sure all target nodes have label ###########
     target_subjects_lst = g_tsv_df[g_tsv_df["p"] == target_rel]["s"].unique().tolist()  # .apply(
-    # lambda x: str(x).split("/")[-1]).unique().tolist()
-    # print("len of target_subjects_lst=", len(target_subjects_lst))
-    # target_subjects_dic= {k: entites_dic['rec'][k] for k in target_subjects_lst}
-    entites_dic[target_node] = set.intersection(entites_dic[target_node], set(target_subjects_lst))
-    # print("len of entites_dic[" + target_node + "]=", len(entites_dic[target_node]))
+    entites_dic[targetNodeType] = set.intersection(entites_dic[targetNodeType], set(target_subjects_lst))
+
+
+
     ############################ write entites index #################################
-    for key in list(entites_dic.keys()):
-        entites_dic[key] = pd.DataFrame(list(entites_dic[key]), columns=['ent name']).astype(
-            'str').sort_values(by="ent name").reset_index(drop=True)
-        entites_dic[key] = entites_dic[key].drop_duplicates()
-        entites_dic[key]["ent idx"] = entites_dic[key].index
-        entites_dic[key] = entites_dic[key][["ent idx", "ent name"]]
-        entites_dic[key + "_dic"] = pd.Series(entites_dic[key]["ent idx"].values,
-                                              index=entites_dic[key]["ent name"]).to_dict()
-        # print("key=",entites_dic[key+"_dic"])
-        map_folder = output_root_path + dataset_name + "/mapping"
-        try:
-            os.stat(map_folder)
-        except:
-            os.makedirs(map_folder)
-        entites_dic[key].to_csv(map_folder + "/" + key + "_entidx2name.csv", index=None)
-        compress_gz(map_folder + "/" + key + "_entidx2name.csv")
+
+    time_start_process_key = datetime.datetime.now()
+    """ Orig process_key"""
+    # for key in list(entites_dic.keys()):
+    #     entites_dic[key] = pd.DataFrame(list(entites_dic[key]), columns=['ent name']).astype(
+    #         'str').sort_values(by="ent name").reset_index(drop=True)
+    #     entites_dic[key] = entites_dic[key].drop_duplicates()
+    #     entites_dic[key]["ent idx"] = entites_dic[key].index
+    #     entites_dic[key] = entites_dic[key][["ent idx", "ent name"]]
+    #     entites_dic[key + "_dic"] = pd.Series(entites_dic[key]["ent idx"].values,
+    #                                           index=entites_dic[key]["ent name"]).to_dict()
+    #     map_folder = output_root_path + dataset_name + "/mapping"
+    #     try:
+    #         os.stat(map_folder)
+    #     except:
+    #         os.makedirs(map_folder)
+    #     entites_dic[key].to_csv(map_folder + "/" + key + "_entidx2name.csv", index=None)
+    #     compress_gz(map_folder + "/" + key + "_entidx2name.csv")
+
+    """ Parallel Process key"""
+    manager = Manager()
+    entites_dic = manager.dict(entites_dic)
+    relations_dic = manager.dict(relations_dic)
+    relations_entites_map = manager.dict(relations_entites_map)
+
+    # entites_dic = dict(entites_dic)
+    # relations_entites_map = dict(relations_entites_map)
+    # relations_dic = dict(relations_dic)
+
+    with ProcessPoolExecutor() as executor:
+        futures = [executor.submit(process_key, key, entites_dic, output_root_path, dataset_name)
+                   for key in list(entites_dic.keys())]
+
+        # Wait for all tasks to complete
+        # for future in as_completed(futures):
+        #     # Do nothing with the results, as they are updated in the shared dictionaries
+        #     pass
+    entites_dic = dict(entites_dic)
+    relations_entites_map = dict(relations_entites_map)
+    relations_dic = dict(relations_dic)
     #################### write nodes statistics ######################
+
+
+
+    time_end_process_key = (datetime.datetime.now() - time_start_process_key).total_seconds()
     lst_node_has_feat = [
         list(
             filter(lambda entity: str(entity).endswith("_dic") == False, list(entites_dic.keys())))]
@@ -207,7 +332,7 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
     lst_num_node = []
 
     for entity in lst_node_has_feat[0]:
-        if str(entity) == str(target_node):
+        if str(entity) == str(targetNodeType):
             lst_has_label.append("True")
             lst_has_feat.append("True")
         else:
@@ -236,23 +361,22 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
         os.makedirs(map_folder)
 
     pd.DataFrame(lst_node_has_feat).to_csv(
-        output_root_path + dataset_name + "/raw/nodetype-has-feat.csv", header=None,
-        index=None)
-    compress_gz(output_root_path + dataset_name + "/raw/nodetype-has-feat.csv")
+        output_root_path + dataset_name + "/raw/nodetype-has-feat.csv.gz", header=None,
+        index=None,compression='gzip')
+    # compress_gz(output_root_path + dataset_name + "/raw/nodetype-has-feat.csv")
 
     pd.DataFrame(lst_node_has_label).to_csv(
-        output_root_path + dataset_name + "/raw/nodetype-has-label.csv",
-        header=None, index=None)
-    compress_gz(output_root_path + dataset_name + "/raw/nodetype-has-label.csv")
+        output_root_path + dataset_name + "/raw/nodetype-has-label.csv.gz",
+        header=None, index=None,compression='gzip')
+    # compress_gz(output_root_path + dataset_name + "/raw/nodetype-has-label.csv")
 
     pd.DataFrame(lst_num_node_dict).to_csv(
-        output_root_path + dataset_name + "/raw/num-node-dict.csv", header=None,
-        index=None)
-    compress_gz(output_root_path + dataset_name + "/raw/num-node-dict.csv")
+        output_root_path + dataset_name + "/raw/num-node-dict.csv.gz", header=None,
+        index=None,compression='gzip')
+    # compress_gz(output_root_path + dataset_name + "/raw/num-node-dict.csv")
 
     ############################### create label relation index  ######################
     label_idx_df["label idx"] = label_idx_df["label idx"].astype("int64")
-    # label_idx_df["label name"] = label_idx_df["label name"].apply(lambda x: str(x).split("/")[-1])
     label_idx_dic = pd.Series(label_idx_df["label idx"].values, index=label_idx_df["label name"]).to_dict()
     ############ drop multiple targets per subject keep first#######################
     labels_rel_df = g_tsv_df[g_tsv_df["p"] == target_rel].reset_index(drop=True)
@@ -261,11 +385,11 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
     ###############################################################################
     rel_type = target_rel
     rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
-    s_type = rel_types['stype'].values[0]
+    # s_type = rel_types['stype'].values[0]
     o_type = rel_types['otype'].values[0]
-    s_label_type = target_node
-    o_label_type = o_type
-    label_type = target_node
+    s_label_type = targetNodeType
+    # o_label_type = o_type
+    label_type = targetNodeType
     labels_rel_df["s_idx"] = labels_rel_df["s"]  # .apply(
     # lambda x: str(x).split("/")[-1])
     labels_rel_df["s_idx"] = labels_rel_df["s_idx"].astype("str")
@@ -273,7 +397,7 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
     labels_rel_df["s_idx"] = labels_rel_df["s_idx"].apply(
         lambda x: entites_dic[s_label_type + "_dic"][x] if x in entites_dic[
             s_label_type + "_dic"].keys() else -1)
-    labels_rel_df_notfound = labels_rel_df[labels_rel_df["s_idx"] == -1]
+    # labels_rel_df_notfound = labels_rel_df[labels_rel_df["s_idx"] == -1]
     labels_rel_df = labels_rel_df[labels_rel_df["s_idx"] != -1]
     labels_rel_df = labels_rel_df.sort_values(by=["s_idx"]).reset_index(drop=True)
 
@@ -286,37 +410,17 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
         os.stat(map_folder)
     except:
         os.makedirs(map_folder)
-    out_labels_df.to_csv(map_folder + "/node-label.csv", header=None, index=None)
-    compress_gz(map_folder + "/node-label.csv")
+    out_labels_df.to_csv(map_folder + "/node-label.csv.gz", header=None, index=None,compression='gzip')
+    # compress_gz(map_folder + "/node-label.csv")
     ###########################################split parts (train/test/validate)#########################
-    # split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
-    # split_rel = split_rel.split('/')[-1]
-    # if split_rel.lower() == 'random':
-    #     split_df = g_tsv_df[g_tsv_df["p"] == target_rel]
-
     split_df = g_tsv_df[g_tsv_df["p"] == target_rel]
-
-    # else:
-        # split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
 
     ########## remove drug  with multi labels ################
     target_label_dict = split_df["s"].value_counts().to_dict()
     target_nodes_to_keep_lst = list(k for k, v in target_label_dict.items() if v == 1)
-    # print("target nodes count=", len(target_label_dict.keys()))
-    # print("target_nodes_to_keep_lst count=", len(target_nodes_to_keep_lst))
     split_df = split_df[split_df["s"].isin(target_nodes_to_keep_lst)]
     ########## remove labels with less than 9 samples################
-    # labels_dict = split_df["o"].value_counts().to_dict()
-    # labels_to_keep_lst = list(k for k, v in labels_dict.items())  # 9
-    # print("labels_dict count=", len(labels_dict.keys()))
-    # print("labels_to_keep count=", len(labels_to_keep_lst))
-    # split_df = split_df[split_df["o"].isin(labels_to_keep_lst)]
-    #############################################################
-    # rel = split_rel
-    # print("split years=", split_df["o"].unique().tolist())
-    # print("split_df len=", len(split_df))
-    # rel_type = split_rel.split("/")[-1]
-    s_label_type = target_node
+    s_label_type = targetNodeType
     o_label_type = o_type
     label_type = s_label_type
 
@@ -324,57 +428,18 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
         label_type + "_dic"] else -1)
 
     split_df = split_df[split_df["s"] != -1]
-    # split_df["o"] = split_df["o"].astype(split_by["split_data_type"])
-    # split_df["o"] = split_df["o"]
     label_type_values_lst = list(entites_dic[label_type + "_dic"].values())
     split_df = split_df[split_df["s"].isin(label_type_values_lst)]
     split_df = split_df.sort_values(by=["s"]).reset_index(drop=True)
-
-    # train_df = split_df[split_df["o"] <= split_by["train"]]["s"]
-    # valid_df = split_df[(split_df["o"] > split_by["train"]) & (split_df["o"] <= split_by["valid"])]["s"]
-    # test_df = split_df[(split_df["o"] > split_by["valid"])]["s"]
-
-    ########## Random Splitting ###########
-    # if split_rel.lower() == 'random':
-    #     dic_results["testSize"] = test_size
-    #     dic_results["validSize"] = valid_size
-    #     dic_results["trainSize"] = 1 - (valid_size + test_size)
-    #     new_test_size =  (test_size + valid_size)
-    #     valid_size = (valid_size) / (test_size + valid_size)
-    #     test_size=new_test_size
-    #     # print("Test % ", test_size)
-    #     # print("Valid % ", valid_size)
-    #     X_train, X_test, y_train, y_test = train_test_split(split_df["s"].tolist(), split_df["o"].tolist(),
-    #                                                         test_size=test_size, random_state=42,
-    #                                                         stratify=split_df["o"].tolist())
-    #     try:
-    #         X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42,stratify=y_test)
-    #     except:
-    #         X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42)
-    #     train_df = pd.DataFrame(X_train)
-    #     valid_df = pd.DataFrame(X_valid)
-    #     test_df = pd.DataFrame(X_test)
-
-    # else:
-    #     # print("SPLIT REL PROVIDED: ", split_rel)
-    #     dic_results["splitEdge"]=split_rel
-    #     train_df = split_df[split_df["o"].astype(int) <= split_rel_train_value]["s"]
-    #     valid_df = split_df[(split_df["o"].astype(int) > split_rel_train_value) & (
-    #                 split_df["o"].astype(int) <= split_rel_valid_value)]["s"]
-    #     test_df = split_df[(split_df["o"].astype(int) > split_rel_valid_value)]["s"]
-
     map_folder = output_root_path + dataset_name + "/split/" + label_type  # + split_by[        "folder_name"] + "/"
 
     try:
         os.stat(map_folder)
     except:
         os.makedirs(map_folder)
-    # train_df.to_csv(map_folder + "/train.csv", index=None, header=None)
-    # compress_gz(map_folder + "/train.csv")
-    # valid_df.to_csv(map_folder + "/valid.csv", index=None, header=None)
-    # compress_gz(map_folder + "/valid.csv")
-    split_df.to_csv(map_folder + "/test.csv", index=None, header=None)
-    compress_gz(map_folder + "/test.csv")
+
+    split_df.to_csv(map_folder + "/test.csv.gz", index=None, header=None,compression='gzip')
+    # compress_gz(map_folder + "/test.csv")
     ###################### create nodetype-has-split.csv#####################
     lst_node_has_split = [
         list(
@@ -388,70 +453,95 @@ def inference_transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,t
     lst_node_has_split.append(lst_has_split)
     pd.DataFrame(lst_node_has_split).to_csv(
         output_root_path + dataset_name + "/split/"  # + split_by["folder_name"]
-        + "nodetype-has-split.csv", header=None, index=None)
-    compress_gz(output_root_path + dataset_name + "/split/"  # + split_by["folder_name"]
-                + "nodetype-has-split.csv")
+        + "nodetype-has-split.csv.gz", header=None, index=None,compression='gzip')
+    # compress_gz(output_root_path + dataset_name + "/split/"  # + split_by["folder_name"]
+    #             + "nodetype-has-split.csv")
     ###################### write entites relations for nodes only (non literals) #########################
-    idx = 0
-    for rel in relations_dic:
-        for rel_list in relations_entites_map[rel]:
-            e1, rel, e2 = rel_list
-            ############
-            relations_dic[rel]["s_idx"] = relations_dic[rel]["s"]  # .apply(
-            # lambda x: str(x).split("/")[-1])
-            relations_dic[rel]["s_idx"] = relations_dic[rel]["s_idx"].apply(
-                lambda x: entites_dic[e1 + "_dic"][x] if x in entites_dic[
-                    e1 + "_dic"].keys() else -1)
-            relations_dic[rel] = relations_dic[rel][relations_dic[rel]["s_idx"] != -1]
-            ################
-            # relations_dic[rel]["o_keys"]=relations_dic[rel]["o"].apply(lambda x:x.split("/")[3] if x.startswith("http") and len(x.split("/")) > 3 else x)
-            relations_dic[rel]["o_idx"] = relations_dic[rel]["o"]  # .apply(
-            # lambda x: str(x).split("/")[-1])
-            relations_dic[rel]["o_idx"] = relations_dic[rel]["o_idx"].apply(
-                lambda x: entites_dic[e2 + "_dic"][x] if x in entites_dic[
-                    e2 + "_dic"].keys() else -1)
-            relations_dic[rel] = relations_dic[rel][relations_dic[rel]["o_idx"] != -1]
+    # entites_dic = dict(entites_dic)
+    # relations_entites_map = dict(relations_entites_map)
+    # relations_dic = dict(relations_dic)
+    """ Orig Relation export"""
+    time_start_export = datetime.datetime.now()
+    # for rel_list in relations_entites_map.values():
+    #     e1, rel, e2 = rel_list[0]
+    #     ############
+    #     relations_dic[rel]["s_idx"] = relations_dic[rel]["s"]  # .apply(
+    #     relations_dic[rel]["s_idx"] = relations_dic[rel]["s_idx"].apply(
+    #         lambda x: entites_dic[e1 + "_dic"][x] if x in entites_dic[
+    #             e1 + "_dic"].keys() else -1)
+    #     relations_dic[rel] = relations_dic[rel][relations_dic[rel]["s_idx"] != -1]
+    #     ################
+    #     relations_dic[rel]["o_idx"] = relations_dic[rel]["o"]  # .apply(
+    #     # lambda x: str(x).split("/")[-1])
+    #     relations_dic[rel]["o_idx"] = relations_dic[rel]["o_idx"].apply(
+    #         lambda x: entites_dic[e2 + "_dic"][x] if x in entites_dic[
+    #             e2 + "_dic"].keys() else -1)
+    #     relations_dic[rel] = relations_dic[rel][relations_dic[rel]["o_idx"] != -1]
+    #
+    #     relations_dic[rel] = relations_dic[rel].sort_values(by="s_idx").reset_index(drop=True)
+    #     rel_out = relations_dic[rel][["s_idx", "o_idx"]]
+    #     if len(rel_out) > 0:
+    #         map_folder = output_root_path + dataset_name + "/raw/relations/" + e1 + "___" + \
+    #                      rel.split("/")[-1] + "___" + e2
+    #         try:
+    #             os.stat(map_folder)
+    #         except:
+    #             os.makedirs(map_folder)
+    #         rel_out.to_csv(map_folder + "/edge.csv", index=None, header=None)
+    #         compress_gz(map_folder + "/edge.csv")
+    #         ########## write relations num #################
+    #         f = open(map_folder + "/num-edge-list.csv", "w")
+    #         f.write(str(len(relations_dic[rel])))
+    #         f.close()
+    #         compress_gz(map_folder + "/num-edge-list.csv")
+    #         ##################### write relations idx #######################
+    #         rel_idx = \
+    #             relations_df[relations_df["rel name"] == rel.split("/")[-1]]["rel idx"].values[0]
+    #         rel_out["rel_idx"] = rel_idx
+    #         rel_idx_df = rel_out["rel_idx"]
+    #         rel_idx_df.to_csv(map_folder + "/edge_reltype.csv", header=None, index=None)
+    #         compress_gz(map_folder + "/edge_reltype.csv")
+    #     else:
+    #         lst_relations.remove([e1, str(rel).split("/")[-1], e2])
+    #
+    #     pd.DataFrame(lst_relations).to_csv(
+    #         output_root_path + dataset_name + "/raw/triplet-type-list.csv",
+    #         header=None, index=None)
+    #     compress_gz(output_root_path + dataset_name + "/raw/triplet-type-list.csv")
 
-            relations_dic[rel] = relations_dic[rel].sort_values(by="s_idx").reset_index(drop=True)
-            rel_out = relations_dic[rel][["s_idx", "o_idx"]]
-            if len(rel_out) > 0:
-                map_folder = output_root_path + dataset_name + "/raw/relations/" + e1 + "___" + \
-                             rel.split("/")[-1] + "___" + e2
-                try:
-                    os.stat(map_folder)
-                except:
-                    os.makedirs(map_folder)
-                rel_out.to_csv(map_folder + "/edge.csv", index=None, header=None)
-                compress_gz(map_folder + "/edge.csv")
-                ########## write relations num #################
-                f = open(map_folder + "/num-edge-list.csv", "w")
-                f.write(str(len(relations_dic[rel])))
-                f.close()
-                compress_gz(map_folder + "/num-edge-list.csv")
-                ##################### write relations idx #######################
-                rel_idx = \
-                    relations_df[relations_df["rel name"] == rel.split("/")[-1]]["rel idx"].values[0]
-                rel_out["rel_idx"] = rel_idx
-                rel_idx_df = rel_out["rel_idx"]
-                rel_idx_df.to_csv(map_folder + "/edge_reltype.csv", header=None, index=None)
-                compress_gz(map_folder + "/edge_reltype.csv")
-            else:
-                lst_relations.remove([e1, str(rel).split("/")[-1], e2])
+            ###################Zip Folder ###############3
+    """No!"""
+        # shutil.make_archive(output_root_path + dataset_name, 'zip',
+        #                     root_dir=output_root_path, base_dir=dataset_name)
+    # entites_dic = dict(entites_dic)
+    # relations_entites_map = dict(relations_entites_map)
+    # relations_dic = dict(relations_dic)
+    with ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(write_relations, rel_list, relations_dic, entites_dic, relations_df, output_root_path,
+                            dataset_name)
+            for rel_list in relations_entites_map.values()]
 
-            pd.DataFrame(lst_relations).to_csv(
-                output_root_path + dataset_name + "/raw/triplet-type-list.csv",
-                header=None, index=None)
-            compress_gz(output_root_path + dataset_name + "/raw/triplet-type-list.csv")
-            #####################Zip Folder ###############3
-        shutil.make_archive(output_root_path + dataset_name, 'zip',
-                            root_dir=output_root_path, base_dir=dataset_name)
+        # Wait for all tasks to complete
+        non_empty_relation_lists = [future.result() for future in as_completed(futures)]
+
+    # Remove empty relation lists
+    non_empty_rel_lists = [rel_list for rel_list, non_empty in
+                           zip(relations_entites_map.values(), non_empty_relation_lists) if non_empty]
+
+    relations_entites_map = {idx: rel_list for idx, rel_list in enumerate(non_empty_rel_lists)}
+
+    shutil.make_archive(output_root_path + dataset_name, 'zip',
+                        root_dir=output_root_path, base_dir=dataset_name)
+    time_end_export = (datetime.datetime.now() - time_start_export).total_seconds()
     end_t = datetime.datetime.now()
-    # print(dataset_name.split(".")[0] + "_csv_to_Hetrog_time=", end_t - start_t, " sec.")
-    dic_results['target_mapping'] = {v : k for k,v in entites_dic[target_node+'_dic'].items()}
+    dic_results['target_mapping'] = {v : k for k,v in entites_dic[targetNodeType + '_dic'].items()}
     dic_results["csv_to_Hetrog_time"] = (end_t - start_t).total_seconds()
-    # print(dic_results)
-    # pd.DataFrame(dic_results).to_csv(
-    #     output_root_path + dataset_name.split(".")[0] + "_PYG_Transformation_times.csv", index=False)
+    print("######## TRANSFORMATION COMPLETE ###############")
+    print(f"######## Time Process Relation : {time_end_process_rln} #########")
+    print(f"######## Time Process Key : {time_end_process_key} #########")
+    print(f"######## Time Process Export : {time_end_export} #########")
+
     return dic_results
 
 

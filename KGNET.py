@@ -6,7 +6,7 @@ from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
 from SparqlMLaasService.gmlRewriter import gmlQueryParser,gmlQueryRewriter
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 from RDFEngineManager.UDF_Manager_Virtuoso import VirtuosoUDFManager
-from pyvis.network import Network
+# from pyvis.network import Network
 from statistics import mean
 color_palette = ["#ff6347", "#d8bfd8", "#66d8ff", "#ff7f50", "#ffa07a",
                          "#ffebcd", "#22d8d8", "#ffe4e1", "#c71585", "#ff8c00", "#ffb6c1", "#f08080", "#dc646c",

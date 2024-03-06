@@ -13,6 +13,7 @@ class GNN_Methods:
     MorsE = "MorsE"
     NodePiece = "NodePiece"
     LHGNN = "LHGNN"
+    WISE_SHSAINT = "WISE_SHSAINT"
     def __init__(self):
         ""
 class KGE_Methods:
@@ -57,6 +58,7 @@ class GNN_SubG_Parms:
     prefix = GNN_KG_TASK_PREFIX + 'KGPrefix'
     modelId = GNN_TASK_PREFIX + 'modelID'
     taskType = GNN_TASK_PREFIX + 'taskType'
+    labelNode = GNN_TASK_PREFIX + 'labelNode'
     def __init__(self):
        ""
 class GML_Query_Types:
@@ -88,9 +90,10 @@ class KGNET_Config:
     # KGMeta_IRI = "http://kgnet/"
     # KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
 
-    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"#"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
     trained_model_path = datasets_output_path + 'trained_models/'
+    emb_store_path = os.path.join(trained_model_path,'emb_store')
     GML_API_URL = "http://206.12.102.12:64647/"
     GML_Inference_PORT = "64647"
     GML_ModelManager_PORT = "8443"
@@ -100,7 +103,7 @@ class KGNET_Config:
     GML_ModelManager_URL = "http://206.12.102.12"
     KGMeta_IRI = "http://kgnet/"
     KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
-    fileStorageType=FileStorageType.remoteFileStore
+    fileStorageType=FileStorageType.localfile#FileStorageType.remoteFileStore
     def __init__(self):
        ""
 
@@ -233,6 +236,7 @@ class utils:
         # print(response_get.text)
         # return response_get.text
 
+
     def DownloadFileFromS3(filename,to_filepath,file_type="model"):
         # Define the API endpoint and the headers
         if file_type.lower()=="model":
@@ -240,6 +244,13 @@ class utils:
             filename = filename.replace(".model","")
         elif file_type.lower() == "metadata":
             model_api_url = KGNET_Config.GML_ModelManager_URL + ":" + KGNET_Config.GML_ModelManager_PORT + "/metadata/"
+        elif file_type.lower() == "emb":
+            if not os.path.exists(KGNET_Config.emb_store_path):
+                os.mkdir(KGNET_Config.emb_store_path)
+            model_api_url = KGNET_Config.GML_ModelManager_URL + ":" + KGNET_Config.GML_ModelManager_PORT + "/emb_store/"
+            filename = filename.replace(".model",".zip")
+
+
         headers = {"accept": "application/json"}
         # Perform the file download
         response = requests.get(model_api_url+f"{filename}", stream=True)

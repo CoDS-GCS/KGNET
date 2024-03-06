@@ -1,4 +1,4 @@
-from utils import get_g_bidir
+from morseUtils import get_g_bidir
 from datasets import TrainSubgraphDataset, ValidSubgraphDataset
 from torch.utils.data import DataLoader
 import torch
