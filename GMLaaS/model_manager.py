@@ -21,6 +21,16 @@ def uploadModelToServer(model_path):
         else:
             print('Error while uploading the model to cloud , error code: '+response)
 
+def uploadEmbToServer(emb_path):
+    with open(emb_path,'rb') as f:
+        files = {'emb' : f}
+        print('Uploading Embeddings to: ',Constants.KGNET_Config.GML_ModelManager_URL + ':' + Constants.KGNET_Config.GML_ModelManager_PORT+ '/uploademb/')
+        response = requests.post(Constants.KGNET_Config.GML_ModelManager_URL + ':' + Constants.KGNET_Config.GML_ModelManager_PORT + '/uploademb/',
+                                 files=files)
+        if response.ok:
+            print('Embeddings uploaded to cloud successfully!')
+        else:
+            print('Error while uploading the embeddings to cloud , error code: '+response)
 def uploadDatasetToServer(dataset_path):
     with open(dataset_path,'rb') as f:
         # files = {'model' : (model_path,f)}
@@ -31,7 +41,7 @@ def uploadDatasetToServer(dataset_path):
         if response.ok:
             print('Model uploaded to cloud successfully!')
         else:
-            print('Error while uploading the model to cloud , error code: '+response)
+            print('Error while uploading the dataset to cloud , error code: '+response)
 def downloadModel (mid):
     response = requests.get(f"{Constants.KGNET_Config.GML_ModelManager_URL+':' + Constants.KGNET_Config.GML_ModelManager_PORT}/downloadmodel/{mid}", stream=True)
     if response.status_code != 500:
@@ -45,6 +55,31 @@ def downloadModel (mid):
         print('File not found')
         return False
 
+def downloadEmb (mid):
+    response = requests.get(
+        f"{Constants.KGNET_Config.GML_ModelManager_URL + ':' + Constants.KGNET_Config.GML_ModelManager_PORT}/downloadEmb/{mid}",
+        stream=True)
+    if response.status_code != 500:
+        filepath = os.path.join(Constants.KGNET_Config.emb_store_path, mid)
+        with open(filepath, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=128):
+                f.write(chunk)
+        return True
+
+    else:
+        print('File not found')
+        return False
+
+def modelHasEmbStore(mid):
+    response = requests.get(
+        f"{Constants.KGNET_Config.GML_ModelManager_URL + ':' + Constants.KGNET_Config.GML_ModelManager_PORT}/modelHasEmbStore/{mid}",
+        stream=True)
+    if response.status_code != 500:
+        data = response.json()
+        file_exists = data.get('file_exists')
+        return file_exists
+    else:
+        print(f'Error while checking if model has emb store.\nError: {response.status_code}')
 def downloadDataset (mid):
     response = requests.get(f"{Constants.KGNET_Config.GML_ModelManager_URL+':' + Constants.KGNET_Config.GML_ModelManager_PORT}/downloaddataset/{mid}", stream=True)
     if response.status_code != 500:

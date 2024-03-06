@@ -27,6 +27,18 @@ async def saveIncomingModel(model: UploadFile = File(...)):
     print(f'model {model.filename} saved successfully')
     return JSONResponse(content={"message": "Model uploaded successfully"})
 
+@app.post("/uploademb/")
+async def saveIncomingEmb(emb: UploadFile = File(...)):
+    emb_path = KGNET_Config.emb_store_path
+    if not os.path.exists(emb_path):
+        os.mkdir(emb_path)
+
+    filepath = os.path.join(emb_path,emb.filename)
+    with open(filepath, "wb") as f:
+        f.write(emb.file.read())
+    print(f'model {emb.filename} saved successfully')
+    return JSONResponse(content={"message": "Model uploaded successfully"})
+
 @app.post("/uploaddataset/")
 async def saveIncomingDataset(dataset: UploadFile = File(...)):
     filepath = os.path.join(KGNET_Config.datasets_output_path,
@@ -53,6 +65,26 @@ async def sendDataset(mid:str,response:Response):
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {"error": "File not found"}
     return FileResponse(filepath, headers={"Content-Disposition": f"attachment; filename={mid}"})
+
+@app.get("/modelHasEmbStore/{mid}")
+async def modelHasEmbStore(mid: str, response: Response):
+    filepath = os.path.join(KGNET_Config.emb_store_path, f'{mid}.zip')
+    file_exists = os.path.exists(filepath)
+    if file_exists:
+        return {"file_exists": True}
+    else:
+        return {"file_exists": False}
+
+@app.get("/downloadEmb/{mid}")
+async def sendEmb(mid: str, response: Response):
+    filepath = os.path.join(KGNET_Config.emb_store_path, f'{mid}')
+    file_exists = os.path.exists(filepath)
+    if not file_exists:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {"error": "File not found"}
+
+    return FileResponse(filepath, headers={"Content-Disposition": f"attachment; filename={mid}"})
+
 
 if __name__ == "__main__":
     run(app,host=HOST,port=PORT)

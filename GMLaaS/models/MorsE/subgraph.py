@@ -5,7 +5,7 @@ from collections import defaultdict as ddict
 import lmdb
 from tqdm import tqdm
 import random
-from utils import serialize, get_g, get_hr2t_rt2h_sup_que
+from morseUtils import serialize, get_g, get_hr2t_rt2h_sup_que
 import dgl
 
 

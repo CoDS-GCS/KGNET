@@ -11,17 +11,21 @@ from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.graph_saint_KGTOSA import graphSaint
 from GMLaaS.models.rgcn.rgcn_link_pred import rgcn_lp
 from GMLaaS.models.MorsE.main import morse
+from GMLaaS.models.wise_ssaint import wise_SHsaint
+from GMLaaS.models.kgwise_utils import generate_inference_subgraph,getLabelMapping
 # from GMLaaS.models.graph_saint_KGTOSA_DEMO import graphSaint
 from GMLaaS.DataTransform.Transform_LP_Dataset import transform_LP_train_valid_test_subsets
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
-from model_manager import downloadModel,downloadDataset
+from model_manager import downloadModel,downloadDataset, downloadEmb
 import datetime
 import pandas as pd
 from Constants import *
 
+
 # output_path = Constants.KGNET_Config.inference_path
 inference_file = os.path.join(Constants.KGNET_Config.inference_path, 'inference.tsv')
-
+wise_methods = {Constants.GNN_Methods.ShaDowGNN : wise_SHsaint,
+                Constants.GNN_Methods.Graph_SAINT : wise_SHsaint}
 
 def delete_inference_cache(inference_path=Constants.KGNET_Config.inference_path):
     for entry in os.listdir(inference_path):
@@ -31,6 +35,24 @@ def delete_inference_cache(inference_path=Constants.KGNET_Config.inference_path)
         elif os.path.isdir(entry_path):
             shutil.rmtree(entry_path)
 
+# def zarr_exists(model_id):
+
+def download_files(model_id):
+    downloaded=False
+    filepath_model = os.path.join(Constants.KGNET_Config.trained_model_path, model_id)
+    filepath_param = filepath_model.replace('.model', '.param')
+    filepath_emb = os.path.join(Constants.KGNET_Config.trained_model_path,'emb_store', model_id.replace('.model','.zip'))
+
+    if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.localfile:
+        if os.path.exists(filepath_model) and os.path.exists(filepath_param) and os.path.exists(filepath_emb):
+            return True
+    if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
+        downloaded=downloadModel(model_id) and downloadModel(model_id.replace('.model', '.param')) and downloadEmb(model_id.replace('.model','.zip'))
+    elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
+        downloaded = Constants.utils.DownloadFileFromS3(model_id,to_filepath=filepath_model) and \
+                     Constants.utils.DownloadFileFromS3(model_id.replace('.model', '.param'),to_filepath=filepath_param,file_type="metadata") and \
+                     Constants.utils.DownloadFileFromS3(model_id,to_filepath=filepath_emb,file_type='emb')
+    return downloaded
 
 def get_MetaData(model_id,kg_endpoint):
     dict_params = {'model': {}, 'subG': {}}
@@ -117,6 +139,11 @@ def get_MetaData(model_id,kg_endpoint):
     except Exception as e:
         print("Error processing graphPrefix:", e)
 
+    try:
+        dict_params['subG']['labelNode'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.labelNode]['o'].item())
+    except Exception as e:
+        print("Error processing labelNode")
+
     return dict_params
 
 
@@ -167,6 +194,10 @@ def get_rel_types(named_graph_uri, graphPrefix, sparqlEndpointURL):
     else:
         return types_file
 
+def getTargetNodeList (kg_endpoint, targetNodesQuery):
+    print("targetNodesQuery=",targetNodesQuery)
+    targetNodes = kg_endpoint.executeSparqlquery(targetNodesQuery)
+    return targetNodes['s'].to_list()
 
 def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery = None,targetNodesList=None,TOSG_Pattern=TOSG_Patterns.d1h1,graph_uri=None,apply = True,):
     if targetNodesQuery is not None:
@@ -189,7 +220,8 @@ def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery
     return filtered_pred
 
 
-def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk,RDFEngine,demo = True,targetNodesList=None,TOSG_Pattern=TOSG_Patterns.d1h1):
+
+def wise_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk,RDFEngine,targetNodesList=None,TOSG_Pattern=TOSG_Patterns.d1h1):
     if RDFEngine:
         kg_endpoint = sparqlEndpoint(sparqlEndpointURL,RDFEngine=RDFEngine)
     else:
@@ -199,51 +231,20 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
         os.makedirs(Constants.KGNET_Config.inference_path)
     meta_dict = get_MetaData(model_id,kg_endpoint)
     if Constants.utils.is_number(model_id):
-        model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id) + '.model'
+        model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id) + '_wise.model'
     else:
-        model_id = 'mid-' +model_id + '.model'
-    dataset_name = model_id.replace(".model","")
+        model_id = 'mid-' +model_id + '_wise.model'
+    dataset_name = model_id.replace("_wise.model","")
     ###### IF LINK PREDICTION #######
-    print("model meta_dict['model']=",meta_dict['model'])
-    if meta_dict['model']['taskType'] == 'kgnet:type/linkPrediction':
-        if demo:
-            preds = pd.read_csv(os.path.join(Constants.KGNET_Config.inference_path,'authored_by_predictions.tsv'),header=None,sep='\t')
-            # preds.columns=["s","o"]
-            # print("preds.columns=",preds.columns)
-            targetNodes = kg_endpoint.executeSparqlquery(targetNodesQuery)
-            print("targetNodes.columns=", targetNodes.columns)
-            print("len(targetNodes)=",(len(targetNodes)))
-            targetNodes['s']=targetNodes['s'].apply(lambda x: str(x)[1:-1] if str(x).startswith("\"") or str(x).startswith("<") else str(x))
-            preds=preds[preds[0].isin(targetNodes['s'].tolist())]
-            #print("len(targetNodes)=", (len(targetNodes)))
-            #print("preds=", preds)
-            return topKpred(preds, RDFEngine,topk)
-            # return topKpred(preds[:1000],topk)
-        targetNodes = list(filterTargetNodes(kg_endpoint,targetNodesQuery=targetNodesQuery,apply=False).keys())
-        if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
-            downloadDataset(dataset_name + '.tsv')
-        elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
-            Constants.utils.DownloadFileFromS3(dataset_name + '.tsv', to_filepath=os.path.join(Constants.KGNET_Config.inference_path, dataset_name)+".tsv", file_type="metadata")
-
-
-        transform_LP_train_valid_test_subsets(data_path=KGNET.KGNET_Config.inference_path,
-                                              ds_name=dataset_name,
-                                              target_rel=meta_dict['subG']['targetEdge'])
-        if meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.MorsE:
-            dic_results = morse(dataset_name=dataset_name,root_path=KGNET.KGNET_Config.inference_path,modelID=model_id,)
-        dic_results = rgcn_lp(dataset_name=dataset_name,root_path=KGNET.KGNET_Config.inference_path,
-                                loadTrainedModel=1,target_rel=meta_dict['subG']['targetEdge'],list_src_nodes=targetNodes,
-                              modelID=model_id,K=topk)
-        if topk==1:
-            dic_results = {k : v[0] for k,v in dic_results.items()}
-
-        return dic_results
+    print("model meta_dict['model']=",meta_dict)
+    if not meta_dict['model']['GNNMethod'] in wise_methods:
+        return {"Error" : f"WISE not supported for {meta_dict['model']['GNNMethod']}"}
     ########################## NC ##############################################
     if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
         downloadDataset(dataset_name + '.zip')
     elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
         Constants.utils.DownloadFileFromS3(dataset_name + '.zip',to_filepath=os.path.join(Constants.KGNET_Config.inference_path,dataset_name) + ".zip", file_type="metadata")
-        Constants.utils.DownloadFileFromS3(dataset_name + '.param',to_filepath=os.path.join(Constants.KGNET_Config.inference_path,dataset_name) + ".param", file_type="metadata")
+        Constants.utils.DownloadFileFromS3(dataset_name + '_wise.param',to_filepath=os.path.join(Constants.KGNET_Config.inference_path,dataset_name) + ".param", file_type="metadata")
     elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.localfile:
         shutil.copyfile(os.path.join(Constants.KGNET_Config.datasets_output_path,dataset_name)+".zip", os.path.join(Constants.KGNET_Config.inference_path,dataset_name)+".zip")
 
@@ -274,40 +275,61 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
     dict_time['transformation_time'] = (datetime.datetime.now() - time_dataTransform).total_seconds()
 
     time_download = datetime.datetime.now()
-    downloaded=False
-    model_id = model_id+'_wise'
-    filepath = os.path.join(Constants.KGNET_Config.trained_model_path, model_id)
-    emb_path = os.path.join(Constants.KGNET_Config.trained_model_path,'emb_store', model_id)
-    if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.localfile:
-        if os.path.exists(filepath) and os.path.exists(filepath.replace('.model', '.param')):
-            downloaded = True
-    if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
-        downloaded=downloadModel(model_id) and downloadModel(model_id.replace('.model', '.param'))
-    elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
-        downloaded = Constants.utils.DownloadFileFromS3(model_id.replace('.model', ''),to_filepath=filepath) and \
-                     Constants.utils.DownloadFileFromS3(model_id.replace('.model', '.param'),to_filepath=filepath.replace('.model', '.param'),file_type="metadata")
+    # downloaded=False
+    # filepath = os.path.join(Constants.KGNET_Config.trained_model_path, model_id)
+    # if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.localfile:
+    #     if os.path.exists(filepath) and os.path.exists(filepath.replace('.model', '.param')):
+    #         downloaded = True
+    # if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.remoteFileStore:
+    #     downloaded=downloadModel(model_id) and downloadModel(model_id.replace('.model', '.param'))
+    # elif Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.S3:
+    #     downloaded = Constants.utils.DownloadFileFromS3(model_id.replace('.model', ''),to_filepath=filepath) and \
+    #                  Constants.utils.DownloadFileFromS3(model_id.replace('.model', '.param'),to_filepath=filepath.replace('.model', '.param'),file_type="metadata")
 
-    if downloaded:
+    if download_files(model_id=model_id):
         dict_time['model_download_time'] = (datetime.datetime.now() - time_download).total_seconds()
         print('Downloaded model successfully!')
 
         time_inference = datetime.datetime.now()
-        if meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.Graph_SAINT:
-            dic_results = graphSaint(dataset_name=dataset_name, root_path=Constants.KGNET_Config.inference_path,
-                                     loadTrainedModel=1, #target_mapping=data_dict['target_mapping'],
-                                     modelID=model_id)
+        # if meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.Graph_SAINT or meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.ShaDowGNN:
+        #     dic_results = graphSaint(dataset_name=dataset_name, root_path=Constants.KGNET_Config.inference_path,
+        #                              loadTrainedModel=1, #target_mapping=data_dict['target_mapping'],
+        #                              modelID=model_id)
+        #
+        # elif meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.ShaDowGNN:
+        #     dic_results = graphShadowSaint(dataset_name='inference', root_path=Constants.KGNET_Config.inference_path,
+        #                                    loadTrainedModel=1, #target_mapping=data_dict['target_mapping'],
+        #                                    modelID=model_id)
 
 
+        if meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.Graph_SAINT or meta_dict['model'][
+            'GNNMethod'] == Constants.GNN_Methods.ShaDowGNN:
+            """ Store target nodes into a list """
+            if targetNodesQuery:
+                targetNodesList = getTargetNodeList(kg_endpoint,targetNodesQuery)
 
-        elif meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.ShaDowGNN:
-            dic_results = graphShadowSaint(dataset_name='inference', root_path=Constants.KGNET_Config.inference_path,
-                                           loadTrainedModel=1, #target_mapping=data_dict['target_mapping'],
-                                           modelID=model_id)
+            """ Generate KG-TOSA subgraph """
+            inference_dataset,target_masks,target_masks_inf = generate_inference_subgraph(master_ds_name=dataset_name,target_rel_uri=meta_dict['subG']['targetEdge'],ds_types=meta_dict['subG']['graphPrefix'],
+                                                                                          graph_uri=named_graph_uri,targetNodesList=targetNodesList,labelNode=meta_dict['subG']['labelNode'])
+
+            """ Extract Model's Embeddings"""
+            # Constants.utils.DownloadFileFromS3(model_id.replace('.model','.zip'),to_filepath=KGNET_Config.emb_store_path,file_type="emb")
+            path_emb = os.path.join(KGNET_Config.trained_model_path,'emb_store')
+            path_model_emb = os.path.join(path_emb,model_id.replace('.model',''))
+            if not os.path.exists(path_model_emb):
+                shutil.unpack_archive(path_model_emb+'.zip',path_emb)
+
+            """ Generate Label Mappings """
+            label_mapping = getLabelMapping(dataset_name)
+            """ Generate KG-TOSA subgraph """
+            dic_results = wise_SHsaint (dataset_name = inference_dataset, root_path=Constants.KGNET_Config.inference_path,
+                                        loadTrainedModel=1,modelID=model_id,target_rel=meta_dict['subG']['targetEdge'],
+                                        target_masks=target_masks,target_masks_inf=target_masks_inf,label_mapping=label_mapping)
 
     else:
         return {'error': 'Model not found'}
     dict_time['inference_time'] = (datetime.datetime.now() - time_inference).total_seconds()
-    dic_results['y_pred'] = filterTargetNodes(kg_endpoint,predictions=dic_results['y_pred'],targetNodesQuery=targetNodesQuery,targetNodesList=targetNodesList,graph_uri=named_graph_uri)
+    #dic_results['y_pred'] = filterTargetNodes(kg_endpoint,predictions=dic_results['y_pred'],targetNodesQuery=targetNodesQuery,targetNodesList=targetNodesList,graph_uri=named_graph_uri)
     # shutil.rmtree(Constants.KGNET_Config.inference_path)
     # dict_time.update(dic_results['y_pred'])
     # dic_results['y_pred'] = dic_results['y_pred'].update({'Inference_Time':dict_time})
@@ -315,4 +337,3 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
     dict_time_dic = {"Inference_Times": dict_time}
     dict_inference.update(dict_time_dic)
     return dict_inference
-    print('pass!')

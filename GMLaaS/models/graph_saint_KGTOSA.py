@@ -43,6 +43,7 @@ faulthandler.enable()
 from model import Model
 import pickle
 import Constants
+from kgwise_utils import store_emb
 
 
 def print_memory_usage():
@@ -391,7 +392,8 @@ class RGCN(torch.nn.Module, Model):
         end_t = datetime.datetime.now()
         print("model init time CPU=", end_t - start_t, " sec.")
 
-        device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
+        device='cpu'
+        # device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
         model = RGCN(emb_size, hidden_channels, meta_dict['num_classes'], num_layers,
                      dropout, num_nodes_dict, list(x_dict.keys()),
                      len(meta_dict['edge_index_dict'].keys())).to(device)
@@ -596,7 +598,8 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
         end_t = datetime.datetime.now()
         print("model init time CPU=", end_t - start_t, " sec.")
         # dic_results["model init Time"] = (end_t - start_t).total_seconds()
-        device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
+        device='cpu'
+        # device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
         model = RGCN(emb_size, hidden_channels, dataset.num_classes, num_layers,
                      dropout, num_nodes_dict, list(x_dict.keys()),
                      len(edge_index_dict.keys())).to(device)
@@ -735,9 +738,17 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
             # pd.DataFrame(dic_results).transpose().to_json(os.path.join(logs_path,model_name+'.json') )
             with open(os.path.join(logs_path, model_name + '_log.metadata'), "w") as outfile:
                 json.dump(dic_results, outfile)
+            """ Saving complete model"""
             torch.save(model.state_dict(), os.path.join(model_path, model_name) + ".model")
+            """ Saving model embed in emd store"""
+            store_emb(model=model,model_name=model_name+'_wise',)
+            """ Decoupling weights and embds"""
+            model.emb_dict = None
+            torch.save(model.state_dict(), os.path.join(model_path, model_name) + "_wise.model")
             dic_results["data_obj"] = data.to_dict()
             with open(os.path.join(model_path, model_name) + ".param", 'wb') as f:
+                pickle.dump(dict_model_param, f)
+            with open(os.path.join(model_path, model_name) + "_wise.param", 'wb') as f:
                 pickle.dump(dict_model_param, f)
 
         del train_loader
@@ -751,17 +762,17 @@ if __name__ == '__main__':
     parser.add_argument('--hidden_channels', type=int, default=64)
     parser.add_argument('--dropout', type=float, default=0.5)
     parser.add_argument('--lr', type=float, default=0.005)
-    parser.add_argument('--epochs', type=int, default=2)
+    parser.add_argument('--epochs', type=int, default=1)
     parser.add_argument('--runs', type=int, default=1)
     parser.add_argument('--batch_size', type=int, default=2000)
     parser.add_argument('--walk_length', type=int, default=2)
     parser.add_argument('--num_steps', type=int, default=10)
     parser.add_argument('--loadTrainedModel', type=int, default=0)
-    parser.add_argument('--dataset_name', type=str, default="DBLP-Springer-Papers")
-    parser.add_argument('--root_path', type=str, default="../../Datasets/")
+    parser.add_argument('--dataset_name', type=str, default="mid-0000092")
+    parser.add_argument('--root_path', type=str, default=KGNET_Config.datasets_output_path)
     parser.add_argument('--output_path', type=str, default="./")
     parser.add_argument('--include_reverse_edge', type=bool, default=True)
-    parser.add_argument('--n_classes', type=int, default=440)
+    parser.add_argument('--n_classes', type=int, default=1000)
     parser.add_argument('--emb_size', type=int, default=128)
     args = parser.parse_args()
     print(args)
