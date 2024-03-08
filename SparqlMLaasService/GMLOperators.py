@@ -1,17 +1,12 @@
-import sys
-import os
-import pandas as pd
-
 import Constants
 from Constants import utils as kgnet_utils, GML_Operator_Types,GML_Query_Types,KGNET_Config
 from GMLaaS.run_pipeline import run_training_pipeline
-from SparqlMLaasService.KGMeta_Governer import KGMeta_Governer
 from SparqlMLaasService.gmlRewriter import gmlQueryParser,gmlQueryRewriter
 from SparqlMLaasService.QueryFormatter import gmlQueryFormatter
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_KG_entity_types as get_KG_entity_types
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_query as get_NC_d1h1_query
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d2h1_query as get_NC_d2h1_query
-from SparqlMLaasService.TaskSampler.TOSG_Extraction_LP import write_d2h1_TOSG,get_LP_d1h1_query,get_LP_d2h1_query
+from SparqlMLaasService.TaskSampler.TOSG_Extraction_LP import get_LP_d1h1_query,get_LP_d2h1_query
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 from datetime import datetime
 class gmlOperator():
@@ -25,14 +20,13 @@ class gmlInsertOperator(gmlOperator):
         self.GML_Query_Type = GML_Query_Types.Insert
     def sample_Task_Subgraph(self, query_dict,output_path,TOSG="d1h1"):
         task_var = query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1]
-        tragetNode_filter_statments=None
+        tragetNode_filter_statments=[]
         if  "targetNodeFilters" in query_dict["insertJSONObject"]["GMLTask"]:
             for filter in query_dict["insertJSONObject"]["GMLTask"]["targetNodeFilters"]:
-                tragetNode_filter_statments=""
                 filter_vals=query_dict["insertJSONObject"]["GMLTask"]["targetNodeFilters"][filter]
-                tragetNode_filter_statments+="?s" + filter_vals[0]+" "+ filter_vals[1]+" .\n"
+                tragetNode_filter_statments.append("?s " + filter_vals[0]+" "+ filter_vals[1]+" .")
                 for idx in range(2,len(filter_vals)):
-                    tragetNode_filter_statments+=filter_vals[idx]+".\n"
+                    tragetNode_filter_statments.append(filter_vals[idx]+".")
 
         if task_var == GML_Operator_Types.NodeClassification:
             stype=query_dict["insertJSONObject"]["GMLTask"]["targetNode"]
@@ -41,7 +35,7 @@ class gmlInsertOperator(gmlOperator):
             named_graph_uri=query_dict["insertJSONObject"]["GMLTask"]["namedGraphURI"]
             types_query=get_KG_entity_types(graph_uri=named_graph_uri)
             if TOSG=="d1h1":
-                query_spo,query_o_types=get_NC_d1h1_query(graph_uri=named_graph_uri, target_rel_uri=target_rel_uri,tragetNode_filter_statments=tragetNode_filter_statments, stype=stype, otype=otype)
+                query_spo,query_o_types=get_NC_d1h1_query(graph_uri=named_graph_uri, target_rel_uri=target_rel_uri,tragetNode_filter_statments=tragetNode_filter_statments, stype=stype, otype=otype,prefixs=query_dict['prefixes'])
                 query=[query_spo,query_o_types]
             elif TOSG=="d2h1":
                 query=get_NC_d2h1_query(graph_uri=named_graph_uri,target_rel_uri=target_rel_uri,tragetNode_filter_statments=tragetNode_filter_statments,stype=stype,otype=otype)
@@ -88,16 +82,17 @@ class gmlInsertOperator(gmlOperator):
         train_pipeline_dict={
             "transformation": {
                 "operatorType": query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1],
-                "target_rel": query_dict["insertJSONObject"]["GMLTask"]["targetEdge"],
+                "target_rel": query_dict["insertJSONObject"]["GMLTask"]["targetEdge"].split(":")[-1],
                 "dataset_name": ds_name,
                 "dataset_name_csv": ds_name,
                 "dataset_types":query_dict["insertJSONObject"]["GMLTask"]["datasetTypesFilePath"],
                 "test_size": 0.1,
                 "valid_size": 0.1,
-                "MINIMUM_INSTANCE_THRESHOLD": 6,
+                "MINIMUM_INSTANCE_THRESHOLD": int(query_dict["insertJSONObject"]["GMLTask"]["MinInstancesPerLabel"]) if "MinInstancesPerLabel" in query_dict["insertJSONObject"]["GMLTask"].keys() else 21,
                 "output_root_path": KGNET_Config.datasets_output_path,
-                "target_node_type": query_dict["insertJSONObject"]["GMLTask"]["targetNode"],
-                "label_node_type": (query_dict["insertJSONObject"]["GMLTask"]["labelNode"] if "labelNode" in query_dict["insertJSONObject"]["GMLTask"].keys() else None)
+                "target_node_type": query_dict["insertJSONObject"]["GMLTask"]["targetNode"].split(":")[-1],
+                "label_node_type": (query_dict["insertJSONObject"]["GMLTask"]["labelNode"].split(":")[-1] if "labelNode" in query_dict["insertJSONObject"]["GMLTask"].keys() else None),
+                "labels_count": (query_dict["insertJSONObject"]["GMLTask"]["labelsCount"] if "labelsCount" in query_dict["insertJSONObject"]["GMLTask"].keys() else None)
             },
             "training":
                 {"dataset_name": ds_name,
@@ -178,8 +173,8 @@ class gmlInferenceOperator(gmlOperator):
             df_res=df_res.applymap(lambda x: str(x)[1:-1])
             return df_res,dataInferQ,dataQ,tragetNodesq,kgmeta_model_queries_dict,model_ids,(datetime.now()-start_time).total_seconds()
 
-if __name__ == '__main__':
-    ""
-    KG_sparqlEndpoint = sparqlEndpoint(endpointUrl='http://206.12.98.118:8890/sparql/')
-    gml_operator=gmlOperator(KG_sparqlEndpoint=KG_sparqlEndpoint)
-    df=gml_operator.getKGNodeEdgeTypes(namedGraphURI="http://www.aifb.uni-karlsruhe.de")
+# if __name__ == '__main__':
+#     ""
+#     KG_sparqlEndpoint = sparqlEndpoint(endpointUrl='http://206.12.98.118:8890/sparql/')
+#     gml_operator=gmlOperator(KG_sparqlEndpoint=KG_sparqlEndpoint)
+#     df=gml_operator.getKGNodeEdgeTypes(namedGraphURI="http://www.aifb.uni-karlsruhe.de")

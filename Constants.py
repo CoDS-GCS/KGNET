@@ -55,6 +55,7 @@ class GNN_SubG_Parms:
     GNN_TASK_PREFIX = 'kgnet:GMLTask/'
     GNN_KG_TASK_PREFIX = 'kgnet:GMLTask/'
     targetEdge = GNN_KG_HP_PREFIX + 'targetEdge'
+    targetNode = GNN_TASK_PREFIX + 'targetNode'
     prefix = GNN_KG_TASK_PREFIX + 'KGPrefix'
     modelId = GNN_TASK_PREFIX + 'modelID'
     taskType = GNN_TASK_PREFIX + 'taskType'
@@ -90,11 +91,12 @@ class KGNET_Config:
     # KGMeta_IRI = "http://kgnet/"
     # KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
 
-    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"#"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"#"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
     trained_model_path = datasets_output_path + 'trained_models/'
     emb_store_path = os.path.join(trained_model_path,'emb_store')
-    GML_API_URL = "http://206.12.102.12:64647/"
+    # GML_API_URL = "http://206.12.102.12:64647/"
+    GML_API_URL = "http://localhost:64647/"
     GML_Inference_PORT = "64647"
     GML_ModelManager_PORT = "8443"
     #GML_ModelManager_PORT = "8443"
@@ -108,14 +110,14 @@ class KGNET_Config:
        ""
 
 
-KGs_prefixs_dic={"dblp":"https://www.dblp.org/",
+KGs_prefixs_dic={"dblp":"https://dblp.org/rdf/schema#",
              "lkmdb":"https://www.lkmdb.org/",
              "mag":"https://www.mag.org/",
              "aifb":"http://www.aifb.uni-karlsruhe.de/"}
-namedGraphURI_dic={"dblp":"http://dblp.org",
+namedGraphURI_dic={"dblp":"http://dblp.org/",
              "lkmdb":"https://www.lkmdb.org/",
              "mag":"https://www.mag.org/",
-             "aifb":"http://www.aifb.uni-karlsruhe.de"}
+             "aifb":"http://www.aifb.uni-karlsruhe.de/"}
 
 
 class colors:

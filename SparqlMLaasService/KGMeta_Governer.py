@@ -352,10 +352,10 @@ class KGMeta_Governer(sparqlEndpoint):
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/description>	\"\" . \n"
             if "labelNode" in query_dict["insertJSONObject"]["GMLTask"]:
                 labelNode=query_dict["insertJSONObject"]["GMLTask"]["labelNode"]
-                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/labelNode>	"+(("<"+labelNode+">") if labelNode.startswith("http") or labelNode.contains(":") else labelNode)+" . \n"
+                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/labelNode>	"+(("<"+labelNode+">") if (labelNode.startswith("http") or ":" in labelNode) else "\""+labelNode+"\"")+" . \n"
             if "targetNode" in query_dict["insertJSONObject"]["GMLTask"]:
                 targetNode = query_dict["insertJSONObject"]["GMLTask"]["targetNode"]
-                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/targetNode> "+(("<"+targetNode+">") if targetNode.startswith("http") or targetNode.contains(":") else targetNode)+" . \n"
+                Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/targetNode> "+(("<"+targetNode+">") if (targetNode.startswith("http") or ":" in targetNode) else "\""+targetNode+"\"")+" . \n"
             Insert_Triples += "<" + task_uri + "> <kgnet:GMLTask/targetEdge> \""+ query_dict["insertJSONObject"]["GMLTask"]["targetEdge"]+"\" . \n"
         ######################
         Insert_Triples += "<" + task_uri + ">  <kgnet:GMLTask/modelID> <" + model_model_uri + ">  . \n"

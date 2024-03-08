@@ -56,7 +56,7 @@ if __name__ == '__main__':
                    "targetEdge":"https://dblp.org/rdf/schema#publishedInJournal",
                    "namedGraphUri":"http://dblp.org",
                    "GNNMethod":\""""+GNN_Methods.RGCN+"""\",
-                   "datasetTypesFilePath":\""""+KGNET_Config.datasets_output_path+"""dblp_Types.csv",
+                   "datasetTypesFilePath":\""""+KGNET_Config.datasets_output_path+"""dblp_Types_v0.csv",
                    "TOSG":\""""+TOSG_Patterns.d1h1+"""\",
                    "targetNodeFilters":{
                 "filter1":["<https://dblp.org/rdf/schema#yearOfPublication>", "?year","filter(xsd:integer(?year)<=1950)"]

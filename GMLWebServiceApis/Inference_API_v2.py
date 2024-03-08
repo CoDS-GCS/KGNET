@@ -46,8 +46,6 @@ async def run_wise_inference(mid:str,inference_request: InferenceRequest):
     topk = inference_request.topk
     TOSG_Pattern=inference_request.TOSG_Pattern
     #target_rel = inference_request.target_rel
-
-
     dic_results = wise_inference(model_id = model_id, named_graph_uri = named_graph_uri,#target_rel=target_rel,
                                     dataQuery= dataQuery, sparqlEndpointURL = sparqlEndpointURL,
                                     targetNodesQuery = targetNodesQuery,

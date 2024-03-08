@@ -21,7 +21,7 @@ pip install --no-index torch-spline-conv -f https://pytorch-geometric.com/whl/to
 pip install torch-geometric
 pip install pystardog
 pip install requests_toolbelt
-
 pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
 pip install torch_geometric
 pip install ogb
+conda install conda-forge::zarr

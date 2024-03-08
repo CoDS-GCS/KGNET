@@ -1,17 +1,9 @@
-import os
 import shutil
-import shutil
-from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_query as get_NC_d1h1_query
-from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_TargetListquery as get_NC_d1h1_TargetListquery
-from SparqlMLaasService.GMLOperators import gmlOperator
-from KGNET import KGNET
-from KGNET import Constants
-from GMLaaS.DataTransform.INFERENCE_TSV_TO_PYG import inference_transform_tsv_to_PYG
+import Constants
 from GMLaaS.models.graph_saint_Shadow_KGTOSA import graphShadowSaint
 from GMLaaS.models.graph_saint_KGTOSA import graphSaint
 from GMLaaS.models.rgcn.rgcn_link_pred import rgcn_lp
 from GMLaaS.models.MorsE.main import morse
-# from GMLaaS.models.graph_saint_KGTOSA_DEMO import graphSaint
 from GMLaaS.DataTransform.Transform_LP_Dataset import transform_LP_train_valid_test_subsets
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 from model_manager import downloadModel,downloadDataset
@@ -150,24 +142,6 @@ def generate_subgraph(kg_endpoint,dataQuery):
     subgraph_df.to_csv(inference_file, index=None, sep='\t')
     return inference_file
 
-
-def get_rel_types(named_graph_uri, graphPrefix, sparqlEndpointURL):
-    types_file = os.path.join(Constants.KGNET_Config.datasets_output_path, graphPrefix + '_Types.csv')
-
-    if os.path.exists(types_file):
-        return types_file
-    KG_sparqlEndpoint = sparqlEndpoint(endpointUrl=sparqlEndpointURL)
-    gml_operator = gmlOperator(KG_sparqlEndpoint=KG_sparqlEndpoint)
-    gml_operator.getKGNodeEdgeTypes(namedGraphURI=named_graph_uri, prefix=graphPrefix)
-
-
-    if not os.path.exists(types_file):
-        raise FileNotFoundError(f'Types file was not generated at expected location: {types_file}')
-
-    else:
-        return types_file
-
-
 def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery = None,targetNodesList=None,TOSG_Pattern=TOSG_Patterns.d1h1,graph_uri=None,apply = True,):
     if targetNodesQuery is not None:
         print("targetNodesQuery=",targetNodesQuery)
@@ -226,12 +200,12 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
             Constants.utils.DownloadFileFromS3(dataset_name + '.tsv', to_filepath=os.path.join(Constants.KGNET_Config.inference_path, dataset_name)+".tsv", file_type="metadata")
 
 
-        transform_LP_train_valid_test_subsets(data_path=KGNET.KGNET_Config.inference_path,
+        transform_LP_train_valid_test_subsets(data_path=Constants.KGNET_Config.inference_path,
                                               ds_name=dataset_name,
                                               target_rel=meta_dict['subG']['targetEdge'])
         if meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.MorsE:
-            dic_results = morse(dataset_name=dataset_name,root_path=KGNET.KGNET_Config.inference_path,modelID=model_id,)
-        dic_results = rgcn_lp(dataset_name=dataset_name,root_path=KGNET.KGNET_Config.inference_path,
+            dic_results = morse(dataset_name=dataset_name,root_path=Constants.KGNET_Config.inference_path,modelID=model_id,)
+        dic_results = rgcn_lp(dataset_name=dataset_name,root_path=Constants.KGNET_Config.inference_path,
                                 loadTrainedModel=1,target_rel=meta_dict['subG']['targetEdge'],list_src_nodes=targetNodes,
                               modelID=model_id,K=topk)
         if topk==1:
@@ -253,10 +227,6 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
     #                              dataQuery=dataQuery,
     #                              sparqlEndpointURL=sparqlEndpointURL)
     dict_time['subgraph_generation_time'] = (datetime.datetime.now() - time_subgraph).total_seconds()
-    # rel_types = get_rel_types(named_graph_uri=named_graph_uri,
-    #                           graphPrefix=meta_dict['subG']['graphPrefix'],
-    #                           sparqlEndpointURL=sparqlEndpointURL)
-
     time_dataTransform = datetime.datetime.now()
     # data_dict = inference_transform_tsv_to_PYG(dataset_name='inference',
     #                                            dataset_name_csv='inference',
@@ -295,14 +265,14 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
         if meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.Graph_SAINT:
             dic_results = graphSaint(dataset_name=dataset_name, root_path=Constants.KGNET_Config.inference_path,
                                      loadTrainedModel=1, #target_mapping=data_dict['target_mapping'],
-                                     modelID=model_id)
+                                     modelID=model_id,emb_size=meta_dict['model']['embSize'])
 
 
 
         elif meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.ShaDowGNN:
             dic_results = graphShadowSaint(dataset_name='inference', root_path=Constants.KGNET_Config.inference_path,
                                            loadTrainedModel=1, #target_mapping=data_dict['target_mapping'],
-                                           modelID=model_id)
+                                           modelID=model_id,emb_size=meta_dict['model']['embSize'])
 
     else:
         return {'error': 'Model not found'}

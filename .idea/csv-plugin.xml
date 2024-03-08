@@ -31,13 +31,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/GMLQueryRewriter_old/cognitive_queries.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=":" />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="/GMLWebServiceApis/test_results.csv">
           <value>
             <Attribute>
@@ -46,6 +39,13 @@
           </value>
         </entry>
         <entry key="/GMLaaS/models/training_dataset_mid-0000092_predictions.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_AAAI_ACM_VLDB_germany_china_2021.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
