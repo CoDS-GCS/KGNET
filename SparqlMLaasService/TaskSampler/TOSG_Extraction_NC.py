@@ -81,52 +81,60 @@ def get_d1h1_TargetListquery(graph_uri,target_lst):
          ?o a ?otype.
          values ?s {$VT_Values$}
        }
-    }
-    #offset ?offset
-    #limit ?limit"""
+    }"""
     query=query.replace("$VT_Values$"," ".join(target_lst))
     query_o_type = query_o_type.replace("$VT_Values$", " ".join(target_lst))
     return [query,query_o_type]
-def get_d1h1_query(graph_uri,target_rel_uri,stype=None,otype=None,tragetNode_filter_statments=None):
-    query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+# def get_d1h1_query(graph_uri,target_rel_uri,stype=None,otype=None,tragetNode_filter_statments=None):
+#     query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+#     query_o_type = query_o_type.replace("$VT_Values$", " ".join(target_lst))
+#     return [query,query_o_type]
+def get_d1h1_query(graph_uri,target_rel_uri,prefixs=None,stype=None,otype=None,tragetNode_filter_statments=None):
+    query=""
+    if prefixs and len(prefixs.keys())>0:
+        for prefix in prefixs.keys():
+            query+="prefix "+prefix+":<"+prefixs[prefix]+">\n"
+    query+="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)\n
            from <"""+graph_uri+""">
            where
            {
                 select ?s ?p ?o
                 where
-                {
-                ?s <"""+target_rel_uri+"""> ?label. \n"""
-    query+=("" if stype is None else (" ?s a <"+stype+"> ." if validators.url(stype) else "?s a ?stype. \n filter(?stype="+"\""+stype+"\") . \n"))
-    query+=("" if otype is None else ("?label a  <"+otype+"> ." if validators.url(otype) else "?label a ?ltype. \n filter(?ltype="+"\""+otype+"\") . \n"))
-    query+=""" ?s ?p ?o.
+                {"""
+    query += ("" if target_rel_uri is None else " ?s " + target_rel_uri + " ?label.\n" if (prefixs is not None and target_rel_uri.split(":")[0] in prefixs.keys()) else " ?s  <" + target_rel_uri + "> ?label .\n" if validators.url(target_rel_uri) else "")
+    query+=("" if stype is None else " ?s a "+stype+" .\n" if (prefixs is not None and stype.split(":")[0] in prefixs.keys()) else " ?s a <"+stype+"> .\n" if  validators.url(stype) else "?s a ?stype. \n filter(?stype="+"\""+stype+"\") . \n")
+    query += ("" if otype is None else " ?label a " + otype + " .\n" if (prefixs is not None and otype.split(":")[0] in prefixs.keys()) else " ?label a <" + otype + "> .\n" if validators.url(otype) else "?label a ?ltype. \n filter(?ltype="+"\""+otype+"\") . \n")
+    query+=""" ?s ?p ?o.\n
               filter(!isBlank(?o)).\n"""
     if tragetNode_filter_statments:
-        query += tragetNode_filter_statments
+        # query += tragetNode_filter_statments
         for statement in tragetNode_filter_statments:
-            query+=statement
+            query+=statement+"\n"
     query += """} }
           offset ?offset
           limit ?limit """
 
-    query_o_t = """select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+    query_o_t=""
+    if prefixs and len(prefixs.keys()) > 0:
+        for prefix in prefixs.keys():
+            query_o_t += "prefix " + prefix + ":<" + prefixs[prefix] + ">\n"
+    query_o_t += """select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
                from <""" + graph_uri + """>
                where
                {
                     select ?o as ?s 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'  as ?p ?ot as ?o
                     where
-                    {
-                        ?s <""" + target_rel_uri + """> ?label. \n"""
-    query_o_t += ("" if stype is None else (" ?s a <" + stype + "> ." if validators.url(
-        stype) else "?s a ?stype. \n filter(?stype=" + "\"" + stype + "\") . \n"))
-    query_o_t += ("" if otype is None else ("?label a  <" + otype + "> ." if validators.url(
-        otype) else "?label a ?ltype. \n filter(?ltype=" + "\"" + otype + "\") . \n"))
+                    {\n"""
+    query_o_t += ("" if target_rel_uri is None else " ?s " + target_rel_uri + " ?label.\n" if (prefixs is not None and target_rel_uri.split(":")[0] in prefixs.keys()) else " ?s  <" + target_rel_uri + "> ?label .\n" if validators.url(target_rel_uri) else "")
+    query_o_t += ("" if stype is None else " ?s a " + stype + " .\n" if (prefixs is not None and stype.split(":")[0] in prefixs.keys()) else " ?s a <" + stype + "> .\n" if validators.url(stype) else "?s a ?stype. \n filter(?stype=" + "\"" + stype + "\") . \n")
+    query_o_t += ("" if otype is None else " ?label a " + otype + " .\n" if (prefixs is not None and otype.split(":")[0] in prefixs.keys()) else " ?label a <" + otype + "> .\n" if validators.url(otype) else "?label a ?ltype. \n filter(?ltype=" + "\"" + otype + "\") . \n")
     query_o_t += """ ?s ?p ?o.
                      ?o a ?ot.
                      filter(!isLiteral(?o)).\n"""
     if tragetNode_filter_statments:
-        query_o_t += tragetNode_filter_statments
+        # query_o_t += tragetNode_filter_statments
         for statement in tragetNode_filter_statments:
-            query += statement
+            query_o_t += statement+"\n"
     query_o_t += """} }  
                offset ?offset
               limit ?limit """

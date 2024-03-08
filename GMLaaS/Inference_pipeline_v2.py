@@ -142,8 +142,12 @@ def get_MetaData(model_id,kg_endpoint):
     try:
         dict_params['subG']['labelNode'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.labelNode]['o'].item())
     except Exception as e:
-        dict_params['subG']['labelNode'] = None
-        print("Error processing labelNode", e)
+        dict_params['subG']['labelNode']=None
+
+    try:
+        dict_params['subG']['targetNode'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.targetNode]['o'].item())
+    except Exception as e:
+        print("Error processing targetNode:", e)
 
     return dict_params
 
@@ -311,7 +315,7 @@ def wise_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targ
 
             """ Generate KG-TOSA subgraph """
             inference_dataset,target_masks,target_masks_inf = generate_inference_subgraph(master_ds_name=dataset_name,target_rel_uri=meta_dict['subG']['targetEdge'],ds_types=meta_dict['subG']['graphPrefix'],
-                                                                                          graph_uri=named_graph_uri,targetNodesList=targetNodesList,labelNode=meta_dict['subG']['labelNode'])
+                                                                                          graph_uri=named_graph_uri,targetNodesList=targetNodesList,labelNode=meta_dict['subG']['labelNode'],targetNodeType=meta_dict['subG']['targetNode'])
 
             """ Extract Model's Embeddings"""
             # Constants.utils.DownloadFileFromS3(model_id.replace('.model','.zip'),to_filepath=KGNET_Config.emb_store_path,file_type="emb")
@@ -325,7 +329,8 @@ def wise_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targ
             """ Generate KG-TOSA subgraph """
             dic_results = wise_SHsaint (dataset_name = inference_dataset, root_path=Constants.KGNET_Config.inference_path,
                                         loadTrainedModel=1,modelID=model_id,target_rel=meta_dict['subG']['targetEdge'],
-                                        target_masks=target_masks,target_masks_inf=target_masks_inf,label_mapping=label_mapping)
+                                        target_masks=target_masks,target_masks_inf=target_masks_inf,label_mapping=label_mapping,
+                                        emb_size=meta_dict['model']['embSize'],hidden_channels=meta_dict['model']['hiddenChannels'])
 
     else:
         return {'error': 'Model not found'}
