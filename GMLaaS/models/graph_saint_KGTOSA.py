@@ -27,10 +27,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import cross_val_score
 import traceback
 import sys
-
-# sys.path.insert(0, '/media/hussein/UbuntuData/GithubRepos/KGNET/GMLaaS/models/')
-GMLaaS_models_path = sys.path[0].split("KGNET")[0] + "/KGNET/GMLaaS/models"
-sys.path.insert(0, GMLaaS_models_path)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 # print("sys.path=",sys.path)
 from ogb.nodeproppred import PygNodePropPredDataset
 from evaluater import Evaluator
