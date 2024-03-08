@@ -2,7 +2,7 @@ import argparse
 # import sys
 # sys.path.append('..')
 from MorsE.main import morse
-from MorsE.morseUtils import init_dir,Log
+from .MorsE.morseUtils import init_dir,Log
 import Constants
 
 def run_morse(dataset_name,root_path,epochs=None,embSize=None):
