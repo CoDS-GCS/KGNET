@@ -142,7 +142,8 @@ def get_MetaData(model_id,kg_endpoint):
     try:
         dict_params['subG']['labelNode'] = str(res_df[res_df['p'] == Constants.GNN_SubG_Parms.labelNode]['o'].item())
     except Exception as e:
-        print("Error processing labelNode")
+        dict_params['subG']['labelNode'] = None
+        print("Error processing labelNode", e)
 
     return dict_params
 
