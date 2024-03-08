@@ -6,44 +6,17 @@ import os
 import shutil
 from tqdm import tqdm
 import datetime
-# import torch
-# import torch.nn.functional as F
-import sys
-GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/"
-sys.path.insert(0,GMLaaS_models_path)
-sys.path.append(os.path.join(os.path.abspath(__file__).split("KGNET")[0],'KGNET'))
 from Constants import *
-
-# from torch.nn import ModuleList, Linear, ParameterDict, Parameter
-# from torch_sparse import SparseTensor
-# from torch_geometric.data import Data
-# from torch_geometric.loader import  GraphSAINTRandomWalkSampler,ShaDowKHopSampler
-
-#from KGTOSA_Samplers import GraphSAINTTaskBaisedRandomWalkSampler,GraphSAINTTaskWeightedRandomWalkSampler
-# from GMLaaS.DataTransform.INFERENCE_TSV_TO_PYG import inference_transform_tsv_to_PYG
 from GMLaaS.DataTransform.TSV_TO_PYG_dataset import transform_tsv_to_PYG #inference_transform_tsv_to_PYG
-# from torch_geometric.utils.hetero import group_hetero_graph
-# from torch_geometric.nn import MessagePassing
-# import psutil
-# import numpy
-# from collections import OrderedDict
-# # from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_query
 import pandas as pd
-
-# # print("sys.path=",sys.path)
-# # from ogb.nodeproppred import PygNodePropPredDataset
-# from evaluater import Evaluator
-# from custome_pyg_dataset import PygNodePropPredDataset_hsh
 from resource import *
-# from logger import Logger
-# import gzip
 import faulthandler
 faulthandler.enable()
 import pickle
 import warnings
 import zarr
 from concurrent.futures import ProcessPoolExecutor, as_completed,ThreadPoolExecutor
-from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_TargetListquery
+# from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_TargetListquery
 import zipfile
 
 
@@ -279,7 +252,7 @@ def store_emb(model,model_name,root_path=os.path.join(KGNET_Config.trained_model
     zip_directory(path,path+'.zip')
 
 
-def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [],labelNode = None,
+def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [],labelNode = None,targetNodeType=None,
                                 target_rel_uri='https://dblp.org/rdf/schema#publishedIn',
                                 ds_types = '',
                                 sparqlEndpointURL=KGNET_Config.KGMeta_endpoint_url,
@@ -337,7 +310,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
                                   #dataset_types=os.path.join(KGNET_Config.datasets_output_path,'WikiKG2015_v2_Types.csv'), #TODO: Replace with arg based file # For DBLP /home/afandi/GitRepos/KGNET/Datasets/dblp2022_Types (rec).csv
                                   dataset_types=os.path.join(KGNET_Config.datasets_output_path, ds_types+"_Types.csv"),
                                   target_rel =target_rel_uri,#,publishedIn
-                                  targetNodeType=None, #TODO: Parameterize
+                                  targetNodeType=targetNodeType, #TODO: Parameterize
                                   output_root_path=KGNET_Config.inference_path,
                                   Header_row=0,
                                   labelNodetype = labelNode,

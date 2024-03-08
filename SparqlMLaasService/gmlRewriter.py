@@ -24,6 +24,7 @@ dict_classifTypes = {NODECLASSIFIER:['nodeclassifier','kgnet:types/nodeclassifie
 lis_targetNodeTypes = ['kgnet:targetnode']
 lis_labelTypes = ['kgnet:labelnode']
 lis_targetEdgeTypes = ['kgnet:targetedge']
+lis_labelValue = ['kgnet:labelvalue']
 
 clf_fxn = {  # 'nodeclassifier':'getNodeClass',
     'nodeclassification': 'getNodeClass_v2',
@@ -209,6 +210,10 @@ class gmlQueryRewriter:
                 triple['predicate'] = rdflib.term.URIRef('kgnet:GMLTask/labelNode')
                 dict_vars[triple["subject"]]['label'] = triple  # ['object']          # if the triple is the label
                 continue
+            elif isinstance(triple['predicate'], str) and triple['predicate'].lower() in lis_labelValue:
+                triple['predicate'] = rdflib.term.URIRef('kgnet:GMLTask/labelValue')
+                dict_vars[triple["subject"]]['labelValue'] = triple  # ['object']          # if the triple is the label
+                continue
 
             elif isinstance(triple['predicate'], str) and triple['predicate'].lower() in ["kgnet:gnnmethod"]:
                 triple['predicate'] = rdflib.term.URIRef('kgnet:GMLModel/GNNMethod')
@@ -296,7 +301,7 @@ class gmlQueryRewriter:
                             -1]) is not None) else target_type)
 
                 string_Q += "{"
-                for key in dict_vars[gml_op].keys():
+                for key in dict_vars[gml_op].keys() :
                     if len(dict_vars[gml_op][key]) == 0:
                         continue
                     elif key in ['target', 'label']:
@@ -309,7 +314,7 @@ class gmlQueryRewriter:
                         string_temp = f"{set_syntax(dict_vars[gml_op][key]['subject'])} {set_syntax(dict_vars[gml_op][key]['predicate'])} {set_syntax(dict_vars[gml_op][key]['object'])} .\n"
                         string_Q += string_temp
                         continue
-                    elif key.lower() in ['topk','gnnmethod']:
+                    elif key.lower() in ['topk','gnnmethod','labelvalue']:
                         continue
                     elif isinstance(dict_vars[gml_op][key], list):
                         for list_triple in dict_vars[gml_op][key]:

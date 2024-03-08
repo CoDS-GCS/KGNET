@@ -417,7 +417,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                lr=0.005, epochs=2, runs=1, batch_size=2000, walk_length=2,
                num_steps=10, loadTrainedModel=0, dataset_name="DBLP-Springer-Papers",
                root_path="../../Datasets/", output_path="./", include_reverse_edge=True,
-               n_classes=1000, emb_size=128, label_mapping={}, target_mapping={}, modelID=''):
+               n_classes=1000, emb_size=128, label_mapping={}, target_mapping={}, modelID='',):
     def train(epoch):
         model.train()
         # tqdm.monitor_interval = 0
@@ -468,7 +468,29 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
             'y_pred': y_pred[split_idx['test'][subject_node]],
         })['acc']
         return train_acc, valid_acc, test_acc
-
+    def get_acc_per_label():
+        with torch.no_grad():
+            label_mapping = pd.read_csv(os.path.join(dir_path, 'mapping', 'labelidx2labelname.csv'))
+            label_mapping = label_mapping.set_index('label idx')['label name'].to_dict()
+            evaluator = Evaluator(name='ogbn-mag',p_eval_metric='cm')
+            model.eval()
+            out = model.inference(x_dict, edge_index_dict, key2int)
+            out = out[key2int[subject_node]]
+            y_pred = out.argmax(dim=-1, keepdim=True).cpu()
+            y_true = data.y_dict[subject_node]
+            cm = evaluator.eval({
+                'y_true': y_true[split_idx['test'][subject_node]],
+                'y_pred': y_pred[split_idx['test'][subject_node]],
+            })['cm']
+            acc_per_class=(cm.diagonal() / cm.sum(axis=1)) * 100 ## acc per class
+            samples_per_class=(cm.sum(axis=1) /cm.sum() ) * 100 ## samples(%) per class
+            labels_acc_dist={}
+            for label_idx in label_mapping.keys():
+                try:
+                    labels_acc_dist[label_mapping[label_idx]]=[label_idx,acc_per_class[label_idx],samples_per_class[label_idx]]
+                except:
+                    continue
+        return labels_acc_dist
     init_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
     dataset_name = dataset_name
     to_remove_pedicates = []
@@ -481,7 +503,6 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
     output_path = output_path
     gsaint_Final_Test = 0
     for GNN_dataset_name in GNN_datasets:
-
         gsaint_start_t = datetime.datetime.now()
         ###################################Delete Folder if exist #############################
         dir_path = root_path + GNN_dataset_name
@@ -562,7 +583,6 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
             homo_data.train_mask[local2global[subject_node][split_idx['train'][subject_node]]] = True
             start_t = datetime.datetime.now()
             print("dataset.processed_dir", dataset.processed_dir)
-
             train_loader = GraphSAINTRandomWalkSampler(
                 # train_loader = GraphSAINTTaskBaisedRandomWalkSampler(
                 # train_loader=GraphSAINTTaskWeightedRandomWalkSampler(
@@ -661,6 +681,28 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 print(dic_results['y_pred'])
 
             return dic_results
+        elif loadTrainedModel==2: # Store the default model in a KGWise Format
+            with torch.no_grad():
+                start_t = datetime.datetime.now()
+                trained_model_path = Constants.KGNET_Config.trained_model_path + modelID
+                model_params_path = trained_model_path.replace('.model', '.param')
+                with open(model_params_path, 'rb') as f:
+                    dict_model_param = pickle.load(f)
+                model = RGCN(dict_model_param['emb_size'],
+                             dict_model_param['hidden_channels'],
+                             dict_model_param['dataset.num_classes'],
+                             dict_model_param['num_layers'],
+                             dict_model_param['dropout'],
+                             dict_model_param['num_nodes_dict'],
+                             dict_model_param['list_x_dict_keys'],
+                             dict_model_param['len_edge_index_dict_keys'])
+                # label_mapping = dict_model_param['label_mapping']
+            """ Saving model embed in emd store"""
+            store_emb(model=model, model_name=model_name + '_wise', )
+            """ Decoupling weights and embds"""
+            model.emb_dict = None
+            model_path = os.path.join(output_path, 'trained_models')
+            torch.save(model.state_dict(), os.path.join(Constants.KGNET_Config.trained_model_path , model_name) + "_wise.model")
         else:
             print("start test")
             test()  # Test if inference on GPU succeeds.
@@ -692,6 +734,8 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 total_run_t = total_run_t + (end_t - start_t).total_seconds()
                 print("model run ", run, " train time CPU=", end_t - start_t, " sec.")
                 print(getrusage(RUSAGE_SELF))
+            print('Calculating labels Acc/Distibution')
+            dic_results['labels_acc_dist_dict']=labels_acc_dis_dict=get_acc_per_label()
             print('Calculating inference time')
             with torch.no_grad():
                 time_inference_start = datetime.datetime.now()
@@ -747,8 +791,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 pickle.dump(dict_model_param, f)
             with open(os.path.join(model_path, model_name) + "_wise.param", 'wb') as f:
                 pickle.dump(dict_model_param, f)
-
-        del train_loader
+            del train_loader
     return dic_results
 
 
@@ -764,18 +807,20 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=2000)
     parser.add_argument('--walk_length', type=int, default=2)
     parser.add_argument('--num_steps', type=int, default=10)
-    parser.add_argument('--loadTrainedModel', type=int, default=0)
-    parser.add_argument('--dataset_name', type=str, default="mid-0000092")
+    parser.add_argument('--loadTrainedModel', type=int, default=2)
+    parser.add_argument('--dataset_name', type=str, default="mid-a51a104eb48eda3ed11532582e3fb7d28754aded8733d0f8aedb29a1ca595662")
     parser.add_argument('--root_path', type=str, default=KGNET_Config.datasets_output_path)
     parser.add_argument('--output_path', type=str, default="./")
     parser.add_argument('--include_reverse_edge', type=bool, default=True)
     parser.add_argument('--n_classes', type=int, default=1000)
     parser.add_argument('--emb_size', type=int, default=128)
+    parser.add_argument('--modelID', type=str, default="mid-a51a104eb48eda3ed11532582e3fb7d28754aded8733d0f8aedb29a1ca595662.model")
+
     args = parser.parse_args()
     print(args)
     print(graphSaint(args.device, args.num_layers, args.hidden_channels, args.dropout, args.lr, args.epochs, args.runs,
                      args.batch_size, args.walk_length, args.num_steps, args.loadTrainedModel, args.dataset_name,
-                     args.root_path, args.output_path, args.include_reverse_edge, args.n_classes, args.emb_size))
+                     args.root_path, args.output_path, args.include_reverse_edge, args.n_classes, args.emb_size,modelID=args.modelID))
 
 
 

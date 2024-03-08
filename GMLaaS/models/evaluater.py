@@ -154,7 +154,6 @@ class Evaluator:
         cm=confusion_matrix(y_true, y_pred)
 
         return {'cm': cm}
-
     def _eval_acc(self, y_true, y_pred):
         acc_list = []
 

@@ -5,7 +5,7 @@ import pandas as pd
 import stardog
 from pathlib import Path
 import wget as wget
-from  UDF_Manager_Virtuoso import  UDFManager
+from RDFEngineManager.UDF_Manager_Virtuoso import  UDFManager
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
 from io import StringIO
 class StardogManager(UDFManager):

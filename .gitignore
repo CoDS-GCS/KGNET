@@ -26,7 +26,6 @@ Makefile
 *.txt
 *.pickle
 *.metadata
-
 *.pkl
 *.log
 *.iml
@@ -43,3 +42,7 @@ Makefile
 /GMLaaS/models/MorsE/script/finetune.sh
 /GMLaaS/models/state/FB15K23/FB15K23.best
 /GMLaaS/models/MorsE/.gitignore
+/Datasets/
+/TempCode/
+/tb_log/
+/lib/
