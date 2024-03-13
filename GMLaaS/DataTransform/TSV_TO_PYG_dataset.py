@@ -13,6 +13,9 @@ import copy
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import multiprocessing
+import re
+
+
 def compress_gz(f_path):
     f_in = open(f_path, 'rb')
     f_out = gzip.open(f_path + ".gz", 'wb')
@@ -41,6 +44,26 @@ def write_entity_mapping(item):
     val.to_csv(map_folder + "/" + key + "_entidx2name.csv.gz", index=None,compression='gzip')
     # compress_gz(map_folder + "/" + key + "_entidx2name.csv")
     return (key, val,dic_res )
+
+
+def remove_special_characters(string):
+    # Define the pattern for special characters
+    pattern = r'.*?([@:\/].*)'
+
+    # Find the match
+    match = re.match(pattern, string)
+
+    if match:
+        # Extract the characters after the special character
+        return match.group(1)
+    else:
+        # No special character found, return the original string
+        return string
+def remove_special_characters(text):
+    pattern = r'[^a-zA-Z0-9\s]'
+    filtered = re.sub(pattern, '', text)
+    return filtered
+
 def write_relations_mapping(item):
     to_remove=None
     relations_entites_map_rel,relations_dic_rel,entites_dic,output_root_path,dataset_name,rel_idx=item
@@ -164,7 +187,8 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=None,names=['stype','ptype','otype'])
     #################### Remove '/' from the predicate of the Graph (tsv) ##############################
     g_tsv_df["p"] = g_tsv_df["p"].apply(lambda x: x.split('/')[-1].split("#")[-1])
-    target_rel = target_rel.split('/')[-1].split("#")[-1]
+    target_rel = target_rel.split('/')[-1].split("#")[-1].split(':')[-1]
+    # target_rel = remove_special_characters(target_rel)
     ############### special case for DBLP PV Task ###############3
     if dataset_types .split("/")[-1] in ["dblp2022_Types.csv","dblp_Types.csv"] and target_rel == "publishedIn":
         similar_target_rels.append("publishedInJournal")
