@@ -697,6 +697,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                              dict_model_param['list_x_dict_keys'],
                              dict_model_param['len_edge_index_dict_keys'])
                 # label_mapping = dict_model_param['label_mapping']
+            model.load_state_dict(torch.load(trained_model_path))
             """ Saving model embed in emd store"""
             store_emb(model=model, model_name=model_name + '_wise', )
             """ Decoupling weights and embds"""

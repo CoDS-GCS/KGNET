@@ -16,7 +16,7 @@ import pickle
 import warnings
 import zarr
 from concurrent.futures import ProcessPoolExecutor, as_completed,ThreadPoolExecutor
-# from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_TargetListquery
+from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_TargetListquery
 import zipfile
 
 
@@ -347,6 +347,10 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
         target_masks = [int (x) for x in mapping_dict[target_node]['ent idx_orig'].tolist()]
 
     time_map_start = datetime.datetime.now()
+    num_success_relations = 0
+    num_failed_relations = 0
+    num_missing_relations = 0
+    num_master_relations = len(master_relations)
     for triple in inf_edges:
         try:
             src, rel, dst = triple.split('___')
@@ -380,7 +384,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
                                compression='gzip')
                 pd.DataFrame({0: ["1"]}).to_csv(os.path.join(directory, 'num-edge-list.csv.gz'), header=None,
                                                 index=None, compression='gzip')
-                # num_failed_relations += 1
+                num_failed_relations += 1
             else:
                 edge_df.to_csv(os.path.join(directory, 'edge.csv.gz'), header=None, index=None, compression='gzip')
                 rel_df = mapping_dict['relidx2relname']
@@ -388,7 +392,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
                 edge_rel_df[0] = rel_df[rel_df['rel idx_inf'] == str(current_rel_id)]['rel idx_orig'].iloc[0]
                 edge_rel_df.to_csv(os.path.join(directory, 'edge_reltype.csv.gz'), header=None, index=None,
                                    compression='gzip')
-                # num_success_relations += 1
+                num_success_relations += 1
 
         except Exception as e:
             print(e)
@@ -398,7 +402,8 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     for label in os.listdir(inf_label_dir):
             label_csv = os.path.join(inf_label_dir,label,'node-label.csv.gz')
             label_df = pd.read_csv(label_csv,header=None,dtype=str,compression='gzip')
-            intersection = pd.merge(label_df, mapping_dict['labelidx2labelname'], left_on=0, right_on='label idx_inf',
+            mapping_dict['labelidx2labelname']['label idx_inf'] = mapping_dict['labelidx2labelname']['label idx_inf'].astype(int)
+            intersection = pd.merge(label_df.astype(float).astype(int), mapping_dict['labelidx2labelname'], left_on=0, right_on='label idx_inf',
                                     how='left').fillna(-1)
             missing_values = sum(intersection['label idx_orig']==-1)
             if missing_values > 0:
@@ -409,6 +414,8 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     """ Filling missing relations"""
     time_fill_start = datetime.datetime.now()
     missing_relations = set(os.listdir(master_relations)) - set(os.listdir(inference_relations))
+    unknown_relations = set(os.listdir(inference_relations)) - set(os.listdir(master_relations))
+    print(f'Unknown relations: {unknown_relations}')
     with ProcessPoolExecutor() as executor:
         # items = [(relation,os.path.join(inference_relations,relation)) for relation in missing_relations]
         futures = [executor.submit(fill_missing_rel,relation,os.path.join(inference_relations,relation)) for relation in missing_relations]
@@ -456,6 +463,11 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     print(8 * "*", ' FILLING TIME ', time_fill_end, "*" * 8)
     print(8 * "*", ' MOV AND ZIP TIME ', time_move_end, "*" * 8)
     print(8 * "*", ' TOTAL TIME', time_ALL_end, "*" * 8)
+    print(8 * "*", ' TOTAL Master Relations ', num_master_relations, "*" * 8)
+    print(8 * "*", ' SUCCESS RELATIONS ', num_success_relations, "*" * 8)
+    print(8 * "*", ' FAILED RELATIONS ', num_failed_relations, "*" * 8)
+    print(8 * "*", ' MISSING RELATIONS ', num_missing_relations, "*" * 8)
+    print(8 * "*", ' UNKNOWN RELATIONS at INF ', len(unknown_relations), "*" * 8)
     print('*' * 8, ' Max RAM Usage: ', getrusage(RUSAGE_SELF).ru_maxrss / (1024 * 1024), ' GB')
 
     # sys.exit()

@@ -237,6 +237,59 @@ class RGCN(torch.nn.Module):
             pickle.dump(emb_mapping, f)
 
 
+    def Zarr_inference(self, x_dict, edge_index_dict, key2int):
+        device = list(x_dict.values())[0].device
+
+        x_dict = copy(x_dict)
+
+        for key, emb in self.emb_dict.items():
+            x_dict[int(key)] = emb
+
+        adj_t_dict = {}
+        for key, (row, col) in edge_index_dict.items():
+            if torch.all(row == torch.tensor([-1])) and torch.all(col == torch.tensor([-1])):
+                continue
+            adj_t_dict[key] = SparseTensor(row=col, col=row).to(device)
+
+        for i, conv in enumerate(self.convs):
+            out_dict = {}
+
+            for j, x in x_dict.items():
+                out_dict[j] = conv.root_lins[j](x)
+
+            try:
+                for keys, adj_t in adj_t_dict.items():
+                    try:
+                        src_key, target_key = keys[0], keys[-1]
+                        out = out_dict[key2int[target_key]]
+                        tmp = adj_t.matmul(x_dict[key2int[src_key]], reduce='mean')
+                        tmp = conv.rel_lins[key2int[keys]](tmp).resize_([out.size()[0], out.size()[1]])
+                        out.add_(tmp)
+                    except Exception as e:
+                        print(f'{e} , rel:{keys}')
+                        adj_t = adj_t.to_torch_sparse_coo_tensor()
+                        adj_t = torch.sparse.FloatTensor(
+                            indices=adj_t._indices(),  # Reuse original indices
+                            values=adj_t._values(),  # Reuse original values
+                            size=(adj_t.size(dim=0), x_dict[key2int[src_key]].size(dim=0))  # Specify the new size
+                        )
+                        tmp = adj_t.mm(x_dict[key2int[src_key]])
+                        tmp = conv.rel_lins[key2int[keys]](tmp).resize_([out.size()[0], out.size()[1]]).to_sparse()
+                        out.add_(tmp)
+
+
+            except Exception as e:
+                print(e)
+                raise Exception
+
+            if i != self.num_layers - 1:
+                for j in range(self.num_node_types):
+                    if j in out_dict:
+                        F.relu_(out_dict[j])
+
+            x_dict = out_dict
+
+        return x_dict
     def sampled_inference(self,model,homo_data,x_dict,local2global,subject_node,node_type,target_masks,device='cpu'):
         model.eval()
         #x_dict[2] = x_dict[2][-100:]
@@ -608,72 +661,72 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                              dict_model_param['list_x_dict_keys'],
                              dict_model_param['len_edge_index_dict_keys'])
 
-
+                SAMPLED_INFERENCE = False
 
                 """ ************ WISE Sampled Inference ****************"""
-                model.load_state_dict(torch.load(trained_model_path),strict=False)
-                model.load_Zarr_emb(edge_index_dict,key2int,modelID.split('.model')[0],target=key2int[subject_node],num_target_nodes = num_nodes_dict[key2int[subject_node]],target_masks = target_masks )
+                if SAMPLED_INFERENCE:
+                    model.load_state_dict(torch.load(trained_model_path),strict=False)
+                    model.load_Zarr_emb(edge_index_dict,key2int,modelID.split('.model')[0],target=key2int[subject_node],num_target_nodes = num_nodes_dict[key2int[subject_node]],target_masks = target_masks )
 
-                LEN_TARGET = y_true.size()[0]
-                print(' Sampled Inference ')
-                y_pred = model.sampled_inference(model,homo_data,x_dict,local2global,subject_node,node_type,target_masks=target_masks)#y_true.size()[0])
-                y_pred = y_pred.unsqueeze(1)
-                end_t = datetime.datetime.now()
-                dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
-                print(f'y_true: {y_true.size()}\ny_pred: {y_pred.size()}\nTarget masks: {len(target_masks)}')
+                    LEN_TARGET = y_true.size()[0]
+                    print(' Sampled Inference ')
+                    y_pred = model.sampled_inference(model,homo_data,x_dict,local2global,subject_node,node_type,target_masks=target_masks)#y_true.size()[0])
+                    y_pred = y_pred.unsqueeze(1)
+                    end_t = datetime.datetime.now()
+                    dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
+                    print(f'y_true: {y_true.size()}\ny_pred: {y_pred.size()}\nTarget masks: {len(target_masks)}')
 
-                if y_true.size()[0] == y_pred.size()[0] and target_masks_inf:
-                    y_true=y_true[target_masks_inf]
-                    y_pred = y_pred[target_masks_inf]
-                elif y_true.size()[0] > y_pred.size()[0]:
-                    y_true = y_true[target_masks]
-                elif y_true.size()[0] < y_pred.size()[0]:
-                    y_pred = y_pred[target_masks]
+                    if y_true.size()[0] == y_pred.size()[0] and target_masks_inf:
+                        y_true=y_true[target_masks_inf]
+                        y_pred = y_pred[target_masks_inf]
+                    elif y_true.size()[0] > y_pred.size()[0]:
+                        y_true = y_true[target_masks]
+                    elif y_true.size()[0] < y_pred.size()[0]:
+                        y_pred = y_pred[target_masks]
 
-                test_acc = evaluator.eval({
-                    'y_true': y_true,
-                    'y_pred': y_pred,
-                })['acc']
+                    test_acc = evaluator.eval({
+                        'y_true': y_true,
+                        'y_pred': y_pred,
+                    })['acc']
 
-                total_time = process_end+dic_results["InferenceTime"]
-                if 'download_end_time' in locals() or 'download_end_time' in globals():
-                    process_end = process_end-download_end_time
-                else:
-                    download_end_time = 0
+                    total_time = process_end+dic_results["InferenceTime"]
+                    if 'download_end_time' in locals() or 'download_end_time' in globals():
+                        process_end = process_end-download_end_time
+                    else:
+                        download_end_time = 0
 
-                print('*' * 8, '\tRAM USAGE BEFORE Model/Inference:\t', process_ram, ' GB')
-                print('*'*8, '\tDOWNLOAD TIME: ', download_end_time, 's')
-                print('*'*8, '\tPROCESSING TIME: ', process_end, 's')
-                # print('*' * 8, '\tZARR MAPPING:\t\t',time_map_end, 's')
-                # print('*' * 8, '\tZARR LOADING:\t\t',time_load_end, 's')
-                print('*'*8,'\tInference TIME: ',dic_results["InferenceTime"],'s')
-                print('*'*8,'\tTotal TIME: ', total_time ,'s',)
-                print('*'*8,'\tMax RAM Usage: ',getrusage(RUSAGE_SELF).ru_maxrss/ (1024 * 1024),)
-                print('*'*8,'\tAccracy: ',test_acc,)
-                print('*'*8,'\tClasses in DS: ',len(y_true.unique()))#,'\n',y_true.value_counts())
-                ### For KGNET inference, return labels ###
+                    print('*' * 8, '\tRAM USAGE BEFORE Model/Inference:\t', process_ram, ' GB')
+                    print('*'*8, '\tDOWNLOAD TIME: ', download_end_time, 's')
+                    print('*'*8, '\tPROCESSING TIME: ', process_end, 's')
+                    # print('*' * 8, '\tZARR MAPPING:\t\t',time_map_end, 's')
+                    # print('*' * 8, '\tZARR LOADING:\t\t',time_load_end, 's')
+                    print('*'*8,'\tInference TIME: ',dic_results["InferenceTime"],'s')
+                    print('*'*8,'\tTotal TIME: ', total_time ,'s',)
+                    print('*'*8,'\tMax RAM Usage: ',getrusage(RUSAGE_SELF).ru_maxrss/ (1024 * 1024),)
+                    print('*'*8,'\tAccracy: ',test_acc,)
+                    print('*'*8,'\tClasses in DS: ',len(y_true.unique()))#,'\n',y_true.value_counts())
+                    ### For KGNET inference, return labels ###
 
-                dict_pred = {}
-                for i, pred in enumerate(y_pred.flatten()):
-                    dict_pred[target_mapping[i]] = label_mapping[pred.item()]
-                dic_results['y_pred'] = dict_pred
-                dic_results['totalTime'] = total_time
-                return dic_results
+                    dict_pred = {}
+                    for i, pred in enumerate(y_pred.flatten()):
+                        dict_pred[target_mapping[i]] = label_mapping[pred.item()]
+                    dic_results['y_pred'] = dict_pred
+                    dic_results['totalTime'] = total_time
+                    return dic_results
                 """ ************ ********************* ****************"""
 
 
+                """ FULL BATCH INFERENCE """
                 """ Load Zarr Embeddings (load_min_emb)"""
                 load_start = datetime.datetime.now()
                 model.load_state_dict(torch.load(trained_model_path),strict=False)
-                # model.load_emb(model_name=model_name,)
-                # model.load_Zarr_emb(edge_index_dict,key2int,modelID.split('.model')[0],target=key2int[subject_node],num_target_nodes = num_nodes_dict[key2int[subject_node]],target_masks = target_masks )
+                model.load_Zarr_emb(edge_index_dict,key2int,modelID.split('.model')[0],target=key2int[subject_node],num_target_nodes = num_nodes_dict[key2int[subject_node]],target_masks = target_masks )
                 load_end = (datetime.datetime.now() - load_start).total_seconds()
                 print('Loaded Graph Saint Model!')
                 model.eval()
                 """ Inference type"""
-                out = model.inference(x_dict, edge_index_dict, key2int)
-                # out = model.Zarr_inference(x_dict, edge_index_dict, key2int)
-                # out = model.inference_type_only(x_dict, edge_index_dict, key2int,local2global,edge_index,model_name=model_name)
+                # out = model.inference(x_dict, edge_index_dict, key2int)
+                out = model.Zarr_inference(x_dict, edge_index_dict, key2int)
                 """ ************** """
 
                 out = out[key2int[subject_node]]
@@ -690,8 +743,8 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                     y_pred = y_pred[target_masks]
 
                 test_acc = evaluator.eval({
-                    'y_true': y_true[target_masks],
-                    'y_pred': y_pred[target_masks],
+                    'y_true': y_true,#[target_masks],
+                    'y_pred': y_pred,#[target_masks],
                 })['acc']
                 print('*' * 8, '\tRAM USAGE BEFORE Model/Inference:\t', process_ram, ' GB')
                 print('*'*8, '\tPROCESSING TIME:\t',process_end, 's')
@@ -703,15 +756,14 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 print('*'*8,'\tMax RAM Usage:\t\t',getrusage(RUSAGE_SELF).ru_maxrss/ (1024 * 1024),' GB')
                 print('*'*8,'\tAccuracy:\t\t',test_acc,)
                 print('*'*8,'\tClasses in DS:\t\t',len(y_true.unique()),)
-
+                total_time = process_end + dic_results["InferenceTime"]
                 ### For KGNET inference, return labels ###
-                if len(label_mapping) == 0:
-                    label_mapping = pd.read_csv(os.path.join(dir_path, 'mapping', 'labelidx2labelname.csv'))
-                    label_mapping = label_mapping.set_index('label idx')['label name'].to_dict()
                 dict_pred = {}
-                # for i, pred in enumerate(y_pred.flatten()):
-                    # dict_pred[target_mapping[i]] = label_mapping[pred.item()]
-                dic_results['y_pred'] = y_pred.flatten()
+                for i, pred in enumerate(y_pred.flatten()):
+                    dict_pred[target_mapping[i]] = label_mapping[pred.item()]
+                dic_results['y_pred'] = dict_pred
+                dic_results['totalTime'] = total_time
+                return dic_results
 
             return dic_results
         else:
