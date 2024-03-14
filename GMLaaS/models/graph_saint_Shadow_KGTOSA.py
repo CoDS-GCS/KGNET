@@ -40,7 +40,7 @@ import faulthandler
 faulthandler.enable()
 from model import Model
 import pickle
-from kgwise_utils import store_emb
+
 faulthandler.enable()
 import pickle
 
@@ -492,7 +492,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
                 y_pred = out.argmax(dim=-1, keepdim=True).cpu().flatten().tolist()
                 end_t = datetime.datetime.now()
                 print(dataset_name, "Infernce Time=", (end_t - start_t).total_seconds())
-                print('predictions : ', y_pred)
+                # print('predictions : ', y_pred)
                 dict_pred = {}
                 for i, pred in enumerate(y_pred):
                     dict_pred[target_mapping[i]] = label_mapping[pred]
@@ -504,7 +504,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
                 # dic_results['y_pred'] = pd.DataFrame({'ent id':y_pred.flatten().tolist(),
                 # 'ent name': [label_mapping[pred] for pred in y_pred.flatten().tolist()]})
                 dic_results['y_pred'] = dict_pred
-                print(dic_results['y_pred'])
+                # print(dic_results['y_pred'])
 
             return dic_results
         else:
@@ -589,6 +589,7 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
             """ Saving complete model"""
             torch.save(model.state_dict(), os.path.join(model_path, model_name) + ".model")
             """ Saving model embed in emd store"""
+            from kgwise_utils import store_emb
             store_emb(model=model,model_name=model_name+'_wise',)
             """ Decoupling weights and embds"""
             model.emb_dict = None

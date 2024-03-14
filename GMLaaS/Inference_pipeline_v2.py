@@ -310,7 +310,8 @@ def wise_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targ
         if meta_dict['model']['GNNMethod'] == Constants.GNN_Methods.Graph_SAINT or meta_dict['model'][
             'GNNMethod'] == Constants.GNN_Methods.ShaDowGNN:
             """ Store target nodes into a list """
-            if targetNodesQuery:
+            print(f"targetNodesQuery={targetNodesQuery}")
+            if targetNodesQuery and len(targetNodesQuery.strip())>0:
                 targetNodesList = getTargetNodeList(kg_endpoint,targetNodesQuery)
 
             """ Generate KG-TOSA subgraph """

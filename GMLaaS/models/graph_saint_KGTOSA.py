@@ -12,7 +12,7 @@ from torch.nn import ModuleList, Linear, ParameterDict, Parameter
 from torch_sparse import SparseTensor
 from torch_geometric.utils import to_undirected
 from torch_geometric.data import Data
-from torch_geometric.loader import GraphSAINTRandomWalkSampler
+from torch_geometric.loader import GraphSAINTRandomWalkSampler,ShaDowKHopSampler
 # from KGTOSA_Samplers import GraphSAINTTaskBaisedRandomWalkSampler,GraphSAINTTaskWeightedRandomWalkSampler
 from torch_geometric.utils.hetero import group_hetero_graph
 from torch_geometric.nn import MessagePassing
@@ -40,7 +40,7 @@ faulthandler.enable()
 from model import Model
 import pickle
 import Constants
-from kgwise_utils import store_emb
+
 
 
 def print_memory_usage():
@@ -331,6 +331,52 @@ class RGCN(torch.nn.Module, Model):
         elif sampler_name == GNN_Samplers.WRW:
             raise NotImplementedError
 
+    def sampled_inference(self, model, homo_data, x_dict, local2global, subject_node, node_type, target_masks,
+                          device='cpu'):
+        model.eval()
+        # x_dict[2] = x_dict[2][-100:]
+        inference_nodes = local2global[subject_node]  # [-100:]
+        inference_nodes = torch.zeros_like(inference_nodes, dtype=torch.bool)
+        # inference_nodes[-len_target:] = True
+        # global target_masks
+        inference_nodes[target_masks] = True
+        homo_data.inference_mask = torch.zeros(node_type.size(0), dtype=torch.bool)
+        homo_data.inference_mask[local2global[subject_node][inference_nodes]] = True
+        homo_data.inference_mask
+        batch_size = 1024 * 2  # len_target #// 100 # inference_nodes.shape[0]#x_dict[2].shape[0]
+        # kwargs = {'batch_size': batch_size, 'num_workers': 0,}
+        inference_loader = ShaDowKHopSampler(homo_data, depth=2, num_neighbors=20,
+                                             node_idx=homo_data.inference_mask,
+                                             batch_size=batch_size,
+                                             num_workers=12,
+                                             # **kwargs
+                                             )
+
+        # inference_loader = GraphSAINTRandomWalkSampler(homo_data,
+        #                                       batch_size=batch_size,
+        #                                       walk_length=2,
+        #                                       num_steps=30,
+        #                                       sample_coverage=0,
+        #                                       save_dir="./"
+        #                                       )
+        pbar = tqdm(total=len(inference_loader))
+        all_y_preds = []
+        for data in inference_loader:
+            data = data.to(device)
+            out = model(x_dict,
+                        data.edge_index,
+                        data.edge_attr,
+                        data.node_type,
+                        data.local_node_idx)
+            out = torch.index_select(out, 0, data.root_n_id)
+            y_pred = out.argmax(dim=-1, keepdim=True).cpu()
+            all_y_preds.append(y_pred)
+            pbar.update(1)
+
+        pbar.close()
+        return torch.cat(all_y_preds, dim=0).squeeze(1)  # y_pred.squeeze(1)
+        # return y_pred.squeeze(1)
+
     def train_epoch(self, model, train_loader, epoch_no, num_steps, batch_size, optimizer, x_dict, device=0):
         model.train()
         pbar = tqdm(total=num_steps * batch_size)
@@ -396,7 +442,7 @@ class RGCN(torch.nn.Module, Model):
                      len(meta_dict['edge_index_dict'].keys())).to(device)
 
         x_dict = {k: v.to(device) for k, v in x_dict.items()}
-        print("x_dict=", x_dict.keys())
+        # print("x_dict=", x_dict.keys())
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
         # model_name = dataset_name + "_DBLP_conf_GSAINT_QM.model"
@@ -622,7 +668,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                      len(edge_index_dict.keys())).to(device)
 
         x_dict = {k: v.to(device) for k, v in x_dict.items()}
-        print("x_dict=", x_dict.keys())
+        # print("x_dict=", x_dict.keys())
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
         # model_name = dataset_name + "_DBLP_conf_GSAINT_QM.model"
@@ -666,7 +712,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 y_pred = out.argmax(dim=-1, keepdim=True).cpu().flatten().tolist()
                 end_t = datetime.datetime.now()
                 print(dataset_name, "Infernce Time=", (end_t - start_t).total_seconds())
-                print('predictions : ', y_pred)
+                # print('predictions : ', y_pred)
                 dict_pred = {}
                 for i, pred in enumerate(y_pred):
                     dict_pred[target_mapping[i]] = label_mapping[pred]
@@ -678,7 +724,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 # dic_results['y_pred'] = pd.DataFrame({'ent id':y_pred.flatten().tolist(),
                 # 'ent name': [label_mapping[pred] for pred in y_pred.flatten().tolist()]})
                 dic_results['y_pred'] = dict_pred
-                print(dic_results['y_pred'])
+                # print(dic_results['y_pred'])
 
             return dic_results
         elif loadTrainedModel==2: # Store the default model in a KGWise Format
@@ -699,6 +745,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 # label_mapping = dict_model_param['label_mapping']
             model.load_state_dict(torch.load(trained_model_path))
             """ Saving model embed in emd store"""
+            from kgwise_utils import store_emb
             store_emb(model=model, model_name=model_name + '_wise', )
             """ Decoupling weights and embds"""
             model.emb_dict = None
@@ -809,13 +856,13 @@ if __name__ == '__main__':
     parser.add_argument('--walk_length', type=int, default=2)
     parser.add_argument('--num_steps', type=int, default=10)
     parser.add_argument('--loadTrainedModel', type=int, default=2)
-    parser.add_argument('--dataset_name', type=str, default="mid-a51a104eb48eda3ed11532582e3fb7d28754aded8733d0f8aedb29a1ca595662")
+    parser.add_argument('--dataset_name', type=str, default="mid-a86666e7d7ca88057e0f18ad8215feb81adadda70c3e9649e7cee523c1f07956")
     parser.add_argument('--root_path', type=str, default=KGNET_Config.datasets_output_path)
     parser.add_argument('--output_path', type=str, default="./")
     parser.add_argument('--include_reverse_edge', type=bool, default=True)
     parser.add_argument('--n_classes', type=int, default=1000)
     parser.add_argument('--emb_size', type=int, default=128)
-    parser.add_argument('--modelID', type=str, default="mid-a51a104eb48eda3ed11532582e3fb7d28754aded8733d0f8aedb29a1ca595662.model")
+    parser.add_argument('--modelID', type=str, default="mid-a86666e7d7ca88057e0f18ad8215feb81adadda70c3e9649e7cee523c1f07956.model")
 
     args = parser.parse_args()
     print(args)
