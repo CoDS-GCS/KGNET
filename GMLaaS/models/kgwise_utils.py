@@ -340,8 +340,10 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     if not len(targetNodesList) == len(mapping_dict[target_node]): # If the extracted subgraph contains more target nodes than the one in inference
         df = pd.merge(pd.DataFrame({'ent name':targetNodesList}),mapping_dict[target_node],on='ent name',how='left')
         # target_masks = [int(x) for x in df['ent idx_orig'].tolist()]
-        target_masks = [int(x) for x in mapping_dict[target_node]['ent idx_orig'].tolist()]
-        target_masks_inf = [int(x) for x in df['ent idx_inf'].tolist()]
+        # print(len(mapping_dict[target_node]['ent idx_orig'].tolist()))
+        target_masks = [int(x) for x in mapping_dict[target_node]['ent idx_orig'].tolist() if not pd.isna(x) ]
+        # print(len(df['ent idx_inf'].tolist()))
+        target_masks_inf = [int(x) for x in df['ent idx_inf'].tolist() if not pd.isna(x) ]
         del df
     else:
         target_masks = [int (x) for x in mapping_dict[target_node]['ent idx_orig'].tolist()]

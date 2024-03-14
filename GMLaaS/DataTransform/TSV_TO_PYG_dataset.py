@@ -186,7 +186,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t",header=Header_row,names=['s','p','o'])
         g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=None,names=['stype','ptype','otype'])
     #################### Remove '/' from the predicate of the Graph (tsv) ##############################
-    g_tsv_df["p"] = g_tsv_df["p"].apply(lambda x: x.split('/')[-1].split("#")[-1])
+    g_tsv_df["p"] = g_tsv_df["p"].apply(lambda x: x.split('/')[-1].split("#")[-1].split(":")[-1])
     target_rel = target_rel.split('/')[-1].split("#")[-1].split(':')[-1]
     # target_rel = remove_special_characters(target_rel)
     ############### special case for DBLP PV Task ###############3

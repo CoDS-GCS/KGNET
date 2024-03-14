@@ -245,9 +245,9 @@ def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, t
 
     time_download = datetime.datetime.now()
     downloaded=False
-    model_id = model_id+'_wise'
+    # model_id = model_id+'_wise'
     filepath = os.path.join(Constants.KGNET_Config.trained_model_path, model_id)
-    emb_path = os.path.join(Constants.KGNET_Config.trained_model_path,'emb_store', model_id)
+    # emb_path = os.path.join(Constants.KGNET_Config.trained_model_path,'emb_store', model_id)
     if Constants.KGNET_Config.fileStorageType == Constants.FileStorageType.localfile:
         if os.path.exists(filepath) and os.path.exists(filepath.replace('.model', '.param')):
             downloaded = True
