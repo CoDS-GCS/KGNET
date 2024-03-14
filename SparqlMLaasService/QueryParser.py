@@ -13,6 +13,8 @@ import numpy as np
 from rdflib.plugins.sparql.parserutils import CompValue
 from pyparsing.results import ParseResults
 import Constants
+import pandas as pd
+import io
 import requests
 from datetime import datetime
 import json
@@ -542,6 +544,10 @@ class gmlQueryParser:
                         filter_value=[]
                         for elem in filter_expr['other']:
                             filter_value.append(elem['expr']['expr']['expr']['expr']['expr'])
+                    elif filter_operator=="NOT IN":
+                        filter_value=[]
+                        for elem in filter_expr['other']:
+                            filter_value.append(elem['expr']['expr']['expr']['expr']['expr'])
                     triples_list.append({'variable': filter_variable, 'operator': str(filter_operator),
                                              'value':filter_value, 'bgpType':'filter'})
             elif where_stmt.name == "GroupOrUnionGraphPattern":  ## Nested Select
@@ -606,8 +612,6 @@ class gmlQueryParser:
                 raise Exception("there is no trained model exist for GML operator: " + query)
             tid = task_df["tid"].values[0].replace('"', "")
             best_mid = KGMeta_Governer_ins.OptimizeForBestModel(tid)
-            # model_url = Constants.KGNET_Config.GML_API_URL + "gml_inference/mid/" + str(best_mid).replace('"', "")
-            model_url = Constants.KGNET_Config.GML_API_URL + "wise_inference/mid/" + str(best_mid).replace('"', "")
             print(f"Task best_mid={best_mid}")
             print(f"{predictetd_variable} Var Task/Model ID Fetch Time:{(datetime.now() - st).total_seconds()} Sec.")
             ######################### Target Node ####################
@@ -617,24 +621,47 @@ class gmlQueryParser:
             print(f"#{taskTargetNode} Target Nodes={len(target_node_res_lst)}")
             ################## peform model inference #################
             st=datetime.now()
-            max_target_nodes_per_req=10000
             inference_res_dic={}
-            for i in range(0,len(target_node_res_lst),max_target_nodes_per_req):
-                myobj = {"model_id": best_mid,
-                         # "named_graph_uri": "http://wikikg-v2",
-                         "named_graph_uri": "http://dblp.org",
-                         "sparqlEndpointURL": "http://206.12.98.118:8890/sparql",
-                         "RDFEngine": Constants.RDFEngine.OpenlinkVirtuoso,
-                         "targetNodesList": target_node_res_lst[i:i+max_target_nodes_per_req],
-                         "TOSG_Pattern": "d1h1",
-                         "topk": 1}
-                inference_req_dic = json.loads(dopost(model_url, myobj).decode("utf-8"))
-                if len(inference_res_dic)==0:
-                    inference_res_dic = inference_req_dic.copy()
-                else:
-                    for key in inference_req_dic.keys():
-                        if key not in inference_res_dic.keys():
-                            inference_res_dic[key]=inference_req_dic[key]
+            kgwise_one_batch=True
+            if kgwise_one_batch:
+                model_url = Constants.KGNET_Config.GML_API_URL + "fullbatch_wise/mid/" + str(best_mid).replace('"', "")
+                params = {"model_id": best_mid,
+                             # "named_graph_uri": "http://wikikg-v2",
+                             "named_graph_uri": "http://dblp.org",
+                             "sparqlEndpointURL": "http://206.12.98.118:8890/sparql",
+                             "RDFEngine": Constants.RDFEngine.OpenlinkVirtuoso,
+                             "targetNodesQuery":"",
+                             "TOSG_Pattern": "d1h1",
+                             "topk": 1}
+                target_file_name=f'target_nodes_{str(datetime.now().timestamp())}.csv'
+                pd.DataFrame(target_node_res_lst).to_csv(target_file_name,index=None,header=None)
+                files = {'file': (target_file_name, open(target_file_name,'rb'),'text/csv')}
+                headers = {'accept': 'application/json'}
+                response = requests.post(model_url, params=params, files=files, headers=headers)
+                inference_req_dic=response.json()
+                inference_res_dic=inference_req_dic.copy()
+                # print(inference_req_dic.status_code)
+                # print(inference_req_dic.json())
+            else:
+                max_target_nodes_per_req = 10000
+                model_url = Constants.KGNET_Config.GML_API_URL + "gml_inference/mid/" + str(best_mid).replace('"', "")
+                # model_url = Constants.KGNET_Config.GML_API_URL + "wise_inference/mid/" + str(best_mid).replace('"', "")
+                for i in range(0,len(target_node_res_lst),max_target_nodes_per_req):
+                    params = {"model_id": best_mid,
+                             # "named_graph_uri": "http://wikikg-v2",
+                             "named_graph_uri": "http://dblp.org",
+                             "sparqlEndpointURL": "http://206.12.98.118:8890/sparql",
+                             "RDFEngine": Constants.RDFEngine.OpenlinkVirtuoso,
+                             "targetNodesList": target_node_res_lst[i:i+max_target_nodes_per_req],
+                             "TOSG_Pattern": "d1h1",
+                             "topk": 1}
+                    inference_req_dic = json.loads(dopost(model_url, params).decode("utf-8"))
+                    if len(inference_res_dic)==0:
+                        inference_res_dic = inference_req_dic.copy()
+                    else:
+                        for key in inference_req_dic.keys():
+                            if key not in inference_res_dic.keys():
+                                inference_res_dic[key]=inference_req_dic[key]
             pred_values=["<"+elem+">" for elem in set([v for k,v in inference_res_dic.items() if k.startswith("http")])]
             print(f"{predictetd_variable} API Inference Time:{(datetime.now() - st).total_seconds()} Sec.")
             print(f"{predictetd_variable} #Predicted Nodes={len(inference_res_dic)-1}")
@@ -655,12 +682,15 @@ class gmlQueryParser:
                 descendent_query_filtered_pred_lst=descendent_query_res_df[str(predictetd_variable)].tolist()
                 target_node_res_lst = [k for k, v in inference_res_dic.items() if v in descendent_query_filtered_pred_lst]
             else:
-                filtered_inference_res_dic=inference_res_dic.copy()
+                filtered_inference_res_dic={k:v for k,v in inference_res_dic.items() if k not in['Inference_Times']}
                 for triple in non_api_triples:
                     var,op,val,bgpType=triple.values()
                     if op=="IN":
                         filter_vals=[str(elem.string) if type(elem)==rdflib.plugins.sparql.parserutils.CompValue else str(elem) for elem in val]
                         filtered_inference_res_dic={k:v for k,v in filtered_inference_res_dic.items() if v in filter_vals}
+                    elif op=="NOT IN":
+                        filter_vals=[str(elem.string) if type(elem)==rdflib.plugins.sparql.parserutils.CompValue else str(elem) for elem in val]
+                        filtered_inference_res_dic={k:v for k,v in filtered_inference_res_dic.items() if v not in filter_vals}
                 target_node_res_lst=list(filtered_inference_res_dic.keys())
             print(f"{predictetd_variable} predictions filter query Time:{(datetime.now() - st).total_seconds()} Sec.")
             ################# filter traget nodes ###################################################

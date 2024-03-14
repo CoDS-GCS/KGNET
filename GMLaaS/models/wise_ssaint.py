@@ -306,10 +306,17 @@ class RGCN(torch.nn.Module):
         inference_loader = ShaDowKHopSampler(homo_data,depth=2,num_neighbors=20,
                                              node_idx=homo_data.inference_mask,
                                              batch_size=batch_size,
-                                             num_workers=8,
+                                             num_workers=12,
                                              # **kwargs
                                              )
 
+        # inference_loader = GraphSAINTRandomWalkSampler(homo_data,
+        #                                       batch_size=batch_size,
+        #                                       walk_length=2,
+        #                                       num_steps=30,
+        #                                       sample_coverage=0,
+        #                                       save_dir="./"
+        #                                       )
         pbar = tqdm(total=len(inference_loader))
         all_y_preds = []
         for data in inference_loader:
@@ -405,8 +412,6 @@ class RGCN(torch.nn.Module):
             x_dict = out_dict
 
         return x_dict
-
-
 
 dic_results = {}
 
@@ -661,8 +666,7 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                              dict_model_param['list_x_dict_keys'],
                              dict_model_param['len_edge_index_dict_keys'])
 
-                SAMPLED_INFERENCE = False
-
+                SAMPLED_INFERENCE = True
                 """ ************ WISE Sampled Inference ****************"""
                 if SAMPLED_INFERENCE:
                     model.load_state_dict(torch.load(trained_model_path),strict=False)

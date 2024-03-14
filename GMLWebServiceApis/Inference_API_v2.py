@@ -14,6 +14,7 @@ from fastapi import FastAPI, File,UploadFile,HTTPException,Depends,Form
 from uvicorn import run
 from typing import List
 from pydantic import BaseModel
+import pandas as pd
 import json
 from fastapi.responses import JSONResponse
 import traceback
@@ -85,10 +86,10 @@ async def run_fullbatch_inference(mid:str,
     targetNodesList = []
     file_targets = file.file.read()
     targets = file_targets.decode().split('\n')
+    # print("file_targets=", targets)
     for target in targets:
-        if target.strip():
+        if target.strip() and len(target.strip())>0:
             targetNodesList.append(target.strip())
-
 
     dic_results = wise_inference(model_id = model_id, named_graph_uri = named_graph_uri,#target_rel=target_rel,
                                     dataQuery= dataQuery, sparqlEndpointURL = sparqlEndpointURL,
