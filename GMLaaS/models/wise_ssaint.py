@@ -94,8 +94,10 @@ class RGCNConv(MessagePassing):
         out = x.new_zeros(x.size(0), self.out_channels)
 
         for i in range(self.num_edge_types):
+
             mask = edge_type == i
             out.add_(self.propagate(edge_index[:, mask], x=x, edge_type=i))
+
 
         for i in range(self.num_node_types):
             mask = node_type == i
@@ -290,19 +292,58 @@ class RGCN(torch.nn.Module):
             x_dict = out_dict
 
         return x_dict
-    def sampled_inference(self,model,homo_data,x_dict,local2global,subject_node,node_type,target_masks,device='cpu'):
+
+    def RW_sampling_inference(self, model, homo_data, x_dict, local2global, subject_node, node_type, target_mask, device='cpu'):
+        model.eval()
+        inference_nodes = local2global[subject_node]  # [-100:]
+        inference_nodes = torch.zeros_like(inference_nodes, dtype=torch.bool)
+        inference_nodes[target_mask] = True
+        homo_data.inference_mask = torch.zeros(node_type.size(0), dtype=torch.bool)
+        homo_data.inference_mask[local2global[subject_node][inference_nodes]] = True
+
+        batch_size = 1024 * 2  # len_target #// 100 # inference_nodes.shape[0]#x_dict[2].shape[0]
+        inference_loader = GraphSAINTRandomWalkSampler(homo_data,
+                                              batch_size=batch_size,
+                                              walk_length=6,
+                                              num_steps=30,
+                                              sample_coverage=0,
+                                              save_dir="./"
+                                              )
+        """ target node """
+        tensor_target_nodes = torch.empty(local2global[subject_node].size(0),dtype=torch.int64).fill_(-2)
+        pbar = tqdm(total=len(inference_loader))
+        for data in inference_loader:
+
+            data = data.to(device)
+            out = model(x_dict,
+                        data.edge_index,
+                        data.edge_attr,
+                        data.node_type,
+                        data.local_node_idx)
+            # for key, value in zip(local2global[subject_node][data.local_node_idx[data.inference_mask]].tolist(),
+            #                       out[data.inference_mask]):
+            #     dict_target_nodes[key] = value.argmax(dim=-1, keepdim=True).cpu()
+            tensor_target_nodes[[data.local_node_idx[data.inference_mask]]] = out[data.inference_mask].argmax(dim=-1,
+                                                                                                              keepdim=True).squeeze()
+            pbar.update(1)
+        pbar.close()
+        return tensor_target_nodes[target_mask]
+
+
+
+    def sampled_inference(self, model, homo_data, x_dict, local2global, subject_node, node_type, target_mask, device='cpu'):
         model.eval()
         #x_dict[2] = x_dict[2][-100:]
         inference_nodes = local2global[subject_node]#[-100:]
         inference_nodes = torch.zeros_like(inference_nodes,dtype=torch.bool)
         # inference_nodes[-len_target:] = True
         # global target_masks
-        inference_nodes[target_masks] = True
+        inference_nodes[target_mask] = True
         homo_data.inference_mask = torch.zeros(node_type.size(0),dtype=torch.bool)
         homo_data.inference_mask[local2global[subject_node][inference_nodes]] = True
         homo_data.inference_mask
         batch_size = 1024*2#len_target #// 100 # inference_nodes.shape[0]#x_dict[2].shape[0]
-        # kwargs = {'batch_size': batch_size, 'num_workers': 0,}
+        kwargs = {'batch_size': batch_size, 'num_workers': 0,}
         inference_loader = ShaDowKHopSampler(homo_data,depth=2,num_neighbors=20,
                                              node_idx=homo_data.inference_mask,
                                              batch_size=batch_size,
@@ -310,16 +351,14 @@ class RGCN(torch.nn.Module):
                                              # **kwargs
                                              )
 
-        # inference_loader = GraphSAINTRandomWalkSampler(homo_data,
-        #                                       batch_size=batch_size,
-        #                                       walk_length=2,
-        #                                       num_steps=30,
-        #                                       sample_coverage=0,
-        #                                       save_dir="./"
-        #                                       )
+
         pbar = tqdm(total=len(inference_loader))
         all_y_preds = []
+
+
+
         for data in inference_loader:
+
             data = data.to(device)
             out = model(x_dict,
                         data.edge_index,
@@ -416,7 +455,7 @@ class RGCN(torch.nn.Module):
 dic_results = {}
 
 def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
-                 lr=0.005, epochs=2, runs=1, batch_size=2000, walk_length=2,
+                 lr=0.005, epochs=2, runs=1, batch_size=1024*2, walk_length=2,
                  num_steps=10, loadTrainedModel=0, dataset_name="DBLP-Springer-Papers",
                  root_path="../../Datasets/", output_path="./", include_reverse_edge=True,
                  n_classes=50, emb_size=128, label_mapping={}, target_mapping={},target_rel='', modelID='',
@@ -572,13 +611,18 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
 
         out = group_hetero_graph(data.edge_index_dict, data.num_nodes_dict)
         edge_index, edge_type, node_type, local_node_idx, local2global, key2int = out
+        """ Removing -1 -1 masks from the edge index and edge type"""
+        mask = ~(edge_index == -1).any(dim=0)
+        edge_index = edge_index[:,mask]
+        edge_type = edge_type[mask]
+        """ ******************************** """
         homo_data = Data(edge_index=edge_index, edge_attr=edge_type,
                          node_type=node_type, local_node_idx=local_node_idx,
                          num_nodes=node_type.size(0))
 
-        homo_data.y = node_type.new_full((node_type.size(0), 1), -1)
+        homo_data.y = node_type.new_full((node_type.size(0), 1), -2)
         try:
-            homo_data.y[local2global[subject_node]] = data.y_dict[subject_node]
+            homo_data.y[local2global[subject_node][target_masks]] = data.y_dict[subject_node]
         except:
             warnings.warn('Warning! Mismatch in homo_data.y')
 
@@ -666,7 +710,61 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                              dict_model_param['list_x_dict_keys'],
                              dict_model_param['len_edge_index_dict_keys'])
 
-                SAMPLED_INFERENCE = True
+                SAMPLED_INFERENCE = False
+                RW_SAMPLER = True
+
+                """ ************ RANDOM WALK WISE Inference ****************"""
+
+                if RW_SAMPLER:
+                    model.load_state_dict(torch.load(trained_model_path), strict=False)
+                    model.load_Zarr_emb(edge_index_dict, key2int, modelID.split('.model')[0],
+                                        target=key2int[subject_node],
+                                        num_target_nodes=num_nodes_dict[key2int[subject_node]],
+                                        target_masks=target_masks)
+                    y_pred = model.RW_sampling_inference(model, homo_data, x_dict, local2global, subject_node, node_type,
+                                                     target_mask=target_masks)
+                    y_pred = y_pred.unsqueeze(1)
+                    dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
+                    print(f'y_true: {y_true.size()}\ny_pred: {y_pred.size()}\nTarget masks: {len(target_masks)}')
+
+                    if y_true.size()[0] == y_pred.size()[0] and target_masks_inf:
+                        y_true=y_true[target_masks_inf]
+                        y_pred = y_pred[target_masks_inf]
+                    elif y_true.size()[0] > y_pred.size()[0]:
+                        y_true = y_true[target_masks]
+                    elif y_true.size()[0] < y_pred.size()[0]:
+                        y_pred = y_pred[target_masks]
+
+                    test_acc = evaluator.eval({
+                        'y_true': y_true,
+                        'y_pred': y_pred,
+                    })['acc']
+
+                    total_time = process_end+dic_results["InferenceTime"]
+                    if 'download_end_time' in locals() or 'download_end_time' in globals():
+                        process_end = process_end-download_end_time
+                    else:
+                        download_end_time = 0
+
+                    print('*' * 8, '\tRAM USAGE BEFORE Model/Inference:\t', process_ram, ' GB')
+                    print('*'*8, '\tDOWNLOAD TIME: ', download_end_time, 's')
+                    print('*'*8, '\tPROCESSING TIME: ', process_end, 's')
+                    # print('*' * 8, '\tZARR MAPPING:\t\t',time_map_end, 's')
+                    # print('*' * 8, '\tZARR LOADING:\t\t',time_load_end, 's')
+                    print('*'*8,'\tInference TIME: ',dic_results["InferenceTime"],'s')
+                    print('*'*8,'\tTotal TIME: ', total_time ,'s',)
+                    print('*'*8,'\tMax RAM Usage: ',getrusage(RUSAGE_SELF).ru_maxrss/ (1024 * 1024),)
+                    print('*'*8,'\tAccracy: ',test_acc,)
+                    print('*'*8,'\tClasses in DS: ',len(y_true.unique()))#,'\n',y_true.value_counts())
+                    ### For KGNET inference, return labels ###
+
+                    dict_pred = {}
+                    for i, pred in enumerate(y_pred.flatten()):
+                        dict_pred[target_mapping[i]] = label_mapping[pred.item()]
+                    dic_results['y_pred'] = dict_pred
+                    dic_results['totalTime'] = total_time
+                    return dic_results
+
                 """ ************ WISE Sampled Inference ****************"""
                 if SAMPLED_INFERENCE:
                     model.load_state_dict(torch.load(trained_model_path),strict=False)
@@ -674,7 +772,8 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
 
                     LEN_TARGET = y_true.size()[0]
                     print(' Sampled Inference ')
-                    y_pred = model.sampled_inference(model,homo_data,x_dict,local2global,subject_node,node_type,target_masks=target_masks)#y_true.size()[0])
+                    y_pred = model.sampled_inference(model, homo_data, x_dict, local2global, subject_node, node_type,
+                                                     target_mask=target_masks)#y_true.size()[0])
                     y_pred = y_pred.unsqueeze(1)
                     end_t = datetime.datetime.now()
                     dic_results["InferenceTime"] = (end_t - start_t).total_seconds()

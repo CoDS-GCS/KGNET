@@ -31,6 +31,7 @@ Makefile
 *.iml
 *.log0
 *.mdb
+*.html
 /GMLaaS/models/MorsE/tb_log/
 /GMLaaS/models/tb_log/
 /SparqlMLaasService/tb_log/
@@ -46,3 +47,4 @@ Makefile
 /TempCode/
 /tb_log/
 /lib/
+.idea/
