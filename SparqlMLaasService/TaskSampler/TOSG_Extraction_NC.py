@@ -95,10 +95,10 @@ def get_d1h1_query(graph_uri,target_rel_uri,prefixs=None,stype=None,otype=None,t
         for prefix in prefixs.keys():
             query+="prefix "+prefix+":<"+prefixs[prefix]+">\n"
     query+="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)\n
-           from <"""+graph_uri+""">
            where
            {
                 select ?s ?p ?o
+                from <"""+graph_uri+""">
                 where
                 {"""
     query += ("" if target_rel_uri is None else " ?s " + target_rel_uri + " ?label.\n" if (prefixs is not None and target_rel_uri.split(":")[0] in prefixs.keys()) else " ?s  <" + target_rel_uri + "> ?label .\n" if validators.url(target_rel_uri) else "")
@@ -119,10 +119,10 @@ def get_d1h1_query(graph_uri,target_rel_uri,prefixs=None,stype=None,otype=None,t
         for prefix in prefixs.keys():
             query_o_t += "prefix " + prefix + ":<" + prefixs[prefix] + ">\n"
     query_o_t += """select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
-               from <""" + graph_uri + """>
                where
                {
                     select ?o as ?s 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'  as ?p ?ot as ?o
+                    from <"""+graph_uri+""">
                     where
                     {\n"""
     query_o_t += ("" if target_rel_uri is None else " ?s " + target_rel_uri + " ?label.\n" if (prefixs is not None and target_rel_uri.split(":")[0] in prefixs.keys()) else " ?s  <" + target_rel_uri + "> ?label .\n" if validators.url(target_rel_uri) else "")
@@ -142,10 +142,10 @@ def get_d1h1_query(graph_uri,target_rel_uri,prefixs=None,stype=None,otype=None,t
     return query,query_o_t
 def get_d2h1_query(graph_uri,target_rel_uri,stype=None,otype=None,tragetNode_filter_statments=None):
     query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
-            from <"""+graph_uri+""">
             where
             {
                  select ?o2 as ?s  ?p2 as ?p  ?s as ?o
+                 from <"""+graph_uri+""">
                  where
                  {
                     ?o2 ?p2 ?s.

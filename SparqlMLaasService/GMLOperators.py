@@ -151,11 +151,11 @@ class gmlInferenceOperator(gmlOperator):
         self.KGMeta_Governer_obj = KGMeta_Governer_obj
         self.KG_sparqlEndpoint = KG_sparqlEndpoint
         self.GML_Query_Type = GML_Query_Types.Inference
-    def executeQuery(self, query,in_pipline=True):
+    def executeQuery(self, query,pipline=None):
         gmlqp = gmlQueryParser(query)
         start_time=datetime.now()
-        if in_pipline==True:
-            res_df,exectuted_Queries,=gmlqp.exec_query_plan()
+        if pipline is not None:
+            res_df,exectuted_Queries,=gmlqp.exec_query_plan(pipeline =pipline)
             return res_df,exectuted_Queries,(datetime.now()-start_time).total_seconds()
         else:
             st = datetime.now()

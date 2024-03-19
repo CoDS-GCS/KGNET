@@ -31,6 +31,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/Datasets/yago_Types.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/GMLWebServiceApis/test_results.csv">
           <value>
             <Attribute>
@@ -49,6 +56,111 @@
           <value>
             <Attribute>
               <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_AAAI_ACM_VLDB_germany_china_2021_.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_AAAI_CoRR_usa_Article_gte2020.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_AAAI_VLDB_germany_china_usa_Inproccesding_gte1990.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_CVPR_ICASSP_IGARSS_ICML_NeurIPS_germany_china_usa_Inproccesding_gte2020.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_Informatics_RemoteSens_germany_china_2022.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_in_AAAI_CVPR_ICML_NeurIPS_in_germany_china_usa_in_Inproccesding_gte_2021.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_in_AAAI_VLDB_Neurocomputing_notin_germany_china_usa_in_Inproccesding_gte2020.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_in_IEEEA_Sensors_germany_china_usa_Article_gte2020.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_in_IEEEAccess_RemoteSens_in_germany_china_usa_notin_Inproccesding_gte_2020.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_in_VLDB_Symmetry_Entropy_IEEEData-Eng_Autom_Bioinform_notin_germany_in_Article_gte2020.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_noin_VLDB_usa_in_phdthesies_proccesdings_Incollection_gte2020.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_notin_AAAI_ACM_VLDB_CoRR_germany_china_usa_2021.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/SPARQLML_HardAnswerResults/dblp_notin_AAAI_ACM_VLDB_CoRR_germany_china_usa_2022.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/tmp/target_nodes_1710689420.242649.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/tmp/target_nodes_1710690403.911673.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
             </Attribute>
           </value>
         </entry>
