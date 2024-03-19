@@ -91,13 +91,13 @@ class KGNET_Config:
     # KGMeta_IRI = "http://kgnet/"
     # KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
 
-    datasets_output_path="/home/afandi/GitRepos/KGNET/Datasets/"#"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"#"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
     inference_path = datasets_output_path + 'Inference/'
     trained_model_path = datasets_output_path + 'trained_models/'
     emb_store_path = os.path.join(trained_model_path,'emb_store')
-    # GML_API_URL = "http://206.12.102.12:64647/"
-    GML_API_URL = "http://localhost:64647/"
-    GML_Inference_PORT = "64647"
+    GML_API_URL = "http://206.12.102.12:64648/"
+    # GML_API_URL = "http://localhost:64648/"
+    GML_Inference_PORT = "64648"
     GML_ModelManager_PORT = "8443"
     #GML_ModelManager_PORT = "8443"
     # GML_ModelManager_URL = "http://206.12.100.114"
@@ -113,11 +113,13 @@ class KGNET_Config:
 KGs_prefixs_dic={"dblp":"https://dblp.org/rdf/schema#",
              "lkmdb":"https://www.lkmdb.org/",
              "mag":"https://www.mag.org/",
-             "aifb":"http://www.aifb.uni-karlsruhe.de/"}
+             "aifb":"http://www.aifb.uni-karlsruhe.de/",
+             "yago":"http://schema.org/"}
 namedGraphURI_dic={"dblp":"http://dblp.org/",
              "lkmdb":"https://www.lkmdb.org/",
              "mag":"https://www.mag.org/",
-             "aifb":"http://www.aifb.uni-karlsruhe.de/"}
+             "aifb":"http://www.aifb.uni-karlsruhe.de/",
+             "yago":"https://yago-knowledge.org"}
 
 
 class colors:

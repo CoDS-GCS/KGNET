@@ -228,13 +228,15 @@ def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery
 
 def wise_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk,RDFEngine,targetNodesList=None,TOSG_Pattern=TOSG_Patterns.d1h1):
     if RDFEngine:
-        kg_endpoint = sparqlEndpoint(sparqlEndpointURL,RDFEngine=RDFEngine)
+        kg_endpoint = sparqlEndpoint(sparqlEndpointURL, RDFEngine=RDFEngine)
+        KGMeta_endpoint = sparqlEndpoint(Constants.KGNET_Config.KGMeta_endpoint_url, RDFEngine=RDFEngine)
     else:
         kg_endpoint = sparqlEndpoint(sparqlEndpointURL)
+        KGMeta_endpoint = sparqlEndpoint(Constants.KGNET_Config.KGMeta_endpoint_url, sparqlEndpointURL)
     dict_time = {}
     if not os.path.exists(Constants.KGNET_Config.inference_path):
         os.makedirs(Constants.KGNET_Config.inference_path)
-    meta_dict = get_MetaData(model_id,kg_endpoint)
+    meta_dict = get_MetaData(model_id,KGMeta_endpoint)
     if Constants.utils.is_number(model_id):
         model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id) + '_wise.model'
     else:
@@ -315,8 +317,11 @@ def wise_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targ
                 targetNodesList = getTargetNodeList(kg_endpoint,targetNodesQuery)
 
             """ Generate KG-TOSA subgraph """
-            inference_dataset,target_masks,target_masks_inf = generate_inference_subgraph(master_ds_name=dataset_name,target_rel_uri=meta_dict['subG']['targetEdge'],ds_types=meta_dict['subG']['graphPrefix'],
-                                                                                          graph_uri=named_graph_uri,targetNodesList=targetNodesList,labelNode=meta_dict['subG']['labelNode'],targetNodeType=meta_dict['subG']['targetNode'])
+            inference_dataset,target_masks,target_masks_inf,transformation_results_dic = generate_inference_subgraph(master_ds_name=dataset_name,target_rel_uri=meta_dict['subG']['targetEdge'],ds_types=meta_dict['subG']['graphPrefix'],
+                                                                                          graph_uri=named_graph_uri,targetNodesList=targetNodesList,labelNode=meta_dict['subG']['labelNode'],targetNodeType=meta_dict['subG']['targetNode'],
+                                                                                                                     sparqlEndpointURL=sparqlEndpointURL)
+            if inference_dataset is None:
+                return transformation_results_dic
 
             """ Extract Model's Embeddings"""
             # Constants.utils.DownloadFileFromS3(model_id.replace('.model','.zip'),to_filepath=KGNET_Config.emb_store_path,file_type="emb")

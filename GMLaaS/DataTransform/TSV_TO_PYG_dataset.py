@@ -185,6 +185,11 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     else:
         g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t",header=Header_row,names=['s','p','o'])
         g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=None,names=['stype','ptype','otype'])
+    if len(g_tsv_df)<=1:
+        dic_results["TransformationError"]=f"length of g_tsv_df={len(g_tsv_df)}"
+        return dic_results
+    ############################# given nodes types ##################################################
+    g_node_types = list(set(g_tsv_types_df["stype"].tolist()).union(g_tsv_types_df["otype"].tolist()))
     #################### Remove '/' from the predicate of the Graph (tsv) ##############################
     g_tsv_df["p"] = g_tsv_df["p"].apply(lambda x: x.split('/')[-1].split("#")[-1].split(":")[-1])
     target_rel = target_rel.split('/')[-1].split("#")[-1].split(':')[-1]
@@ -263,9 +268,13 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     relations_dic = {}
     entites_dic = {}
     entities_isa_df=g_tsv_df[g_tsv_df["p"] == "type"]
+    ################# filter types using the given types ######################
+    if g_node_types and len(g_node_types) >0:
+        entities_isa_df["otype"]=entities_isa_df["o"].apply(lambda x: str(x).split("/")[-1].split(":")[-1].split("#")[-1])
+        entities_isa_df=entities_isa_df[entities_isa_df["otype"].isin(g_node_types)]
     entities_isa_df=entities_isa_df.drop_duplicates()
     ############## replace Special characters for files naming ###################
-    special_chars_lst=['\n','/',':','\"','>','<','\\','|','?','*','.'] # chars not allowed in file name.
+    special_chars_lst=['\n','/',':','\"','>','<','\\','|','?','*','.','(',')'] # chars not allowed in file name.
     otypes_unique_lst=entities_isa_df["o"].unique().tolist()
     otypes_unique_dic={}
     for entity_type in otypes_unique_lst:
@@ -281,6 +290,10 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     target_nodes_lst=entities_isa_df[entities_isa_df["o"]==targetNodeType]["s"].unique().tolist()
     to_delete_target_node_types=entities_isa_df[(entities_isa_df["s"].isin(target_nodes_lst)) & (entities_isa_df["o"] != targetNodeType)]
     entities_isa_df = entities_isa_df.drop(index=to_delete_target_node_types.index.to_list())
+    ##################### use subtype instead of supertype for multi-type nodes ###################
+    types_frequancy_dict=entities_isa_df["o"].value_counts().to_dict()
+    entities_isa_df["o_type_freq"]=entities_isa_df["o"].apply(lambda x:types_frequancy_dict[x])
+    entities_isa_df=entities_isa_df.loc[entities_isa_df.groupby('s')['o_type_freq'].idxmin()] ## group subject by types frequancy and keep the type with min occurance
     entities_isa_df = entities_isa_df.reset_index()
     ###############################################################################################
     if len(entities_isa_df)>0:
@@ -445,11 +458,13 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     labels_rel_df["o_idx"] = labels_rel_df["o"]  # .apply(lambda x: str(x).split("/")[-1])
     labels_rel_df["o_idx"] = labels_rel_df["o_idx"].apply(
         lambda x: label_idx_dic[str(x)] if str(x) in label_idx_dic.keys() else -1)
+    target_without_labels_set=target_without_labels_set.union(set(labels_rel_df[labels_rel_df["o_idx"]==-1]["s"].unique())) ## append target nodes those are not have reprsentiaive labels
     labels_rel_df=labels_rel_df[["s_idx","o_idx"]]
     labels_rel_df=pd.concat([labels_rel_df,traget_with_dummy_label_df]) ## append dummy target nodes
     labels_rel_df = labels_rel_df.sort_values(by=["s_idx"]).reset_index(drop=True)
 
     out_labels_df = labels_rel_df[["o_idx"]]
+    out_labels_df = out_labels_df.astype(int)
     map_folder = output_root_path + dataset_name + "/raw/node-label/" + targetNodeType
     try:
         os.stat(map_folder)
@@ -459,7 +474,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     # compress_gz(map_folder + "/node-label.csv")
     ###########################################split parts (train/test/validate)#########################
     # split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
-    map_folder = output_root_path + dataset_name + "/split/" + label_type  # + split_by[        "folder_name"] + "/"
+    map_folder = output_root_path + dataset_name + "/split/" + label_type  # + split_by["folder_name"] + "/"
     try:
         os.stat(map_folder)
     except:

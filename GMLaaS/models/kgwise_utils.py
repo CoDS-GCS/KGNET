@@ -305,7 +305,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
             raise Exception('No Master Graph at {} '.format(master_ds_root))
 
     time_infTransform_start = datetime.datetime.now()
-    transform_tsv_to_PYG(dataset_name=output_file,
+    transformation_results_dic=transform_tsv_to_PYG(dataset_name=output_file,
                                   dataset_name_csv=output_file,
                                   #dataset_types=os.path.join(KGNET_Config.datasets_output_path,'WikiKG2015_v2_Types.csv'), #TODO: Replace with arg based file # For DBLP /home/afandi/GitRepos/KGNET/Datasets/dblp2022_Types (rec).csv
                                   dataset_types=os.path.join(KGNET_Config.datasets_output_path, ds_types+"_Types.csv"),
@@ -318,6 +318,9 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
                                   similar_target_rels=[],### For Transform_tsv_to_PYG
                                   inference=True### For Transform_tsv_to_PYG
                                    )
+    if "TransformationError" in transformation_results_dic.keys():
+        print(f"transformation_results_dic={transformation_results_dic}")
+        return None,None,transformation_results_dic
     time_infTransform_end = (datetime.datetime.now() - time_infTransform_start).total_seconds()
     target_node = \
     [x for x in os.listdir(os.path.join(inference_root, 'split')) if not (x.endswith('.csv') | x.endswith('.gz'))][0]
@@ -474,6 +477,6 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
 
     # sys.exit()
     if "target_masks_inf" in locals():
-        return output_file,target_masks,target_masks_inf  # .replace('.zip','')
+        return output_file,target_masks,target_masks_inf,transformation_results_dic  # .replace('.zip','')
     else:
-        return output_file,target_masks,None
+        return output_file,target_masks,None,transformation_results_dic

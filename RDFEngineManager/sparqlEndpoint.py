@@ -94,7 +94,7 @@ class sparqlEndpoint:
         for query in queries:
             # if rows_count==None:
             rows_count_query = query.replace("select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)",
-                                            "select (count( distinct *) as ?c)")
+                                            "select (count(distinct *) as ?c)")
             rows_count_query = rows_count_query.replace("limit ?limit", "")
             rows_count_query = rows_count_query.replace("offset ?offset", "")
             rows_count = self.ExecScalarQuery( rows_count_query)

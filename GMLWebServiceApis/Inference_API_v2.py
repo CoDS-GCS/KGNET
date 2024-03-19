@@ -22,7 +22,8 @@ import traceback
 app = FastAPI()
 # HOST = '127.0.0.1'
 HOST = '0.0.0.0'
-PORT = KGNET_Config.GML_Inference_PORT
+# PORT = KGNET_Config.GML_Inference_PORT
+PORT = 5555
 
 # class InferenceRequest(BaseModel):
 #     model_id : str

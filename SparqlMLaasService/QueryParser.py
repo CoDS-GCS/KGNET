@@ -235,7 +235,7 @@ class gmlQueryParser:
                 elif type(filter_exp['value'])==rdflib.plugins.sparql.parserutils.CompValue:
                     new_nodes_labels[k] = k+"\n?"+filter_exp['operator']+str(filter_exp['value'].string)
                 elif type(filter_exp['value'])==list:
-                    new_nodes_labels[k] = k + "\n?" + filter_exp['operator'] + str([str(elem.string) for elem in filter_exp['value']])
+                    new_nodes_labels[k] = k + "\n?" + filter_exp['operator'] + str([str(elem) if type(elem)==rdflib.term.URIRef else str(elem.string)  for elem in filter_exp['value']])
                 node_attrs[k]={"filter":new_nodes_labels[k]}
         nx.set_node_attributes(g, node_attrs)
         g = nx.relabel_nodes(g, new_nodes_labels)
@@ -538,7 +538,7 @@ class gmlQueryParser:
                                 filter_variable['args']["arg" + str(idx)] = expr_arg
                     ###################### parse operator and value #################
                     filter_operator = filter_expr['op']
-                    if filter_operator=="=":
+                    if filter_operator in["=",">",">=","<","<="]:
                         filter_value = filter_expr['other']['expr']['expr']
                     elif filter_operator=="IN":
                         filter_value=[]
@@ -556,7 +556,7 @@ class gmlQueryParser:
         where_limit = where_part['limitoffset']['limit'] if 'limitoffset' in where_part.keys() and 'limit' in where_part['limitoffset'].keys() else None
         where_offset = where_part['limitoffset']['offset'] if 'limitoffset' in where_part.keys() and 'offset' in where_part['limitoffset'].keys() else None
         return  modifier,projection_variable_lst,from_graph,triples_list,SubSelect,where_limit,where_offset
-    def exec_query_plan(self):
+    def exec_query_plan(self,pipeline=0):
         st=datetime.now()
         self.parse_select()
         DAG = self.build_DAG()
@@ -582,9 +582,14 @@ class gmlQueryParser:
         dependent_gml_vars = [var for var in DAG.keys() if var != 'root' and (DAG[var].is_gml == False and DAG[var].gml_parent is not None)]
         print(f"SQ1 Exec Time:{(datetime.now() - st).total_seconds()} Sec.")
         ################### Loop on SQ2 infernce Queries #####################
+        import itertools
+        subqueries_order=list(itertools.permutations(range(0,len(decomposedSubqueries['SQ2']))))[pipeline]
+        plan_suqueries=[]
+        for elem in subqueries_order:
+            plan_suqueries.append(decomposedSubqueries['SQ2'][elem])
         # decomposedSubqueries['SQ2'].reverse()
         ######################
-        for query in decomposedSubqueries['SQ2']:
+        for query in plan_suqueries:
             st=datetime.now()
             api_triples=[]
             non_api_triples=[]
@@ -622,8 +627,8 @@ class gmlQueryParser:
             ################## peform model inference #################
             st=datetime.now()
             inference_res_dic={}
-            kgwise_one_batch=True
-            if kgwise_one_batch:
+            kgwise_full_batch=True
+            if kgwise_full_batch:
                 model_url = Constants.KGNET_Config.GML_API_URL + "fullbatch_wise/mid/" + str(best_mid).replace('"', "")
                 params = {"model_id": best_mid,
                              # "named_graph_uri": "http://wikikg-v2",
@@ -633,7 +638,7 @@ class gmlQueryParser:
                              "targetNodesQuery":"",
                              "TOSG_Pattern": "d1h1",
                              "topk": 1}
-                target_file_name=f'target_nodes_{str(datetime.now().timestamp())}.csv'
+                target_file_name=f'tmp/target_nodes_{str(datetime.now().timestamp())}.csv'
                 pd.DataFrame(target_node_res_lst).to_csv(target_file_name,index=None,header=None)
                 files = {'file': (target_file_name, open(target_file_name,'rb'),'text/csv')}
                 headers = {'accept': 'application/json'}

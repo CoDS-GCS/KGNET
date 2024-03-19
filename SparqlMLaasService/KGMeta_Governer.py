@@ -466,7 +466,7 @@ class KGMeta_Governer(sparqlEndpoint):
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/split>  \"random\" . \n"
         Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/splitRel>  \"\" . \n"
         if "targetNodeFilters" in query_dict["insertJSONObject"]["GMLTask"]:
-            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/filters>  \""+str(list(query_dict["insertJSONObject"]["GMLTask"]["targetNodeFilters"].values()))+"\" . \n"
+            Insert_Triples += "<" + model_model_uri + "> <kgnet:GMLModel/taskSubgraph/filters>  \""+str(list(query_dict["insertJSONObject"]["GMLTask"]["targetNodeFilters"].values())).replace("\"","'")+"\" . \n"
         Insert_Triples+="} where {}"
         ###########################
         print("Insert_Triples=",Insert_Triples)
