@@ -41,8 +41,6 @@ from model import Model
 import pickle
 import Constants
 
-
-
 def print_memory_usage():
     # print("max_mem_GB=",psutil.Process().memory_info().rss / (1024 * 1024*1024))
     # print("get_process_memory=",getrusage(RUSAGE_SELF).ru_maxrss/(1024*1024))
@@ -516,7 +514,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
         return train_acc, valid_acc, test_acc
     def get_acc_per_label():
         with torch.no_grad():
-            label_mapping = pd.read_csv(os.path.join(dir_path, 'mapping', 'labelidx2labelname.csv'))
+            label_mapping = pd.read_csv(os.path.join(dir_path, 'mapping', 'labelidx2labelname.csv.gz'),compression='gzip')
             label_mapping = label_mapping.set_index('label idx')['label name'].to_dict()
             evaluator = Evaluator(name='ogbn-mag',p_eval_metric='cm')
             model.eval()
@@ -684,7 +682,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                     dict_model_param = pickle.load(f)
 
                 if len(target_mapping)==0:
-                    target_mapping = pd.read_csv(os.path.join(dir_path,'mapping',f'{subject_node}_entidx2name.csv'))
+                    target_mapping = pd.read_csv(os.path.join(dir_path,'mapping',f'{subject_node}_entidx2name.csv.gz'),compression='gzip')
                     target_mapping = target_mapping.set_index('ent idx')['ent name'].to_dict()
 
                 model = RGCN(dict_model_param['emb_size'],
@@ -699,7 +697,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 # label_mapping = dict_model_param['label_mapping']
 
                 if len(label_mapping)==0:
-                    label_mapping = pd.read_csv(os.path.join(dir_path,'mapping','labelidx2labelname.csv'))
+                    label_mapping = pd.read_csv(os.path.join(dir_path,'mapping','labelidx2labelname.csv.gz'),compression='gzip')
                     label_mapping = label_mapping.set_index('label idx')['label name'].to_dict()
                 model.load_state_dict(torch.load(trained_model_path))
                 print('Loaded Graph Saint Model!')
@@ -830,6 +828,7 @@ def graphSaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
             """ Saving complete model"""
             torch.save(model.state_dict(), os.path.join(model_path, model_name) + ".model")
             """ Saving model embed in emd store"""
+            from kgwise_utils import store_emb
             store_emb(model=model,model_name=model_name+'_wise',)
             """ Decoupling weights and embds"""
             model.emb_dict = None
