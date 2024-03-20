@@ -320,7 +320,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
                                    )
     if "TransformationError" in transformation_results_dic.keys():
         print(f"transformation_results_dic={transformation_results_dic}")
-        return None,None,transformation_results_dic
+        return None,None,None,transformation_results_dic
     time_infTransform_end = (datetime.datetime.now() - time_infTransform_start).total_seconds()
     target_node = \
     [x for x in os.listdir(os.path.join(inference_root, 'split')) if not (x.endswith('.csv') | x.endswith('.gz'))][0]
@@ -342,10 +342,9 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     # time_mapLoad_end = (datetime.datetime.now() - time_mapLoad_start).total_seconds()
     if not len(targetNodesList) == len(mapping_dict[target_node]): # If the extracted subgraph contains more target nodes than the one in inference
         df = pd.merge(pd.DataFrame({'ent name':targetNodesList}),mapping_dict[target_node],on='ent name',how='left')
-        # target_masks = [int(x) for x in df['ent idx_orig'].tolist()]
-        # print(len(mapping_dict[target_node]['ent idx_orig'].tolist()))
-        target_masks = [int(x) for x in mapping_dict[target_node]['ent idx_orig'].tolist() if not pd.isna(x) ]
-        # print(len(df['ent idx_inf'].tolist()))
+
+        ####target_masks = [int(x) for x in mapping_dict[target_node]['ent idx_orig'].tolist() if not pd.isna(x) ]
+        target_masks = [int(x) for x in df['ent idx_orig'].tolist() if not pd.isna(x)]
         target_masks_inf = [int(x) for x in df['ent idx_inf'].tolist() if not pd.isna(x) ]
         del df
     else:
@@ -393,7 +392,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
             else:
                 edge_df.to_csv(os.path.join(directory, 'edge.csv.gz'), header=None, index=None, compression='gzip')
                 rel_df = mapping_dict['relidx2relname']
-                current_rel_id = edge_rel_df[0][0]
+                current_rel_id = edge_rel_df.reset_index()[0][0]
                 edge_rel_df[0] = rel_df[rel_df['rel idx_inf'] == str(current_rel_id)]['rel idx_orig'].iloc[0]
                 edge_rel_df.to_csv(os.path.join(directory, 'edge_reltype.csv.gz'), header=None, index=None,
                                    compression='gzip')
