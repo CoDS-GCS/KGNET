@@ -91,9 +91,12 @@ class KGNET_Config:
     # KGMeta_IRI = "http://kgnet/"
     # KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
 
-    datasets_output_path="/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"#"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+    # datasets_output_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),'Datasets')#"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
+    datasets_output_path = r'/home/afandi/GitRepos/KGNET/Datasets/'
     inference_path = datasets_output_path + 'Inference/'
+    # inference_path = os.path.join(datasets_output_path,'Inference')
     trained_model_path = datasets_output_path + 'trained_models/'
+    # trained_model_path = os.path.join(datasets_output_path,'trained_models')
     emb_store_path = os.path.join(trained_model_path,'emb_store')
     GML_API_URL = "http://206.12.102.12:64648/"
     # GML_API_URL = "http://localhost:64648/"

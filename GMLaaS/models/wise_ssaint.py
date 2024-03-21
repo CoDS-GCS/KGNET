@@ -304,7 +304,7 @@ class RGCN(torch.nn.Module):
         batch_size = 1024 * 2  # len_target #// 100 # inference_nodes.shape[0]#x_dict[2].shape[0]
         inference_loader = GraphSAINTRandomWalkSampler(homo_data,
                                               batch_size=batch_size,
-                                              walk_length=6,
+                                              walk_length=2,
                                               num_steps=30,
                                               sample_coverage=0,
                                               save_dir="./"
@@ -727,11 +727,11 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                     dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
                     print(f'y_true: {y_true.size()}\ny_pred: {y_pred.size()}\nTarget masks: {len(target_masks)}')
 
-                    if y_true.size()[0] == y_pred.size()[0] and target_masks_inf:
-                        y_true=y_true[target_masks_inf]
-                        y_pred = y_pred[target_masks_inf]
-                    elif y_true.size()[0] > y_pred.size()[0]:
-                        y_true = y_true[target_masks]
+                    if y_true.size()[0] > y_pred.size()[0]:
+                        try:
+                            y_true = y_true[target_masks]
+                        except:
+                            y_true = y_true[target_masks_inf]
                     elif y_true.size()[0] < y_pred.size()[0]:
                         y_pred = y_pred[target_masks]
 
@@ -779,11 +779,12 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                     dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
                     print(f'y_true: {y_true.size()}\ny_pred: {y_pred.size()}\nTarget masks: {len(target_masks)}')
 
-                    if y_true.size()[0] == y_pred.size()[0] and target_masks_inf:
-                        y_true=y_true[target_masks_inf]
-                        y_pred = y_pred[target_masks_inf]
-                    elif y_true.size()[0] > y_pred.size()[0]:
-                        y_true = y_true[target_masks]
+
+                    if y_true.size()[0] > y_pred.size()[0]:
+                        try:
+                            y_true = y_true[target_masks]
+                        except:
+                            y_true = y_true[target_masks_inf]
                     elif y_true.size()[0] < y_pred.size()[0]:
                         y_pred = y_pred[target_masks]
 
@@ -840,10 +841,18 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
 
                 # y_true = data.y_dict[subject_node]
                 print(f'y_true: {y_true.size()}\ny_pred: {y_pred.size()}\nTarget masks: {len(target_masks)}')
+                # if target_masks_inf is not None:
+                #     y_pred = y_pred[target_masks_inf]
+                #     y_true = y_true[target_masks_inf]
+                # else:
+
                 if y_true.size()[0] > y_pred.size()[0]:
                     y_true=y_true[target_masks]
                 elif y_true.size()[0] < y_pred.size()[0]:
                     y_pred = y_pred[target_masks]
+
+                if target_masks_inf is not None and y_true.size(dim=0) > len(target_masks_inf):
+                    y_true = y_true[target_masks_inf]
 
                 test_acc = evaluator.eval({
                     'y_true': y_true,#[target_masks],
