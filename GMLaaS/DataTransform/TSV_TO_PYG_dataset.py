@@ -170,7 +170,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     dic_results = {}  # args.dic_results #{}
     start_t = datetime.datetime.now()
     if dataset_types == "":
-        dataset_types = output_root_path + dataset_name_csv + "_types.csv"
+        dataset_types = os.path.join(output_root_path , dataset_name_csv + "_types.csv")
 
     if Header_row is None:
         g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t",header=Header_row)
@@ -183,7 +183,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
             repesentative_p_lst= [k for k, v in p_counts_dict.items() if v > 6]
             g_tsv_df=g_tsv_df[g_tsv_df["p"].isin(repesentative_p_lst)]
     else:
-        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t",header=Header_row,names=['s','p','o'])
+        g_tsv_df = pd.read_csv(os.path.join(output_root_path , dataset_name_csv + ".tsv"), encoding_errors='ignore', sep="\t",header=Header_row,names=['s','p','o'])
         g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=None,names=['stype','ptype','otype'])
     if len(g_tsv_df)<=1:
         dic_results["TransformationError"]=f"length of g_tsv_df={len(g_tsv_df)}"
