@@ -1,7 +1,7 @@
 import argparse
 import sys
-# import os
-GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/MorsE/"
+import os
+GMLaaS_models_path=os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0,GMLaaS_models_path)
 # sys.path.append(sys.path.append(os.getcwd()+'/MorsE'))
 # print('current dir is '+os.getcwd())

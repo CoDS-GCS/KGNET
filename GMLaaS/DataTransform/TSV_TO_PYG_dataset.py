@@ -189,7 +189,8 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         dic_results["TransformationError"]=f"length of g_tsv_df={len(g_tsv_df)}"
         return dic_results
     ############################# given nodes types ##################################################
-    g_node_types = list(set(g_tsv_types_df["stype"].tolist()).union(g_tsv_types_df["otype"].tolist()))
+    # g_node_types = list(set(g_tsv_types_df["stype"].tolist()).union(g_tsv_types_df["otype"].tolist()))
+    g_node_types = [str(x).lower() for x in set(g_tsv_types_df["stype"].tolist() + g_tsv_types_df["otype"].tolist())]
     #################### Remove '/' from the predicate of the Graph (tsv) ##############################
     g_tsv_df["p"] = g_tsv_df["p"].apply(lambda x: x.split('/')[-1].split("#")[-1].split(":")[-1])
     target_rel = target_rel.split('/')[-1].split("#")[-1].split(':')[-1]
@@ -270,7 +271,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     entities_isa_df=g_tsv_df[g_tsv_df["p"] == "type"]
     ################# filter types using the given types ######################
     if g_node_types and len(g_node_types) >0:
-        entities_isa_df["otype"]=entities_isa_df["o"].apply(lambda x: str(x).split("/")[-1].split(":")[-1].split("#")[-1])
+        entities_isa_df["otype"]=entities_isa_df["o"].apply(lambda x: str(x).split("/")[-1].split(":")[-1].split("#")[-1].lower())
         entities_isa_df=entities_isa_df[entities_isa_df["otype"].isin(g_node_types)]
     entities_isa_df=entities_isa_df.drop_duplicates()
     ############## replace Special characters for files naming ###################

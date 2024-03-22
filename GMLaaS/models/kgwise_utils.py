@@ -150,6 +150,12 @@ def execute_query(batch, inference_file, kg):
         subgraph_df.to_csv(inference_file, index=None, sep='\t', mode='a')
 
 """ Functions for Loading Mappings in Generate_inference_subgraph ()"""
+def process_subject_node(node,master_mapping,inference_mapping):
+    df_master = pd.read_csv(os.path.join(master_mapping, node), dtype=str)
+    df_inf = pd.read_csv(os.path.join(inference_mapping, node), dtype=str)
+    intersection = pd.merge(df_master, df_inf, on='ent name', how='left', suffixes=('_orig', '_inf'))
+    #TODO separate processing for subject node
+
 
 def process_node(node,master_mapping,inference_mapping):
     try:
@@ -335,6 +341,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     inf_nid = glob.glob(os.path.join(inference_mapping, '*.csv.gz'))
     common_nodes = set(os.path.basename(node) for node in inf_nid).intersection(
         os.path.basename(node) for node in master_nid)
+    # common_nodes.remove(f'{target_node}_entidx2name.csv.gz') #TODO for separate processing of target node
     mapping_dict = process_all_nodes(common_nodes, master_mapping, inference_mapping)
     """ ********************** """
     # global target_masks  # To be used for filtering inference nodes from training nodes during inference
@@ -407,11 +414,18 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
             label_csv = os.path.join(inf_label_dir,label,'node-label.csv.gz')
             label_df = pd.read_csv(label_csv,header=None,dtype=str,compression='gzip')
             mapping_dict['labelidx2labelname']['label idx_inf'] = mapping_dict['labelidx2labelname']['label idx_inf'].astype(int)
+
+            """ For keeping missing labels as -1 (Inductive)"""
+            # intersection = pd.merge(label_df.astype(float).astype(int), mapping_dict['labelidx2labelname'], left_on=0, right_on='label idx_inf',
+            #                         how='left').fillna(-1)
+
+            """ For discarding missing labels (Transductive) """
             intersection = pd.merge(label_df.astype(float).astype(int), mapping_dict['labelidx2labelname'], left_on=0, right_on='label idx_inf',
-                                    how='left').fillna(-1)
+                                    how='left').dropna()
             missing_values = sum(intersection['label idx_orig']==-1)
             if missing_values > 0:
                 warnings.warn('............. {}  MISSING LABELS out of {}, .i.e {:.2f}% .............'.format(missing_values,len(label_df),(missing_values/len(label_df))*100), UserWarning)
+
             intersection['label idx_orig'].to_csv(label_csv,header=None,index=None,compression='gzip')
 
     time_map_end = (datetime.datetime.now() - time_map_start).total_seconds()
