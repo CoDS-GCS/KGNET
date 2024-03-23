@@ -352,7 +352,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
 
         ####target_masks = [int(x) for x in mapping_dict[target_node]['ent idx_orig'].tolist() if not pd.isna(x) ]
         target_masks = [int(x) for x in df['ent idx_orig'].tolist() if not pd.isna(x)]
-        target_masks_inf = [int(x) for x in df['ent idx_inf'].tolist() if not pd.isna(x) ]
+        target_masks_inf = [int(x) for x in df['ent idx_inf'].tolist() if not pd.isna(x)]
         del df
     else:
         target_masks = [int (x) for x in mapping_dict[target_node]['ent idx_orig'].tolist()]
@@ -421,7 +421,21 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
 
             """ For discarding missing labels (Transductive) """
             intersection = pd.merge(label_df.astype(float).astype(int), mapping_dict['labelidx2labelname'], left_on=0, right_on='label idx_inf',
-                                    how='left').dropna()
+                                    how='left')#.dropna()
+            if intersection.isnull().values.any(): # If contain null values, remove target masks for such labels
+                if 'target_masks_inf' in locals():
+                    #target_ids_drop = intersection[intersection.isna().any(axis=1)].index.tolist()
+                    target_ids_drop = [x for x in intersection[intersection.isna().any(axis=1)].index.tolist() if x not in intersection[intersection[0]==-1].index.tolist()]
+                    if target_ids_drop:
+                        target_masks_inf = [i for i in target_masks_inf if i not in target_ids_drop]
+                        target_masks = mapping_dict[target_node].iloc[target_masks_inf]['ent idx_orig'].astype(int).tolist()
+                    else:
+                        intersection = intersection.dropna()
+                else:
+                    intersection = intersection.dropna()
+                    #raise NotImplementedError()
+
+
             missing_values = sum(intersection['label idx_orig']==-1)
             if missing_values > 0:
                 warnings.warn('............. {}  MISSING LABELS out of {}, .i.e {:.2f}% .............'.format(missing_values,len(label_df),(missing_values/len(label_df))*100), UserWarning)

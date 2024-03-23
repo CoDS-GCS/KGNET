@@ -711,7 +711,7 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                              dict_model_param['len_edge_index_dict_keys'])
 
                 SAMPLED_INFERENCE = False
-                RW_SAMPLER = True
+                RW_SAMPLER = False
 
                 """ ************ RANDOM WALK WISE Inference ****************"""
 
@@ -786,7 +786,10 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                         except:
                             y_true = y_true[target_masks_inf]
                     elif y_true.size()[0] < y_pred.size()[0]:
-                        y_pred = y_pred[target_masks]
+                        try:
+                            y_pred = y_pred[target_masks]
+                        except:
+                            y_pred = y_pred[target_masks_inf]
 
                     test_acc = evaluator.eval({
                         'y_true': y_true,

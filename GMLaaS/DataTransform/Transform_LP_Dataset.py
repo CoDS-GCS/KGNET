@@ -8,6 +8,7 @@ from threading import Thread
 import threading
 import os
 import shutil
+from Constants import *
 
 from sklearn.model_selection import train_test_split
 def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_size=0.1,test_size=0.1,delm='\t',containHeader=False,split_rel=None):
@@ -117,12 +118,13 @@ def write_d2h2_TOSG(train_ds,source_en,des_en,delm='\t'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+
     #parser.add_argument('--start_offset', dest='start_offset', type=int, help='Add start_offset', default=0)
     #parser.add_argument('--sparql_endpoint', type=str, help='SPARQL endpoint URL', default='http://206.12.98.118:8890/sparql')
     #parser.add_argument('--graph_uri', type=str, help=' KG URI', default='http://dblp.org')
-    parser.add_argument('--target_rel_uri', type=str, help='target_rel_uri URI',default='isConnectedTo')
-    parser.add_argument("--data_path", type=str, default="/media/hussein/UbuntuData/OGBL_Datasets/")
-    parser.add_argument("--dataset", type=str, default="YAGO3-10")
+    parser.add_argument('--target_rel_uri', type=str, help='target_rel_uri URI',default='http://www.wikidata.org/entity/P101')
+    parser.add_argument("--data_path", type=str, default=KGNET_Config.datasets_output_path)
+    parser.add_argument("--dataset", type=str, default="mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965")
     parser.add_argument('--TOSG', type=str, help='TOSG Pattern',default='d1h1')
     parser.add_argument('--file_sep', type=str, help='triple delimter', default='\t')
     # parser.add_argument('--batch_size', type=int, help='batch_size', default='1000000')
@@ -142,6 +144,12 @@ if __name__ == '__main__':
     dataset = args.dataset
     dic_sep={'comma':',','tab':'\t'}
     file_sep = dic_sep[args.file_sep] if args.file_sep in dic_sep.keys() else args.file_sep
+    ############################ convert TSV to pyg dataset ########################
+    data_path = args.data_path
+    ds_name = dataset
+    transform_LP_train_valid_test_subsets(data_path, ds_name, args.target_rel_uri, valid_size=0.1, test_size=0.1, delm='\t',
+                                          containHeader=False, split_rel=None)
+    sys.exit("Bye-Bye")
     ############################ read train-test-valid daatsets #####################
     train_ds = pd.read_csv(data_path + "train.txt", dtype=str, sep=file_sep, header=None)
     train_ds = train_ds.rename(columns={0: 's', 1: 'p', 2: 'o'})

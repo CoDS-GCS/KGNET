@@ -44,9 +44,11 @@ class RGCNEncoder(torch.nn.Module):
         super().__init__()
         self.node_emb = Parameter(torch.Tensor(num_nodes, hidden_channels))
         self.conv1 = RGCNConv(hidden_channels, hidden_channels, num_relations,
-                              num_blocks=5)
+                              num_blocks=64,
+                              )
         self.conv2 = RGCNConv(hidden_channels, hidden_channels, num_relations,
-                              num_blocks=5)
+                              num_blocks=64,
+                              )
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -339,7 +341,9 @@ def rgcn_lp(dataset_name,
         print(f'{key} {type(dict_results[key])}')
 
     logs_path = os.path.join(root_path, 'logs')
-    model_path = os.path.join(root_path, 'trained_models')
+    if not os.path.exists(logs_path):
+        os.mkdir(logs_path)
+    model_path = KGNET_Config.trained_model_path
     create_dir([logs_path, model_path])
     with open(os.path.join(logs_path, model_name + '_log.json'), "w") as outfile:
         json.dump(dict_results, outfile)
@@ -350,7 +354,17 @@ def rgcn_lp(dataset_name,
     # print("Total Time Sec=", (end_t - start_t).total_seconds())
 
 
-
+if __name__ == '__main__':
+    dataset_name = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965'
+    root_path = os.path.join(KGNET_Config.datasets_output_path,)
+    target_rel = r'http://www.wikidata.org/entity/P101'
+    list_src_nodes = ['http://www.wikidata.org/entity/Q5484233',
+                      'http://www.wikidata.org/entity/Q16853882',
+                      'http://www.wikidata.org/entity/Q777117']
+    K = 2
+    modelID = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965.model'
+    result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=0,list_src_nodes=list_src_nodes,modelID=modelID,epochs=21,val_interval=10,hidden_channels=128)
+    print(result)
 # rgcn_lp(dataset_name='mid-0000100',
 #         root_path=os.path.join(KGNET_Config.inference_path,),
 #         loadTrainedModel=1,
