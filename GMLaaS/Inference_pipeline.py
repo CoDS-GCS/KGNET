@@ -167,12 +167,14 @@ def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery
 def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk,RDFEngine,demo = True,targetNodesList=None,TOSG_Pattern=TOSG_Patterns.d1h1):
     if RDFEngine:
         kg_endpoint = sparqlEndpoint(sparqlEndpointURL,RDFEngine=RDFEngine)
+        KGMeta_endpoint = sparqlEndpoint(Constants.KGNET_Config.KGMeta_endpoint_url, RDFEngine=RDFEngine)
     else:
         kg_endpoint = sparqlEndpoint(sparqlEndpointURL)
+        KGMeta_endpoint = sparqlEndpoint(Constants.KGNET_Config.KGMeta_endpoint_url, sparqlEndpointURL)
     dict_time = {}
     if not os.path.exists(Constants.KGNET_Config.inference_path):
         os.makedirs(Constants.KGNET_Config.inference_path)
-    meta_dict = get_MetaData(model_id,kg_endpoint)
+    meta_dict = get_MetaData(model_id,KGMeta_endpoint)
     if Constants.utils.is_number(model_id):
         model_id = 'mid-' + Constants.utils.getIdWithPaddingZeros(model_id) + '.model'
     else:

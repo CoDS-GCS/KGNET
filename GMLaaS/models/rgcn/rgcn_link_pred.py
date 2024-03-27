@@ -241,7 +241,7 @@ def rgcn_lp(dataset_name,
 
         ####### LOAD MODEL STATE ##############
         trained_model_path = os.path.join(KGNET_Config.trained_model_path,modelID)
-        model.load_state_dict(torch.load(trained_model_path)); print('LOADED PRE-TRAINED MODEL !d')
+        model.load_state_dict(torch.load(trained_model_path)); print(f'LOADED PRE-TRAINED MODEL {modelID}')
 
         with torch.no_grad():
             edge_index = data.edge_index
@@ -363,7 +363,7 @@ if __name__ == '__main__':
                       'http://www.wikidata.org/entity/Q777117']
     K = 2
     modelID = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965.model'
-    result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=0,list_src_nodes=list_src_nodes,modelID=modelID,epochs=21,val_interval=10,hidden_channels=128)
+    result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=1,list_src_nodes=list_src_nodes,modelID=modelID,epochs=21,val_interval=10,hidden_channels=128)
     print(result)
 # rgcn_lp(dataset_name='mid-0000100',
 #         root_path=os.path.join(KGNET_Config.inference_path,),

@@ -59,6 +59,33 @@ def create_dir(list_paths):
     for path in list_paths:
         if not os.path.exists(path):
             os.mkdir(path)
+
+def calculate_acc (y_true,y_pred,target_masks,target_masks_inf,evaluator):
+
+    if y_true.size()[0] > y_pred.size()[0]:
+        y_true = y_true[target_masks]
+    elif y_true.size()[0] < y_pred.size()[0]:
+        y_pred = y_pred[target_masks]
+
+    if target_masks_inf is not None and y_true.size(dim=0) > len(target_masks_inf):
+        y_true = y_true[target_masks_inf]
+
+    mask = torch.ones_like(y_true, dtype=torch.bool)
+    indices_to_remove = torch.where(y_true==-1)[0]
+    num_missing_labels = indices_to_remove.size(dim=0)
+    if num_missing_labels>0:
+        mask[indices_to_remove] = False
+
+    test_acc = evaluator.eval({
+        'y_true': y_true[mask].unsqueeze(dim=1),  # [target_masks],
+        'y_pred': y_pred[mask].unsqueeze(dim=1),  # [target_masks],
+    })['acc']
+
+    return test_acc,num_missing_labels
+
+
+
+
 """ Functions for Loading Mappings in Generate_inference_subgraph ()"""
 
 
@@ -727,18 +754,21 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                     dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
                     print(f'y_true: {y_true.size()}\ny_pred: {y_pred.size()}\nTarget masks: {len(target_masks)}')
 
-                    if y_true.size()[0] > y_pred.size()[0]:
-                        try:
-                            y_true = y_true[target_masks]
-                        except:
-                            y_true = y_true[target_masks_inf]
-                    elif y_true.size()[0] < y_pred.size()[0]:
-                        y_pred = y_pred[target_masks]
-
-                    test_acc = evaluator.eval({
-                        'y_true': y_true,
-                        'y_pred': y_pred,
-                    })['acc']
+                    test_acc,num_missing_labels = calculate_acc(y_true, y_pred, target_masks, target_masks_inf, evaluator)
+                    dic_results["accuracy"] = test_acc
+                    dic_results["num_missing_labels"] = num_missing_labels
+                    # if y_true.size()[0] > y_pred.size()[0]:
+                    #     try:
+                    #         y_true = y_true[target_masks]
+                    #     except:
+                    #         y_true = y_true[target_masks_inf]
+                    # elif y_true.size()[0] < y_pred.size()[0]:
+                    #     y_pred = y_pred[target_masks]
+                    #
+                    # test_acc = evaluator.eval({
+                    #     'y_true': y_true,
+                    #     'y_pred': y_pred,
+                    # })['acc']
 
                     total_time = process_end+dic_results["InferenceTime"]
                     if 'download_end_time' in locals() or 'download_end_time' in globals():
@@ -779,22 +809,24 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                     dic_results["InferenceTime"] = (end_t - start_t).total_seconds()
                     print(f'y_true: {y_true.size()}\ny_pred: {y_pred.size()}\nTarget masks: {len(target_masks)}')
 
-
-                    if y_true.size()[0] > y_pred.size()[0]:
-                        try:
-                            y_true = y_true[target_masks]
-                        except:
-                            y_true = y_true[target_masks_inf]
-                    elif y_true.size()[0] < y_pred.size()[0]:
-                        try:
-                            y_pred = y_pred[target_masks]
-                        except:
-                            y_pred = y_pred[target_masks_inf]
-
-                    test_acc = evaluator.eval({
-                        'y_true': y_true,
-                        'y_pred': y_pred,
-                    })['acc']
+                    test_acc,num_missing_labels = calculate_acc(y_true, y_pred, target_masks, target_masks_inf, evaluator)
+                    dic_results["accuracy"] = test_acc
+                    dic_results["num_missing_labels"] = num_missing_labels
+                    # if y_true.size()[0] > y_pred.size()[0]:
+                    #     try:
+                    #         y_true = y_true[target_masks]
+                    #     except:
+                    #         y_true = y_true[target_masks_inf]
+                    # elif y_true.size()[0] < y_pred.size()[0]:
+                    #     try:
+                    #         y_pred = y_pred[target_masks]
+                    #     except:
+                    #         y_pred = y_pred[target_masks_inf]
+                    #
+                    # test_acc = evaluator.eval({
+                    #     'y_true': y_true,
+                    #     'y_pred': y_pred,
+                    # })['acc']
 
                     total_time = process_end+dic_results["InferenceTime"]
                     if 'download_end_time' in locals() or 'download_end_time' in globals():
@@ -844,23 +876,22 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
 
                 # y_true = data.y_dict[subject_node]
                 print(f'y_true: {y_true.size()}\ny_pred: {y_pred.size()}\nTarget masks: {len(target_masks)}')
-                # if target_masks_inf is not None:
-                #     y_pred = y_pred[target_masks_inf]
+
+                test_acc,num_missing_labels = calculate_acc(y_true, y_pred, target_masks, target_masks_inf, evaluator)
+                dic_results["accuracy"] = test_acc
+                dic_results["num_missing_labels"] = num_missing_labels
+                # if y_true.size()[0] > y_pred.size()[0]:
+                #     y_true=y_true[target_masks]
+                # elif y_true.size()[0] < y_pred.size()[0]:
+                #     y_pred = y_pred[target_masks]
+                #
+                # if target_masks_inf is not None and y_true.size(dim=0) > len(target_masks_inf):
                 #     y_true = y_true[target_masks_inf]
-                # else:
-
-                if y_true.size()[0] > y_pred.size()[0]:
-                    y_true=y_true[target_masks]
-                elif y_true.size()[0] < y_pred.size()[0]:
-                    y_pred = y_pred[target_masks]
-
-                if target_masks_inf is not None and y_true.size(dim=0) > len(target_masks_inf):
-                    y_true = y_true[target_masks_inf]
-
-                test_acc = evaluator.eval({
-                    'y_true': y_true,#[target_masks],
-                    'y_pred': y_pred,#[target_masks],
-                })['acc']
+                #
+                # test_acc = evaluator.eval({
+                #     'y_true': y_true,#[target_masks],
+                #     'y_pred': y_pred,#[target_masks],
+                # })['acc']
                 print('*' * 8, '\tRAM USAGE BEFORE Model/Inference:\t', process_ram, ' GB')
                 print('*'*8, '\tPROCESSING TIME:\t',process_end, 's')
                 # print('*' * 8, '\tZARR MAPPING:\t\t',time_map_end, 's')
@@ -874,8 +905,11 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 total_time = process_end + dic_results["InferenceTime"]
                 ### For KGNET inference, return labels ###
                 dict_pred = {}
-                for i, pred in enumerate(y_pred.flatten()):
-                    dict_pred[target_mapping[i]] = label_mapping[pred.item()]
+                # for i, pred in enumerate(y_pred.flatten()):
+                #     dict_pred[target_mapping[i]] = label_mapping[pred.item()]
+                for i, target in enumerate(target_masks_inf):
+                    dict_pred[target_mapping[target]] = label_mapping[y_pred[i].flatten().item()]
+
                 dic_results['y_pred'] = dict_pred
                 dic_results['totalTime'] = total_time
                 return dic_results
