@@ -737,7 +737,7 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                              dict_model_param['list_x_dict_keys'],
                              dict_model_param['len_edge_index_dict_keys'])
 
-                SAMPLED_INFERENCE = False
+                SAMPLED_INFERENCE = True
                 RW_SAMPLER = False
 
                 """ ************ RANDOM WALK WISE Inference ****************"""
@@ -789,8 +789,9 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                     ### For KGNET inference, return labels ###
 
                     dict_pred = {}
-                    for i, pred in enumerate(y_pred.flatten()):
-                        dict_pred[target_mapping[i]] = label_mapping[pred.item()]
+                    for i, target in enumerate(target_masks_inf):
+                        dict_pred[target_mapping[target]] = label_mapping[y_pred[i].flatten().item()]
+
                     dic_results['y_pred'] = dict_pred
                     dic_results['totalTime'] = total_time
                     return dic_results
@@ -847,8 +848,9 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                     ### For KGNET inference, return labels ###
 
                     dict_pred = {}
-                    for i, pred in enumerate(y_pred.flatten()):
-                        dict_pred[target_mapping[i]] = label_mapping[pred.item()]
+                    for i, target in enumerate(target_masks_inf):
+                        dict_pred[target_mapping[target]] = label_mapping[y_pred[i].flatten().item()]
+
                     dic_results['y_pred'] = dict_pred
                     dic_results['totalTime'] = total_time
                     return dic_results
@@ -908,7 +910,7 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                 # for i, pred in enumerate(y_pred.flatten()):
                 #     dict_pred[target_mapping[i]] = label_mapping[pred.item()]
                 for i, target in enumerate(target_masks_inf):
-                    dict_pred[target_mapping[target]] = label_mapping[y_pred[i].flatten().item()]
+                    dict_pred[target_mapping[target]] = label_mapping[y_pred[target_masks][i].flatten().item()]
 
                 dic_results['y_pred'] = dict_pred
                 dic_results['totalTime'] = total_time
