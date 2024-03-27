@@ -737,7 +737,7 @@ def wise_SHsaint(device=0, num_layers=2, hidden_channels=64, dropout=0.5,
                              dict_model_param['list_x_dict_keys'],
                              dict_model_param['len_edge_index_dict_keys'])
 
-                SAMPLED_INFERENCE = True
+                SAMPLED_INFERENCE = False
                 RW_SAMPLER = False
 
                 """ ************ RANDOM WALK WISE Inference ****************"""
