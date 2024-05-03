@@ -316,7 +316,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
                                   #dataset_types=os.path.join(KGNET_Config.datasets_output_path,'WikiKG2015_v2_Types.csv'), #TODO: Replace with arg based file # For DBLP /home/afandi/GitRepos/KGNET/Datasets/dblp2022_Types (rec).csv
                                   dataset_types=os.path.join(KGNET_Config.datasets_output_path, ds_types+"_Types.csv"),
                                   target_rel =target_rel_uri,#,publishedIn
-                                  targetNodeType=targetNodeType, #TODO: Parameterize
+                                  targetNodeType=targetNodeType,
                                   output_root_path=KGNET_Config.inference_path,
                                   Header_row=0,
                                   labelNodetype = labelNode,

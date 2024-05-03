@@ -14,7 +14,7 @@ from Constants import *
 import torch
 import torch.nn.functional as F
 from torch.nn import Parameter
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from rel_link_pred_dataset import RelLinkPredDataset
 #from torch_geometric.datasets import RelLinkPredDataset
 from torch_geometric.nn import GAE, RGCNConv
@@ -44,10 +44,10 @@ class RGCNEncoder(torch.nn.Module):
         super().__init__()
         self.node_emb = Parameter(torch.Tensor(num_nodes, hidden_channels))
         self.conv1 = RGCNConv(hidden_channels, hidden_channels, num_relations,
-                              num_blocks=64,
+                              num_blocks=5,
                               )
         self.conv2 = RGCNConv(hidden_channels, hidden_channels, num_relations,
-                              num_blocks=64,
+                              num_blocks=5,
                               )
         self.reset_parameters()
 
@@ -356,15 +356,15 @@ def rgcn_lp(dataset_name,
 
 
 if __name__ == '__main__':
-    dataset_name = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965'
+    dataset_name = r'Yago3-10_isConnectedTo' # mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965
     root_path = os.path.join(KGNET_Config.datasets_output_path,)
-    target_rel = r'http://www.wikidata.org/entity/P101'
+    target_rel = r'isConnectedTo' #http://www.wikidata.org/entity/P101
     list_src_nodes = ['http://www.wikidata.org/entity/Q5484233',
                       'http://www.wikidata.org/entity/Q16853882',
                       'http://www.wikidata.org/entity/Q777117']
     K = 2
     modelID = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965.model'
-    result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=1,list_src_nodes=list_src_nodes,modelID=modelID,epochs=21,val_interval=10,hidden_channels=128)
+    result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=0,list_src_nodes=list_src_nodes,modelID=modelID,epochs=10001,val_interval=200,hidden_channels=100)
     print(result)
 # rgcn_lp(dataset_name='mid-0000100',
 #         root_path=os.path.join(KGNET_Config.inference_path,),
