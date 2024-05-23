@@ -316,7 +316,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
                                   #dataset_types=os.path.join(KGNET_Config.datasets_output_path,'WikiKG2015_v2_Types.csv'), #TODO: Replace with arg based file # For DBLP /home/afandi/GitRepos/KGNET/Datasets/dblp2022_Types (rec).csv
                                   dataset_types=os.path.join(KGNET_Config.datasets_output_path, ds_types+"_Types.csv"),
                                   target_rel =target_rel_uri,#,publishedIn
-                                  targetNodeType=targetNodeType, #TODO: Parameterize
+                                  targetNodeType=targetNodeType,
                                   output_root_path=KGNET_Config.inference_path,
                                   Header_row=0,
                                   labelNodetype = labelNode,
@@ -348,14 +348,14 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     # target_masks = [int(x) for x in mapping_dict[target_node]['ent idx_orig'].tolist()]
     # time_mapLoad_end = (datetime.datetime.now() - time_mapLoad_start).total_seconds()
     if not len(targetNodesList) == len(mapping_dict[target_node]): # If the extracted subgraph contains more target nodes than the one in inference
-        df = pd.merge(pd.DataFrame({'ent name':targetNodesList}),mapping_dict[target_node],on='ent name',how='left')
-
+        df = pd.merge(pd.DataFrame({'ent name':targetNodesList}),mapping_dict[target_node],on='ent name',how='left').dropna()
         ####target_masks = [int(x) for x in mapping_dict[target_node]['ent idx_orig'].tolist() if not pd.isna(x) ]
-        target_masks = [int(x) for x in df['ent idx_orig'].tolist() if not pd.isna(x)]
-        target_masks_inf = [int(x) for x in df['ent idx_inf'].tolist() if not pd.isna(x) ]
+        target_masks = sorted([int(x) for x in df['ent idx_orig'].tolist()])
+        target_masks_inf = sorted([int(x) for x in df['ent idx_inf'].tolist()])
         del df
     else:
-        target_masks = [int (x) for x in mapping_dict[target_node]['ent idx_orig'].tolist()]
+        target_masks = sorted([int (x) for x in mapping_dict[target_node]['ent idx_orig'].tolist()])
+        target_masks_inf = sorted([int (x) for x in mapping_dict[target_node]['ent idx_inf'].tolist()])
 
     time_map_start = datetime.datetime.now()
     num_success_relations = 0
@@ -416,17 +416,31 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
             mapping_dict['labelidx2labelname']['label idx_inf'] = mapping_dict['labelidx2labelname']['label idx_inf'].astype(int)
 
             """ For keeping missing labels as -1 (Inductive)"""
-            # intersection = pd.merge(label_df.astype(float).astype(int), mapping_dict['labelidx2labelname'], left_on=0, right_on='label idx_inf',
-            #                         how='left').fillna(-1)
+            intersection = pd.merge(label_df.astype(float).astype(int), mapping_dict['labelidx2labelname'], left_on=0, right_on='label idx_inf',
+                                    how='left').fillna(-1)
 
             """ For discarding missing labels (Transductive) """
-            intersection = pd.merge(label_df.astype(float).astype(int), mapping_dict['labelidx2labelname'], left_on=0, right_on='label idx_inf',
-                                    how='left').dropna()
-            missing_values = sum(intersection['label idx_orig']==-1)
-            if missing_values > 0:
-                warnings.warn('............. {}  MISSING LABELS out of {}, .i.e {:.2f}% .............'.format(missing_values,len(label_df),(missing_values/len(label_df))*100), UserWarning)
+            # intersection = pd.merge(label_df.astype(float).astype(int), mapping_dict['labelidx2labelname'], left_on=0, right_on='label idx_inf',
+            #                         how='left')#.dropna()
+            # if intersection.isnull().values.any(): # If contain null values, remove target masks for such labels
+            #     if 'target_masks_inf' in locals():
+            #         #target_ids_drop = intersection[intersection.isna().any(axis=1)].index.tolist()
+            #         target_ids_drop = [x for x in intersection[intersection.isna().any(axis=1)].index.tolist() if x not in intersection[intersection[0]==-1].index.tolist()]
+            #         if target_ids_drop:
+            #             target_masks_inf = [i for i in target_masks_inf if i not in target_ids_drop]
+            #             target_masks = mapping_dict[target_node].iloc[target_masks_inf]['ent idx_orig'].astype(int).tolist()
+            #         else:
+            #             intersection = intersection.dropna()
+            #     else:
+            #         intersection = intersection.dropna()
+                    #raise NotImplementedError()
 
-            intersection['label idx_orig'].to_csv(label_csv,header=None,index=None,compression='gzip')
+
+            missing_values = sum(intersection.loc[target_masks_inf]['label idx_orig']==-1)
+            if missing_values > 0:
+                warnings.warn('............. {}  MISSING LABELS out of {}, .i.e {:.2f}% .............'.format(missing_values,len(label_df.loc[target_masks_inf]),(missing_values/len(label_df.loc[target_masks_inf]))*100), UserWarning)
+
+            intersection.loc[target_masks_inf]['label idx_orig'].to_csv(label_csv,header=None,index=None,compression='gzip')
 
     time_map_end = (datetime.datetime.now() - time_map_start).total_seconds()
     """ Filling missing relations"""

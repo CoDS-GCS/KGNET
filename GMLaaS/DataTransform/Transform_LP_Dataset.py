@@ -8,15 +8,16 @@ from threading import Thread
 import threading
 import os
 import shutil
+from Constants import *
 
 from sklearn.model_selection import train_test_split
-def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_size=0.1,test_size=0.1,delm='\t',containHeader=False,split_rel=None):
+def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_size=0.1,test_size=0.1,delm='\t',containHeader=False,split_rel=None,inference=False):
     start_t = datetime.datetime.now()
     dic_results={}
     if containHeader:
-        full_ds = pd.read_csv(data_path + ds_name + ".tsv", dtype=str, sep=file_sep)
+        full_ds = pd.read_csv(os.path.join(data_path, ds_name + ".tsv"), dtype=str, sep=delm)
     else:
-        full_ds= pd.read_csv(data_path + ds_name+".tsv", dtype=str, sep=delm, header=None)
+        full_ds= pd.read_csv(os.path.join(data_path, ds_name+".tsv"), dtype=str, sep=delm, header=None)
     full_ds.columns=["s","p","o"]
     dic_results["TriplesCount"] = len(full_ds)
     ##############################
@@ -34,36 +35,43 @@ def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_siz
     entities_lst.sort()
     pd.DataFrame(entities_lst).to_csv(path + "/entities.dict", sep="\t", header=None)
 
-    split_df=full_ds[full_ds["p"].isin([target_rel])].reset_index(drop=True)
-    full_ds=full_ds[~full_ds["p"].isin([target_rel])]
+    split_df = full_ds[full_ds["p"].isin([target_rel])].reset_index(drop=True)
+    if not inference:
+        full_ds = full_ds[~full_ds["p"].isin([target_rel])]
+        dic_results["testSize"] = test_size
+        dic_results["validSize"] = valid_size
+        dic_results["trainSize"] = 1 - (valid_size + test_size)
 
-    dic_results["testSize"] = test_size
-    dic_results["validSize"] = valid_size
-    dic_results["trainSize"] = 1 - (valid_size + test_size)
+        test_size = test_size + valid_size
+        if split_rel is None:
+            try:
+                X_train, X_test, y_train, y_test = train_test_split(split_df.index.tolist(), split_df["o"].tolist(),test_size=test_size, random_state=42,stratify=split_df["o"].tolist())
+            except:
+                X_train, X_test, y_train, y_test = train_test_split(split_df.index.tolist(), split_df["o"].tolist(),test_size=test_size, random_state=42)
 
-    test_size = test_size + valid_size
-    if split_rel is None:
-        try:
-            X_train, X_test, y_train, y_test = train_test_split(split_df.index.tolist(), split_df["o"].tolist(),test_size=test_size, random_state=42,stratify=split_df["o"].tolist())
-        except:
-            X_train, X_test, y_train, y_test = train_test_split(split_df.index.tolist(), split_df["o"].tolist(),test_size=test_size, random_state=42)
+            test_size = test_size/(test_size + valid_size)
+            try:
+                X_valid,X_test, y_valid, y_test = train_test_split(X_test,y_test,test_size=test_size, random_state=42,stratify=X_test["o"].tolist())
+            except:
+                X_valid,X_test, y_valid, y_test = train_test_split(X_test, y_test,test_size=test_size, random_state=42)
+        else:
+            dic_results["splitEdge"] =split_rel
 
-        test_size = test_size/(test_size + valid_size)
-        try:
-            X_valid,X_test, y_valid, y_test = train_test_split(X_test,y_test,test_size=test_size, random_state=42,stratify=X_test["o"].tolist())
-        except:
-            X_valid,X_test, y_valid, y_test = train_test_split(X_test, y_test,test_size=test_size, random_state=42)
+        split_df.iloc[X_valid].to_csv(path + "/valid.txt", sep="\t", header=None, index=None)
+        split_df.iloc[X_test].to_csv(path + "/test.txt", sep="\t", header=None, index=None)
+
+        X_train = pd.concat([full_ds, split_df.iloc[X_train]])
+        X_train.to_csv(path + "/train.txt", sep="\t", header=None, index=None)
+        end_t = datetime.datetime.now()
+        dic_results["csv_to_Hetrog_time"] = (end_t - start_t).total_seconds()
+        return dic_results
+
     else:
-        dic_results["splitEdge"] =split_rel
+        full_ds.to_csv(path + "/train.txt", sep="\t", header=None, index=None)
+        split_df.to_csv(path + "/test.txt", sep="\t", header=None, index=None)
+        split_df.to_csv(path + "/valid.txt", sep="\t", header=None, index=None)
+        return
 
-    split_df.iloc[X_valid].to_csv(path + "/valid.txt", sep="\t", header=None, index=None)
-    split_df.iloc[X_test].to_csv(path + "/test.txt", sep="\t", header=None, index=None)
-
-    X_train = pd.concat([full_ds, split_df.iloc[X_train]])
-    X_train.to_csv(path + "/train.txt", sep="\t", header=None, index=None)
-    end_t = datetime.datetime.now()
-    dic_results["csv_to_Hetrog_time"] = (end_t - start_t).total_seconds()
-    return dic_results
 ###############################################################################################################################################
 def write_entites_rels_dict(train_ds, valid_ds, test_ds,data_path):
     all_triples_df = pd.concat([train_ds, valid_ds, test_ds])
@@ -117,12 +125,13 @@ def write_d2h2_TOSG(train_ds,source_en,des_en,delm='\t'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+
     #parser.add_argument('--start_offset', dest='start_offset', type=int, help='Add start_offset', default=0)
     #parser.add_argument('--sparql_endpoint', type=str, help='SPARQL endpoint URL', default='http://206.12.98.118:8890/sparql')
     #parser.add_argument('--graph_uri', type=str, help=' KG URI', default='http://dblp.org')
-    parser.add_argument('--target_rel_uri', type=str, help='target_rel_uri URI',default='isConnectedTo')
-    parser.add_argument("--data_path", type=str, default="/media/hussein/UbuntuData/OGBL_Datasets/")
-    parser.add_argument("--dataset", type=str, default="YAGO3-10")
+    parser.add_argument('--target_rel_uri', type=str, help='target_rel_uri URI',default='http://www.wikidata.org/entity/P101')
+    parser.add_argument("--data_path", type=str, default=KGNET_Config.datasets_output_path)
+    parser.add_argument("--dataset", type=str, default="mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965")
     parser.add_argument('--TOSG', type=str, help='TOSG Pattern',default='d1h1')
     parser.add_argument('--file_sep', type=str, help='triple delimter', default='\t')
     # parser.add_argument('--batch_size', type=int, help='batch_size', default='1000000')
@@ -142,6 +151,11 @@ if __name__ == '__main__':
     dataset = args.dataset
     dic_sep={'comma':',','tab':'\t'}
     file_sep = dic_sep[args.file_sep] if args.file_sep in dic_sep.keys() else args.file_sep
+    ############################ convert TSV to pyg dataset ########################
+    data_path = args.data_path
+    ds_name = dataset
+    transform_LP_train_valid_test_subsets(data_path, ds_name, args.target_rel_uri, valid_size=0.1, test_size=0.1, delm='\t',
+                                          containHeader=False, split_rel=None)
     ############################ read train-test-valid daatsets #####################
     train_ds = pd.read_csv(data_path + "train.txt", dtype=str, sep=file_sep, header=None)
     train_ds = train_ds.rename(columns={0: 's', 1: 'p', 2: 'o'})

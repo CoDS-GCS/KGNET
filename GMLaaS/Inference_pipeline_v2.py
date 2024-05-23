@@ -346,6 +346,11 @@ def wise_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targ
     # dict_time.update(dic_results['y_pred'])
     # dic_results['y_pred'] = dic_results['y_pred'].update({'Inference_Time':dict_time})
     dict_inference = dic_results['y_pred']
+    # dict_acc = {'Accuracy':dic_results['accuracy']}
+    # dict_missing_labels = {'Num_missing_labels':dic_results['num_missing_labels']}
+    dict_acc = {'Accuracy':{"Accuracy":dic_results['accuracy'],"num_missing_labels":dic_results['num_missing_labels']}}
     dict_time_dic = {"Inference_Times": dict_time}
     dict_inference.update(dict_time_dic)
+    dict_inference.update(dict_acc)
+    #dict_inference.update(dict_missing_labels)
     return dict_inference

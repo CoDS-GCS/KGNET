@@ -90,7 +90,7 @@ async def run_fullbatch_inference(mid:str,
     # print("file_targets=", targets)
     for target in targets:
         if target.strip() and len(target.strip())>0:
-            targetNodesList.append(target.strip())
+            targetNodesList.append(target.strip().replace("\"",""))
 
     dic_results = wise_inference(model_id = model_id, named_graph_uri = named_graph_uri,#target_rel=target_rel,
                                     dataQuery= dataQuery, sparqlEndpointURL = sparqlEndpointURL,

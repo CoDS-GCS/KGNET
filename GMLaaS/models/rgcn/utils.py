@@ -3,7 +3,7 @@ import math
 import numpy as np
 import torch
 import torch.nn.functional as F
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from torch_scatter import scatter_add
 from torch_geometric.data import Data
 
@@ -12,11 +12,12 @@ def uniform(size, tensor):
     if tensor is not None:
         tensor.data.uniform_(-bound, bound)
 
-def load_data(file_path,subgraph="FG",target_edge=""):
+
+def load_data(file_path):
     '''
         argument:
             file_path: ./data/FB15k-237
-        
+
         return:
             entity2id, relation2id, train_triplets, valid_triplets, test_triplets
     '''
@@ -36,25 +37,11 @@ def load_data(file_path,subgraph="FG",target_edge=""):
         for line in f:
             rid, relation = line.strip().split('\t')
             relation2id[relation] = int(rid)
-    target_edge=target_edge.split("/")[-1]
-    if subgraph=="FG":
-        subgraph=""
-    else:
-        subgraph="_"+target_edge+'_'+subgraph
-        
-    if target_edge=="":
-        train_triplets = read_triplets(os.path.join(file_path, 'train.txt'), entity2id, relation2id)
-        valid_triplets = read_triplets(os.path.join(file_path, 'valid.txt'), entity2id, relation2id)
-        test_triplets = read_triplets(os.path.join(file_path, 'test.txt'), entity2id, relation2id)
-    else:
-        train_triplets = read_triplets(os.path.join(file_path, 'train'+subgraph+'.txt'), entity2id, relation2id)
-        valid_triplets = read_triplets(os.path.join(file_path, 'valid_'+target_edge+'.txt'), entity2id, relation2id)
-        test_triplets = read_triplets(os.path.join(file_path, 'test_'+target_edge+'.txt'), entity2id, relation2id)    
-        
 
+    train_triplets = read_triplets(os.path.join(file_path, 'train.txt'), entity2id, relation2id)
+    valid_triplets = read_triplets(os.path.join(file_path, 'valid.txt'), entity2id, relation2id)
+    test_triplets = read_triplets(os.path.join(file_path, 'test.txt'), entity2id, relation2id)
 
-    print('subgraph:',subgraph)
-    print('target_edge:', target_edge)
     print('num_entity: {}'.format(len(entity2id)))
     print('num_relation: {}'.format(len(relation2id)))
     print('num_train_triples: {}'.format(len(train_triplets)))
@@ -62,6 +49,7 @@ def load_data(file_path,subgraph="FG",target_edge=""):
     print('num_test_triples: {}'.format(len(test_triplets)))
 
     return entity2id, relation2id, train_triplets, valid_triplets, test_triplets
+
 
 def read_triplets(file_path, entity2id, relation2id):
     triplets = []
@@ -198,7 +186,7 @@ def calc_mrr(embedding, w, test_triplets, all_triplets, hits=[]):
         head_relation_triplets = all_triplets[:, :2]
         tail_relation_triplets = torch.stack((all_triplets[:, 2], all_triplets[:, 1])).transpose(0, 1)
 
-        for test_triplet in tqdm(test_triplets):
+        for test_triplet in tqdm(test_triplets,position=0,leave=True):
         # for test_triplet in test_triplets:
             # Perturb object
             subject = test_triplet[0]
@@ -263,8 +251,10 @@ def calc_mrr(embedding, w, test_triplets, all_triplets, hits=[]):
         mrr = torch.mean(1.0 / ranks.float())
         print("MRR (filtered): {:.6f}".format(mrr.item()))
 
+        hit_scores = {}
         for hit in hits:
             avg_count = torch.mean((ranks <= hit).float())
             print("Hits (filtered) @ {}: {:.6f}".format(hit, avg_count.item()))
+            hit_scores[hit] = avg_count.item()
             
-    return mrr.item()
+    return mrr.item(),hit_scores

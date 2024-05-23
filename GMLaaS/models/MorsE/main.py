@@ -149,10 +149,10 @@ def create_dir(list_paths):
 
 def get_default_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_name', default='wn18rr_inf')
+    parser.add_argument('--dataset_name', default='Yago3-10_isConnectedTo')
     parser.add_argument('--name', default='_transe', type=str)
     parser.add_argument('--root_path', type=str, default=KGNET_Config.datasets_output_path)
-    parser.add_argument('--loadTrainedModel', type=int, default=1)
+    parser.add_argument('--loadTrainedModel', type=int, default=0)
     parser.add_argument('--modelID', type=str, default='wn18rr.model')
 
     parser.add_argument('--step', default='meta_train', type=str, choices=['meta_train', 'fine_tune'])

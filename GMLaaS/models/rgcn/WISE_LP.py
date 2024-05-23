@@ -6,17 +6,16 @@ Implements the link prediction task on the FB15k237 datasets according to the
 Caution: This script is executed in a full-batch fashion, and therefore needs
 to run on CPU (following the experimental setup in the official paper).
 """
+import pickle
 import sys
 GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/rgcn"
 sys.path.insert(0,GMLaaS_models_path)
 from Constants import *
-#import argparse
 import torch
 import torch.nn.functional as F
 from torch.nn import Parameter
-from tqdm.auto import tqdm
+from tqdm import tqdm
 from rel_link_pred_dataset import RelLinkPredDataset
-#from torch_geometric.datasets import RelLinkPredDataset
 from torch_geometric.nn import GAE, RGCNConv
 from resource import *
 import datetime
@@ -24,15 +23,12 @@ import os
 import json
 import pandas as pd
 import os.path as osp
-
-#from utils import calc_mrr
-#path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', 'RLPD')
-#dataset = RelLinkPredDataset(path, 'FB15k-237')
-
-
+from concurrent.futures import ProcessPoolExecutor, as_completed,ThreadPoolExecutor
+from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_TargetListquery
+import shutil
+from GMLaaS.DataTransform.Transform_LP_Dataset import transform_LP_train_valid_test_subsets
+import pickle
 def gen_model_name(dataset_name='',GNN_Method=''):
-    # timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    # return dataset_name+'_'+model_name+'_'+timestamp
     return dataset_name
 def create_dir(list_paths):
     for path in list_paths:
@@ -44,11 +40,10 @@ class RGCNEncoder(torch.nn.Module):
         super().__init__()
         self.node_emb = Parameter(torch.Tensor(num_nodes, hidden_channels))
         self.conv1 = RGCNConv(hidden_channels, hidden_channels, num_relations,
-                              num_blocks=5,
-                              )
+                              num_blocks=64,)
+
         self.conv2 = RGCNConv(hidden_channels, hidden_channels, num_relations,
-                              num_blocks=5,
-                              )
+                              num_blocks=64,)
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -189,23 +184,117 @@ def compute_mrr(z, edge_index, edge_type):
 
     return (1. / torch.tensor(ranks, dtype=torch.float)).mean(),hits_10
 
+def execute_query_v2(batch, inference_file,kg,):
+
+    subgraph_df = kg.KG_sparqlEndpoint.executeSparqlquery(batch)#kg.KG_sparqlEndpoint.execute_sparql_multithreads([query], inference_file)
+    if len(subgraph_df.columns) != 3:
+        print(subgraph_df)
+        raise AssertionError
+    subgraph_df = subgraph_df.applymap(lambda x: x.strip('"'))
+    if os.path.exists(inference_file):
+        subgraph_df.to_csv(inference_file, header=None, index=None, sep='\t', mode='a')
+    else:
+        subgraph_df.to_csv(inference_file, index=None, sep='\t', mode='a')
+
+def batch_tosa_v2 (targetNodesList,inference_file,graph_uri,kg,BATCH_SIZE=2000):
+    def batch_generator():
+        ptr = 0
+        while ptr < len(targetNodesList):
+            yield targetNodesList[ptr:ptr + BATCH_SIZE]
+            ptr += BATCH_SIZE
+
+    queries = []
+    for q in batch_generator():
+        target_lst = ['<' + target + '>' for target in q]
+        queries.extend(get_d1h1_TargetListquery(graph_uri=graph_uri, target_lst=target_lst))
+    if len(targetNodesList) > BATCH_SIZE:
+        with ProcessPoolExecutor() as executor:
+            futures = [executor.submit(execute_query_v2, batch, inference_file, kg, graph_uri) for batch in
+                       queries]
+            for future in tqdm(futures, desc="Downloading Raw Graph", unit="subgraphs"):
+                # future.result()
+                pass
+    else:
+        [execute_query_v2(batch,inference_file,kg) for batch in queries]
+def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [],labelNode = None,targetNodeType=None,
+                                target_rel_uri='https://dblp.org/rdf/schema#publishedIn',
+                                ds_types = '',
+                                sparqlEndpointURL=KGNET_Config.KGMeta_endpoint_url,
+                                output_file='inference_subG'):
+
+
+    global download_end_time
+    time_ALL_start = datetime.datetime.now()
+
+    inference_root = os.path.join(KGNET_Config.inference_path, output_file)
+    inference_tsv = os.path.join(KGNET_Config.inference_path, output_file + '.tsv')
+
+    download_start_time = datetime.datetime.now()
+    if os.path.exists(inference_tsv):
+        os.remove(inference_tsv)
+
+    if os.path.exists(inference_root):
+        shutil.rmtree(inference_root)
+
+    if os.path.exists(inference_root + '.zip'):
+        os.remove(inference_root + '.zip')
+
+    from KGNET import KGNET
+    kg = KGNET(sparqlEndpointURL, KG_Prefix='http://kgnet/') #TODO: Parameterize
+
+    batch_tosa_v2(targetNodesList,inference_file=inference_tsv,graph_uri=graph_uri,kg=kg)
+    download_end_time = (datetime.datetime.now() - download_start_time).total_seconds()
+
+    path_master_ds_root = os.path.join(KGNET_Config.datasets_output_path, master_ds_name)
+    path_master_entities = os.path.join(path_master_ds_root,'entities.dict')
+    path_master_relations = os.path.join(path_master_ds_root,'relations.dict')
+    path_inference_root = os.path.join(KGNET_Config.inference_path, output_file)
+    path_inference_entities = os.path.join(path_inference_root,'entities.dict')
+    path_inference_relations = os.path.join(path_inference_root,'relations.dict')
+
+    if not os.path.exists(path_master_ds_root):
+        if os.path.exists(path_master_ds_root+'.zip'):
+            shutil.unpack_archive(path_master_ds_root+'.zip', KGNET_Config.datasets_output_path)
+        else:
+            raise Exception('No Master Graph at {} '.format(path_master_ds_root))
+
+    transform_LP_train_valid_test_subsets(KGNET_Config.inference_path,
+                                  output_file,
+                                  target_rel=target_rel_uri,
+                                  split_rel=None,
+                                  containHeader = True,
+                                  inference=True)
+
+    master_ent_df = pd.read_csv(path_master_entities,header=None,sep='\t',names=['ent_idx','ent_name'],dtype={'ent_idx':'int64'})
+    master_rel_df = pd.read_csv(path_master_relations,header=None,sep='\t',names=['ent_idx','ent_name'],dtype={'ent_idx':'int64'})
+    inf_ent_df = pd.read_csv(path_inference_entities,header=None,sep='\t',names=['ent_idx','ent_name'],dtype={'ent_idx':'int64'})
+    inf_rel_df = pd.read_csv(path_inference_relations,header=None,sep='\t',names=['ent_idx','ent_name'],dtype={'ent_idx':'int64'})
+    print('here')
+    idx_cols = ['ent_idx_inf','ent_idx_orig']
+    output_cols = ['ent_idx_orig','ent_name']
+    mapping_ent = pd.merge(inf_ent_df,master_ent_df,on='ent_name',how='left',suffixes=('_inf','_orig'))
+    mapping_rel = pd.merge(inf_rel_df,master_rel_df,on='ent_name',how='left',suffixes=('_inf','_orig'))
+  #mapping_ent.dropna().to_csv()
+    mapping_ent = mapping_ent.dropna()
+    mapping_rel = mapping_rel.dropna()
+    mapping_ent[idx_cols] = mapping_ent[idx_cols].astype('int64')
+    mapping_rel[idx_cols] = mapping_rel[idx_cols].astype('int64')
+
+    mapping_ent[output_cols].to_csv(path_inference_entities,header=None,index=None,sep='\t')
+    mapping_rel[output_cols].to_csv(path_inference_relations, header=None, index=None, sep='\t')
+    return output_file
 
 
 def rgcn_lp(dataset_name,
             root_path=KGNET_Config.datasets_output_path,
             epochs=3,val_interval=2,
-            hidden_channels=10,batch_size=-1,runs=1,
-            emb_size=128,walk_length = 2, num_steps=2,
+            hidden_channels=10,
             loadTrainedModel=0,
             target_rel = '',
             list_src_nodes = [],
             K = 1,modelID = ''
             ):
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('root_path',type=str,default=KGNET_Config.datasets_output_path)
 
-    # path = '/home/afandi/GitRepos/KGNET/Datasets/'
-    # dataset_name = 'FB15K23'
     init_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
     dict_results = {}
     print('loading dataset..')
@@ -217,23 +306,29 @@ def rgcn_lp(dataset_name,
     dict_results['Sampling_Time'] = load_data_t
     print(f'dataset loaded at {load_data_t}')
 
-    print('Initializing model...')
-    model = GAE(
-        RGCNEncoder(data.num_nodes, hidden_channels=hidden_channels,
-                    num_relations=dataset.num_relations),
-        DistMultDecoder(dataset.num_relations // 2, hidden_channels=hidden_channels),
-    )
-    print('Model Initialized!')
+
 
 
     if loadTrainedModel == 1:
+        print('Initializing model...')
+        path_model_param = os.path.join(KGNET_Config.trained_model_path, modelID.replace(".model",".param"))
+        with open(path_model_param,'rb') as f:
+            dict_model_param = pickle.load(f)
 
-        ###### LOAD ENTITIES AND REL DICT ##########
-        entities_df = pd.read_csv(osp.join(dataset.raw_dir, 'entities.dict'), header=None, sep="\t")
+        model = GAE(
+            RGCNEncoder(dict_model_param['data.num_nodes'], hidden_channels=dict_model_param['hidden_channels'],
+                        num_relations=dict_model_param['dataset.num_relations']),
+            DistMultDecoder(dict_model_param['dataset.num_relations'] // 2, hidden_channels=dict_model_param['hidden_channels']),
+        )
+        print('Model Initialized!')
+
+        ###### LOAD ENTITIES AND REL DICT FROM "MASTER GRAPH" ##########
+        path_master =osp.join(KGNET_Config.datasets_output_path,modelID.replace('.model',''))
+        entities_df = pd.read_csv(osp.join(path_master, 'entities.dict'), header=None, sep="\t")
         entities_dict = dict(zip(entities_df[1], entities_df[0]))
         rev_entities_dict = {v:k for k,v in entities_dict.items()}
 
-        relations_df = pd.read_csv(osp.join(dataset.raw_dir, 'relations.dict'), header=None, sep="\t")
+        relations_df = pd.read_csv(osp.join(path_master, 'relations.dict'), header=None, sep="\t")
         relations_dict = dict(zip(relations_df[1], relations_df[0]))
         if target_rel not in relations_dict:
             return {'error':['Unseen relation']}
@@ -242,16 +337,13 @@ def rgcn_lp(dataset_name,
         ####### LOAD MODEL STATE ##############
         trained_model_path = os.path.join(KGNET_Config.trained_model_path,modelID)
         model.load_state_dict(torch.load(trained_model_path)); print(f'LOADED PRE-TRAINED MODEL {modelID}')
-
+        model.eval()
         with torch.no_grad():
             edge_index = data.edge_index
             edge_type = data.edge_type
             y_pred = {}
             z = model.encode(data.edge_index, data.edge_type)
-            # out = model.decode(z,data.edge_index,data.edge_type)
-            # print(out)
 
-            # for i in tqdm(range(edge_type.numel())):
             for _src in list_src_nodes:
                 if _src not in entities_dict:
                     y_pred[_src] = ['None']
@@ -259,17 +351,8 @@ def rgcn_lp(dataset_name,
                 src = entities_dict[_src]
                 (_, dst), rel = edge_index[:, target_rel_ID], edge_type[target_rel_ID]
 
-                # Try all nodes as tails, but delete true triplets:
-                # tail_mask = torch.ones(data.num_nodes, dtype=torch.bool)
-                # for (heads, tails), types in [
-                #     (data.train_edge_index, data.train_edge_type),
-                #     (data.valid_edge_index, data.valid_edge_type),
-                #     (data.test_edge_index, data.test_edge_type),
-                # ]:
-                #     tail_mask[tails[(heads == src) & (types == rel)]] = False
-                #
-                # tail = torch.arange(data.num_nodes)[tail_mask]
-                tail = torch.arange(data.num_nodes)
+                # tail = torch.arange(data.num_nodes)
+                tail = torch.arange(dict_model_param['data.num_nodes'])
                 tail = torch.cat([torch.tensor([dst]), tail])
                 head = torch.full_like(tail, fill_value=src)
                 eval_edge_index = torch.stack([head, tail], dim=0)
@@ -278,11 +361,16 @@ def rgcn_lp(dataset_name,
                 out = model.decode(z, eval_edge_index, eval_edge_type)
                 y_pred[_src] = [rev_entities_dict[i] for i in out.topk(K).indices.tolist() if i in rev_entities_dict]
                 # print(out)
-
         return y_pred
 
 
-
+    print('Initializing model...')
+    model = GAE(
+        RGCNEncoder(data.num_nodes, hidden_channels=hidden_channels,
+                    num_relations=dataset.num_relations),
+        DistMultDecoder(dataset.num_relations // 2, hidden_channels=hidden_channels),
+    )
+    print('Model Initialized!')
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     model_loaded_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
     start_train_t = datetime.datetime.now()
@@ -349,30 +437,32 @@ def rgcn_lp(dataset_name,
     with open(os.path.join(logs_path, model_name + '_log.json'), "w") as outfile:
         json.dump(dict_results, outfile)
     torch.save(model.state_dict(), os.path.join(model_path, model_name) + ".model")
-
+    dict_model_param = {}
+    dict_model_param['hidden_channels'] = 128
+    dict_model_param['data.num_nodes'] = data.num_nodes
+    dict_model_param['dataset.num_relations'] = dataset.num_relations
+    with open(os.path.join(model_path, model_name+ ".param"),'wb') as f:
+        pickle.dump(dict_model_param,f)
 
     return dict_results
     # print("Total Time Sec=", (end_t - start_t).total_seconds())
 
 
 if __name__ == '__main__':
-    dataset_name = r'Yago3-10_isConnectedTo' # mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965
+    dataset_name = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965'
     root_path = os.path.join(KGNET_Config.datasets_output_path,)
-    target_rel = r'isConnectedTo' #http://www.wikidata.org/entity/P101
+    target_rel = r'http://www.wikidata.org/entity/P101'
     list_src_nodes = ['http://www.wikidata.org/entity/Q5484233',
                       'http://www.wikidata.org/entity/Q16853882',
                       'http://www.wikidata.org/entity/Q777117']
     K = 2
     modelID = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965.model'
-    result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=0,list_src_nodes=list_src_nodes,modelID=modelID,epochs=10001,val_interval=200,hidden_channels=100)
+    # dataset_name = generate_inference_subgraph(master_ds_name=dataset_name,
+    #                             graph_uri='http://wikikg-v2',
+    #                             targetNodesList=list_src_nodes,
+    #                             target_rel_uri=target_rel,
+    #                             )
+    # result = rgcn_lp(dataset_name,root_path=KGNET_Config.inference_path,target_rel=target_rel,loadTrainedModel=1,list_src_nodes=list_src_nodes,modelID=modelID,hidden_channels=128)
+
+    result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=1,list_src_nodes=list_src_nodes,modelID=modelID,epochs=21,val_interval=10,hidden_channels=128)
     print(result)
-# rgcn_lp(dataset_name='mid-0000100',
-#         root_path=os.path.join(KGNET_Config.inference_path,),
-#         loadTrainedModel=1,
-#         target_rel = "https://dblp.org/rdf/schema#authoredBy",
-#         list_src_nodes =  ['https://dblp.org/rec/conf/ctrsa/Rosie22',
-#                             'https://dblp.org/rec/conf/ctrsa/WuX22',
-#                             'https://dblp.org/rec/conf/padl/2022'],
-#         K = 2,
-#         modelID = ''
-#         )
