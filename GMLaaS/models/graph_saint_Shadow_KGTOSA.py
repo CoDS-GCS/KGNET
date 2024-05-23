@@ -423,8 +423,11 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
         start_t = datetime.datetime.now()
         # Map informations to their canonical type.
         #######################intialize random features ###############################
-        feat = torch.Tensor(data.num_nodes_dict[subject_node], emb_size)
-        torch.nn.init.xavier_uniform_(feat)
+        if loadTrainedModel == 0:
+            feat = torch.Tensor(data.num_nodes_dict[subject_node], emb_size)
+            torch.nn.init.xavier_uniform_(feat)
+        else:
+            feat = torch.zeros(data.num_nodes_dict[subject_node], emb_size)
         feat_dic = {subject_node: feat}
         ################################################################
         x_dict = {}
