@@ -1,4 +1,4 @@
-conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 -c pytorch
+conda install pytorch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 cpuonly -c pytorch
 conda install pyg -c pyg
 pip install pandas
 pip install pyvis
@@ -7,22 +7,26 @@ pip install seml
 pip install psutil
 pip install numba
 pip install dgl==0.9.0
-pip install lmdb==0.98
+#pip install lmdb==0.98
+pip install lmdb
 pip install networkx==2.4
 pip install scikit-learn
 pip install tqdm==4.43.0
 pip install SPARQLWrapper
 pip install wget
 pip install pyodbc
-pip install --no-index torch-scatter -f https://pytorch-geometric.com/whl/torch-2.0.0+cpu.html
-pip install --no-index torch-sparse -f https://pytorch-geometric.com/whl/torch-2.0.0+cpu.html
-pip install --no-index torch-cluster -f https://pytorch-geometric.com/whl/torch-2.0.0+cpu.html
-pip install --no-index torch-spline-conv -f https://pytorch-geometric.com/whl/torch-2.0.0+cpu.html
+pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
 pip install torch-geometric
 pip install pystardog
 pip install requests_toolbelt
-pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
 pip install torch_geometric
 pip install ogb
 pip install python-multipart
 conda install conda-forge::zarr
+pip install matplotlib
+sudo apt install libodbc2
+pip install tensorboard
+pip install validators
+
+
+
