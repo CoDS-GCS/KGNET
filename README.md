@@ -231,7 +231,8 @@ If you find our work useful, please cite it in your research:
 @article{KGTOSA,
   title={Task-Oriented GNNs Training on Large Knowledge Graphs for Accurate and Efficient Modeling},
   author={Abdallah, Hussein and Afandi, Waleed and Kalnis, Panos and Mansour, Essam},
-  publisher={CORR}
+  booktitle={2024 IEEE 40th International Conference on Data Engineering (ICDE)}, 
+  year={2024},
 }
 ```
 ## Publicity

@@ -5,11 +5,21 @@ class ModelSelector:
         ""
      @staticmethod
      def getBestModelIdx(lstParams, w1=0.7, w2=0.3):
+        'lst of accuracy and inferTime pairs'
         scores = []
         for m in lstParams:
             # print(m, w1 * float(m[0]) , w2 * float(m[1]), w1 * float(m[0])- w2 * float(m[1]))
             scores.append(w1 * float(m[0]) - w2 * float(m[1]))
         return numpy.argmax(scores)
+
+     @staticmethod
+     def getBestPlanIdx(lstParams, w1=0.7, w2=0.3):
+         'lst of accuracy and inferTime pairs'
+         scores = []
+         for m in lstParams:
+             # print(m, w1 * float(m[0]) , w2 * float(m[1]), w1 * float(m[0])- w2 * float(m[1]))
+             scores.append(w1 * float(m[0]) - w2 * float(m[1]))
+         return numpy.argmax(scores)
 
 if __name__ == '__main__':
     ""

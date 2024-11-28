@@ -4,6 +4,7 @@ from hashlib import sha256
 import requests
 from requests_toolbelt import exceptions
 from requests_toolbelt.downloadutils import stream
+import itertools
 class GNN_Methods:
     Graph_SAINT = "G_SAINT"
     RGCN = "RGCN"
@@ -92,7 +93,7 @@ class KGNET_Config:
     # KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
 
     # datasets_output_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),'Datasets')#"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
-    datasets_output_path = r'/home/afandi/GitRepos/KGNET/Datasets/'
+    datasets_output_path = r'/shared_mnt/github_repos/KGNET/Datasets/'
     inference_path = datasets_output_path + 'Inference/'
     # inference_path = os.path.join(datasets_output_path,'Inference')
     trained_model_path = datasets_output_path + 'trained_models/'
@@ -114,15 +115,19 @@ class KGNET_Config:
 
 
 KGs_prefixs_dic={"dblp":"https://dblp.org/rdf/schema#",
-             "lkmdb":"https://www.lkmdb.org/",
+             "lkmdb":"http://data.linkedmdb.org/resource/movie/",
              "mag":"https://www.mag.org/",
              "aifb":"http://www.aifb.uni-karlsruhe.de/",
-             "yago":"http://schema.org/"}
+             "yago":"http://schema.org/",
+             "crunchbase":"http://ontologycentral.com/2010/05/cb/vocab#",
+             "biokg":"http://www.biokg.com/"}
 namedGraphURI_dic={"dblp":"http://dblp.org/",
-             "lkmdb":"https://www.lkmdb.org/",
+             "lkmdb":"https://linkedmdb.org",
              "mag":"https://www.mag.org/",
              "aifb":"http://www.aifb.uni-karlsruhe.de/",
-             "yago":"https://yago-knowledge.org"}
+             "yago":"https://yago-knowledge.org",
+             "crunchbase":"http://crunchbase-dump-2015-10",
+             "biokg":"http://www.biokg.com"}
 
 
 class colors:
@@ -269,6 +274,81 @@ class utils:
             print(e.message)
             return False
         return True
+
+    @staticmethod
+    def DAGTraversalsDFS(graph, start_node, current_path, all_paths):
+        current_path.append(start_node)
+        # print(f"current_path={current_path}")
+        if len(current_path) == len(graph):
+            all_paths.append(current_path.copy())
+        neighbours_lst = graph[start_node]
+        if len(neighbours_lst) < 1:
+            return current_path
+        elif len(neighbours_lst) == 1:
+            return utils.DAGTraversalsDFS(graph, neighbours_lst[0], current_path, all_paths)
+        elif len(neighbours_lst) > 1:
+            perms = list(itertools.permutations(neighbours_lst))
+            perm_paths = []
+            for perm_neighbours in perms:
+                # print(f"perm_neighbours={perm_neighbours}")
+                perm_path = current_path.copy()
+                ret_perm_paths = []
+                # print(f"perm_path={perm_path}")
+                for neighbor in perm_neighbours:
+                    # print(f"neighbor={neighbor}")
+                    if not any(isinstance(el, list) for el in ret_perm_paths):  # not list of lists
+                        ret_perm_paths = utils.DAGTraversalsDFS(graph, neighbor, perm_path, all_paths)
+                    else:
+                        for ret_prem_path in ret_perm_paths: #multi path exist under this node
+                            ret_perm_path = utils.DAGTraversalsDFS(graph, neighbor, ret_prem_path, all_paths)
+                perm_paths.append(perm_path.copy())
+            return perm_paths
+
+    @staticmethod
+    def generateAllDAGTravesals(edges_list=None, start_node='NC1', addStartNode=False,removeStartNode=False):
+        # Define the graph edges as given
+        # edges = [(0, 1), (0, 2), (0, 3), (1, 4), (1, 5), (4, 8), (2, 6), (3, 7), (7, 9)]
+        if edges_list is not None:
+            edges=edges_list
+        else:
+            edges = [('NC1', 'NC3'), ('NC2', 'NC4'), ('NC3', 'NC5')]
+        if addStartNode:
+            l = []
+            list(l.extend(row) for row in edges)
+            uniqueNode = set(l)
+            start_nodes = []
+            for n in uniqueNode:
+                if sum([1 for (u, v) in edges if v == n]) == 0:
+                    start_nodes.append(n)
+            for n in start_nodes:
+                edges.append((0, n))
+            start_node = 0
+
+        # Construct the graph as an adjacency list
+        graph = {}
+        for edge in edges:
+            u, v = edge
+            if u not in graph:
+                graph[u] = []
+            if v not in graph:
+                graph[v] = []
+            graph[u].append(v)
+        # Initialize variables for DFS
+        # start_node = 0
+        current_path = []
+        all_paths = []
+        # Generate all possible execution plans using DFS
+        utils.DAGTraversalsDFS(graph, start_node, current_path, all_paths)
+        # Sort Generated Paths
+        all_paths = ['->'.join([str(le) for le in elem]) for elem in all_paths]
+        all_paths.sort()
+        if addStartNode or removeStartNode:
+            all_paths = [elem.split('->')[1:] for elem in all_paths]
+        else:
+            all_paths = [elem.split('->') for elem in all_paths]
+        # for path in all_paths:
+        #     print(path)
+        return all_paths
 
 if __name__ == '__main__':
     ""

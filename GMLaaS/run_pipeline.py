@@ -94,15 +94,27 @@ def run_training_pipeline(json_args):
         transform_results_dict = transform_tsv_to_PYG(dataset_name=json_args["transformation"]["dataset_name"],
                                                       dataset_name_csv=json_args["transformation"]["dataset_name"],
                                                       dataset_types=json_args["transformation"]["dataset_types"],
-                                                      split_rel="random",
+                                                    #   split_rel="random",
+                                                    #   split_rel="http://schema.org/birthDate", # for Yago Person
+                                                    #   split_rel="http://schema.org/datePublished", # for Yago creative work                                                    
                                                       target_rel=json_args["transformation"]["target_rel"],
                                                       similar_target_rels=[],
                                                       output_root_path=json_args["transformation"]["output_root_path"],
                                                       MINIMUM_INSTANCE_THRESHOLD=json_args["transformation"]["MINIMUM_INSTANCE_THRESHOLD"],
                                                       test_size=json_args["transformation"]["test_size"],
                                                       valid_size=json_args["transformation"]["valid_size"],
-                                                      split_rel_train_value=None,
-                                                      split_rel_valid_value=None,
+                                                    #   split_rel_train_value=1990, # for Yago Person
+                                                    #   split_rel_valid_value=1995, # for Yago Person
+                                                    #   split_rel="http://purl.org/dc/terms/date",  # for LinkedMDB
+                                                    #   split_rel_train_value=2002, # for LinkedMDB
+                                                    #   split_rel_valid_value=2005, # for LinkedMDB
+                                                    #   split_rel="http://ontologycentral.com/2010/05/cb/vocab#born_on",  # for crunchbase
+                                                    #   split_rel_train_value=1985, # for crunchbase
+                                                    #   split_rel_valid_value=1988, # for crunchbase
+                                                      split_rel="http://www.biokg.com/frist_publish_year",  # for biokg
+                                                      split_rel_train_value=2001, # for biokg
+                                                      split_rel_valid_value=2003, # for biokg
+                                                      split_rel_type="date",
                                                       labelNodetype=json_args["transformation"]["label_node_type"],
                                                       targetNodeType=json_args["transformation"]["target_node_type"])
         print("Task ClassesCount:",transform_results_dict["ClassesCount"])
