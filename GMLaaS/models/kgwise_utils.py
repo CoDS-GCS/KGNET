@@ -39,6 +39,31 @@ def execute_query_v3(batch, inference_file, kg, graph_uri, shared_list):
     subgraph_df = subgraph_df.map(lambda x: x.strip('"'))
     shared_list.append(subgraph_df)
 
+def custom_query(target_lst):
+    query_file = 'query.txt'#gemini_yago4_PC_v3.txt'
+    with open (os.path.join(KGNET_Config.datasets_output_path,'..','LLM_Sampler_queries',query_file),'rb') as file:
+        custom_q = file.read().decode()
+    formatted_links = " ".join(target_lst)
+    custom_q = custom_q.format(formatted_links=formatted_links)
+    query_o_type = """
+    select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+    #from <http://dblp.org>
+    from <https://yago-knowledge.org>
+    #from <http://mag.org>
+    #from <http://www.yago3-10/>
+    #from <http://wikikg-v2>
+    where
+    {
+       select  (?o as ?s) ('http://www.w3.org/1999/02/22-rdf-syntax-ns#type' as ?p) (?otype as ?o)
+       where
+       {
+         ?s ?p ?o.
+         ?o a ?otype.
+         values ?s {$VT_Values$}
+       }
+    }"""
+    query_o_type=query_o_type.replace("$VT_Values$"," ".join(target_lst))
+    return custom_q,query_o_type
 
 def batch_tosa_v3(targetNodesList, inference_file, graph_uri, kg, BATCH_SIZE=2000): # 2000
     def batch_generator():
@@ -279,7 +304,7 @@ def store_emb(model,model_name,root_path=os.path.join(KGNET_Config.trained_model
                                 zipf.write(file_path, arcname=arcname)
 
     path = os.path.join(root_path,model_name)
-    if os.path.exists(root_path):
+    if not os.path.exists(root_path):
         os.mkdir(root_path)
 
     if os.path.exists(path):
