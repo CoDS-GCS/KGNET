@@ -402,7 +402,7 @@ class RGCN(torch.nn.Module):
         # return y_pred.squeeze(1)
 
 
-    def load_Zarr_emb(self,edge_index_dict,key2int,model_name,target,root_path=os.path.join(KGNET_Config.trained_model_path,'emb_store'),**kwargs):
+    def load_Zarr_emb(self,edge_index_dict,key2int,model_name,target,root_path=KGNET_Config.emb_store_path,**kwargs):
         def create_indices(v, emb_size):
             repeated_v = torch.tensor(v).repeat_interleave(emb_size)   # Repeat each element in v emb_size times
             repeated_range = torch.arange(emb_size).repeat(len(v))     # Create a tensor containing the range [0, 1, 2, ..., emb_size-1] repeated len(v) times
@@ -413,7 +413,7 @@ class RGCN(torch.nn.Module):
         def get_to_load(edge_index_dict,):
             to_load = {}
             for k, v in edge_index_dict.items():
-                if v.equal(torch.tensor([[-1], [-1]])):
+                if v.equal(torch.tensor([[-1], [-1]])): # skip dummy relations
                     continue
                 src, _, dst = k
                 if key2int[src] != target:
@@ -437,10 +437,10 @@ class RGCN(torch.nn.Module):
         time_load_start = datetime.datetime.now()
         for k,v in to_load.items():
             v = list(v)
-            root_k_shape = root[k].shape
+            root_k_shape = root[k].shape # To get the original num nodes of type K
             emb_array = torch.tensor(root[k][v].astype(float))
             v = create_indices(v,root_k_shape[1])
-            sparse_tensor = torch.sparse.FloatTensor(v, emb_array.view(-1), torch.Size(root_k_shape)).to(torch.float32)
+            sparse_tensor = torch.sparse_coo_tensor(v, emb_array.view(-1), torch.Size(root_k_shape)).to(torch.float32)
             self.emb_dict[str(k)] = sparse_tensor
         time_load_end = (datetime.datetime.now()-time_load_start).total_seconds()
         warnings.warn('total time for mapping : {}'.format(time_load_end))
@@ -1036,13 +1036,13 @@ if __name__ == '__main__':
     parser.add_argument('--walk_length', type=int, default=2)
     parser.add_argument('--num_steps', type=int, default=10)
     parser.add_argument('--loadTrainedModel', type=int, default=1)
-    parser.add_argument('--dataset_name', type=str, default="DBLP_Paper_Venue_FM_FTD_d1h1")#  DBLP_Paper_Venue_FM_FTD_d1h1_2021_2 ##
+    parser.add_argument('--dataset_name', type=str, default="DBLP_Paper_Venue_90-21_d1h1")#  DBLP_Paper_Venue_FM_FTD_d1h1_2021_2 ##
     parser.add_argument('--root_path', type=str, default= KGNET_Config.datasets_output_path)
     parser.add_argument('--output_path', type=str, default=KGNET_Config.trained_model_path)
     parser.add_argument('--include_reverse_edge', type=bool, default=True)
     parser.add_argument('--n_classes', type=int, default=50)
     parser.add_argument('--emb_size', type=int, default=128)
-    parser.add_argument('--modelID',type=str, default='DBLP_FTD_d1h1_Zarr.model') #DBLP_Paper_Venue_FM_FTD_d1h1_PRIME_1000_GA_0_ShadowSaint Zarr = DBLP_d1h1_2021_Zarr_e10.model v2=DBLP_FTD_d1h1_Zarr
+    parser.add_argument('--modelID',type=str, default='DBLP_Paper_Venue_90-21_d1h1_wise.model') #DBLP_Paper_Venue_FM_FTD_d1h1_PRIME_1000_GA_0_ShadowSaint Zarr = DBLP_d1h1_2021_Zarr_e10.model v2=DBLP_FTD_d1h1_Zarr
     args = parser.parse_args()
     print(args)
     print(wise_SHsaint(args.device, args.num_layers, args.hidden_channels, args.dropout, args.lr, args.epochs, args.runs, args.batch_size, args.walk_length, args.num_steps, args.loadTrainedModel, args.dataset_name, args.root_path, args.output_path, args.include_reverse_edge, args.n_classes, args.emb_size, modelID=args.modelID))

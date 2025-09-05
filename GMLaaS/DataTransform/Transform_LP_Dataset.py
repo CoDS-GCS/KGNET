@@ -8,6 +8,12 @@ from threading import Thread
 import threading
 import os
 import shutil
+GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/rgcn"
+sys.path.insert(0,GMLaaS_models_path)
+GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models"
+sys.path.insert(0,GMLaaS_models_path)
+sys.path.append(os.path.join(os.path.abspath(__file__).split("KGNET")[0],'KGNET'))
+
 from Constants import *
 
 from sklearn.model_selection import train_test_split
@@ -18,7 +24,9 @@ def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_siz
         full_ds = pd.read_csv(os.path.join(data_path, ds_name + ".tsv"), dtype=str, sep=delm)
     else:
         full_ds= pd.read_csv(os.path.join(data_path, ds_name+".tsv"), dtype=str, sep=delm, header=None)
+    full_ds = full_ds.drop_duplicates()
     full_ds.columns=["s","p","o"]
+    full_ds.map(lambda x:str(x).replace('\n',''))
     dic_results["TriplesCount"] = len(full_ds)
     ##############################
     path = os.path.join(data_path, ds_name)
@@ -27,13 +35,13 @@ def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_siz
     os.mkdir(path)
     print("Directory '% s' created" % path)
     #############################
-    relations_lst = full_ds["p"].unique().tolist()
+    relations_lst = full_ds["p"].dropna().unique().tolist()
     relations_lst.sort()
-    pd.DataFrame(relations_lst).to_csv(path + "/relations.dict", sep="\t", header=None)
-    entities_lst = list(set(full_ds["s"].unique().tolist() + full_ds["o"].unique().tolist()))
+    pd.DataFrame(relations_lst).dropna().to_csv(path + "/relations.dict", sep="\t", header=None)
+    entities_lst = list(set(full_ds["s"].dropna().unique().tolist() + full_ds["o"].dropna().unique().tolist()))
     entities_lst=[str(elem) for elem in entities_lst]
     entities_lst.sort()
-    pd.DataFrame(entities_lst).to_csv(path + "/entities.dict", sep="\t", header=None)
+    pd.DataFrame(entities_lst).dropna().to_csv(path + "/entities.dict", sep="\t", header=None,)
 
     split_df = full_ds[full_ds["p"].isin([target_rel])].reset_index(drop=True)
     if not inference:
@@ -75,30 +83,30 @@ def transform_LP_train_valid_test_subsets(data_path,ds_name,target_rel,valid_siz
 ###############################################################################################################################################
 def write_entites_rels_dict(train_ds, valid_ds, test_ds,data_path):
     all_triples_df = pd.concat([train_ds, valid_ds, test_ds])
-    relations_lst = all_triples_df["p"].unique().tolist()
+    relations_lst = all_triples_df["p"].astype(str).unique().tolist()
     relations_lst.sort()
     pd.DataFrame(relations_lst).to_csv(data_path + "relations.dict", sep="\t", header=None)
-    entities_lst = list(set(all_triples_df["s"].unique().tolist() + all_triples_df["o"].unique().tolist()))
+    entities_lst = list(set(all_triples_df["s"].astype(str).dropna().unique().tolist() + all_triples_df["o"].astype(str).dropna().unique().tolist()))
     del all_triples_df
     entities_lst.sort()
     pd.DataFrame(entities_lst).to_csv(data_path + "entities.dict", sep="\t", header=None)
 def write_valid_test_targetrel_subsets(target_rel_uri,target_rel_name,valid_ds,test_ds,delm='\t'):
-    valid_ds[valid_ds["p"].isin([target_rel_uri])].to_csv(data_path + "valid_" + target_rel_name + ".txt", sep=delm,
+    valid_ds[valid_ds["p"].isin([target_rel_uri])].to_csv(os.path.join(path, "valid_" + target_rel_name + ".txt") , sep=delm,
                                                           header=None, index=None)
-    test_ds[test_ds["p"].isin([target_rel_uri])].to_csv(data_path + "test_" + target_rel_name + ".txt", sep=delm,
+    test_ds[test_ds["p"].isin([target_rel_uri])].to_csv(os.path.join(path, "test_" + target_rel_name + ".txt") , sep=delm,
                                                         header=None, index=None)
 def write_d1h1_TOSG(train_ds,source_en,des_en,delm='\t'):
     train_SQ = train_ds[((train_ds["s"].isin(source_en)) | (train_ds["s"].isin(des_en)))]
     train_SQ = train_SQ.drop_duplicates()
     print("len d1h1 =", len(train_SQ))
-    train_SQ.to_csv(data_path + "train_" + target_rel_name + "_d1h1.txt", header=None, index=None, sep=delm)
+    train_SQ.to_csv(os.path.join(path, "train_" + target_rel_name + "_d1h1.txt"), header=None, index=None, sep=delm)
 def write_d2h1_TOSG(train_ds,source_en,des_en,delm='\t'):
     train_BSQ = train_ds[((train_ds["s"].isin(source_en)) | (train_ds["o"].isin(source_en))
                           | (train_ds["s"].isin(des_en)) | (train_ds["o"].isin(des_en)))]
     train_BSQ = train_BSQ.drop_duplicates()
     # print(train_BSQ)
     print("len d2h1 =", len(train_BSQ))
-    train_BSQ.to_csv(data_path + "train_" + target_rel_name + "_d2h1.txt", header=None, index=None, sep=delm)
+    train_BSQ.to_csv(os.path.join(path, "train_" + target_rel_name + "_d2h1.txt") , header=None, index=None, sep=delm)
 def write_d1h2_TOSG(train_ds,source_en,des_en,delm='\t'):
     train_SQ = train_ds[((train_ds["s"].isin(source_en)) | (train_ds["s"].isin(des_en)))]
     train_SQ = train_SQ.drop_duplicates()
@@ -109,7 +117,7 @@ def write_d1h2_TOSG(train_ds,source_en,des_en,delm='\t'):
     train_PQ = train_PQ.drop_duplicates()
     # print(train_PQ)
     print("len d1h2 =", len(train_PQ))
-    train_PQ.to_csv(data_path + "train_" + target_rel_name + "_d1h2.txt", header=None, index=None, sep=delm)
+    train_PQ.to_csv(os.path.join(path,"train_" + target_rel_name + "_d1h2.txt") , header=None, index=None, sep=delm)
 def write_d2h2_TOSG(train_ds,source_en,des_en,delm='\t'):
     train_q1 = train_ds[train_ds["s"].isin(source_en) | train_ds["o"].isin(source_en)]
     train_q2 = train_ds[train_ds["s"].isin(des_en) | train_ds["o"].isin(des_en)]
@@ -121,7 +129,7 @@ def write_d2h2_TOSG(train_ds,source_en,des_en,delm='\t'):
     train_BPQ = train_BPQ.drop_duplicates()
     # print(train_BPQ)
     print("len d2h2 =", len(train_BPQ))
-    train_BPQ.to_csv(data_path + "train_" + target_rel_name + "_d2h2.txt", header=None, index=None, sep=delm)
+    train_BPQ.to_csv(os.path.join(path,"train_" + target_rel_name + "_d2h2.txt") , header=None, index=None, sep=delm)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -129,10 +137,10 @@ if __name__ == '__main__':
     #parser.add_argument('--start_offset', dest='start_offset', type=int, help='Add start_offset', default=0)
     #parser.add_argument('--sparql_endpoint', type=str, help='SPARQL endpoint URL', default='http://206.12.98.118:8890/sparql')
     #parser.add_argument('--graph_uri', type=str, help=' KG URI', default='http://dblp.org')
-    parser.add_argument('--target_rel_uri', type=str, help='target_rel_uri URI',default='http://www.wikidata.org/entity/P101')
+    parser.add_argument('--target_rel_uri', type=str, help='target_rel_uri URI',default='http://www.yago3-10/isConnectedTo') # http://www.wikidata.org/entity/P101 # http://www.yago3-10/isConnectedTo
     parser.add_argument("--data_path", type=str, default=KGNET_Config.datasets_output_path)
-    parser.add_argument("--dataset", type=str, default="mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965")
-    parser.add_argument('--TOSG', type=str, help='TOSG Pattern',default='d1h1')
+    parser.add_argument("--dataset", type=str, default="YAGO_310_FG")
+    parser.add_argument('--TOSG', type=str, help='TOSG Pattern',default='d1h2')
     parser.add_argument('--file_sep', type=str, help='triple delimter', default='\t')
     # parser.add_argument('--batch_size', type=int, help='batch_size', default='1000000')
     # parser.add_argument('--out_file', dest='out_file', type=str, help='output file to write trplies to', default='dblp_pv.tsv')
@@ -157,22 +165,23 @@ if __name__ == '__main__':
     transform_LP_train_valid_test_subsets(data_path, ds_name, args.target_rel_uri, valid_size=0.1, test_size=0.1, delm='\t',
                                           containHeader=False, split_rel=None)
     ############################ read train-test-valid daatsets #####################
-    train_ds = pd.read_csv(data_path + "train.txt", dtype=str, sep=file_sep, header=None)
+    path = os.path.join(data_path,dataset)
+    train_ds = pd.read_csv(os.path.join(path,"train.txt"), dtype=str, sep=file_sep, header=None)
     train_ds = train_ds.rename(columns={0: 's', 1: 'p', 2: 'o'})
     print(len(train_ds[train_ds["p"].isin([target_rel_uri])]["o"].unique().tolist()))
     # print(train_ds)
     # print(train_ds["p"].value_counts())
     lst_rels = train_ds["p"].unique().tolist()
-    valid_ds = pd.read_csv(data_path + "valid.txt", dtype=str, sep=file_sep, header=None)
+    valid_ds = pd.read_csv(os.path.join(path,"valid.txt"), dtype=str, sep=file_sep, header=None)
     # valid_ds.to_csv(data_path + "valid_t.txt", sep="\t", header=None,index=None)
     valid_ds = valid_ds.rename(columns={0: 's', 1: 'p', 2: 'o'})
     # print(valid_ds)
-    test_ds = pd.read_csv(data_path + "test.txt", dtype=str, sep=file_sep, header=None)
+    test_ds = pd.read_csv(os.path.join(path,"test.txt"), dtype=str, sep=file_sep, header=None)
     # test_ds.to_csv(data_path + "test_ds_t.txt", sep="\t", header=None,index=None)
     test_ds = test_ds.rename(columns={0: 's', 1: 'p', 2: 'o'})
     # print(test_ds)
     #####################################
-    write_entites_rels_dict(train_ds, valid_ds, test_ds, data_path)
+    write_entites_rels_dict(train_ds, valid_ds, test_ds, path)
     write_valid_test_targetrel_subsets(target_rel_uri,target_rel_name,valid_ds,test_ds,delm='\t')
     del valid_ds
     del test_ds
