@@ -6,21 +6,43 @@ import sys
 import argparse
 from threading import Thread
 import threading
-from  Constants import RDFEngine
+from  Constants import RDFEngine as Config_RDFEngine
 import validators
 lock = threading.Lock()
-def ExecQueryAndWriteOutput(endpoint_url,query, offset, batch_size,batches_count, f,RDFEngine=RDFEngine.OpenlinkVirtuoso):
+def ExecQueryAndWriteOutput(endpoint_url,query, offset, batch_size,batches_count, f,RDFEngine=Config_RDFEngine.OpenlinkVirtuoso):
     start_t = datetime.datetime.now()
     r_query = query.replace("?offset", str(offset))
     r_query = r_query.replace("?limit", str(batch_size))
     body = {'query': r_query}
     headers = {'Content-Type': 'application/x-www-form-urlencoded',
                'Accept-Encoding': 'gzip',
-               'Accept':  ('text/tab-separated-values; charset=UTF-8' if  RDFEngine==RDFEngine.OpenlinkVirtuoso else 'text/tsv')
+               'Accept':  ('text/tab-separated-values; charset=UTF-8' if  RDFEngine==Config_RDFEngine.OpenlinkVirtuoso else 'text/tsv')
                }
     r = requests.post(endpoint_url, data=body, headers=headers)
     lock.acquire()
+
     f.write(r.text.replace(""""subject"	"predicate"	"object"\n""", ""))
+    end_t = datetime.datetime.now()
+    print("Query idx: ", (offset / batch_size), "/", batches_count, " records count=", len(r.text.split('\n')),
+          " time=", end_t - start_t, " sec.")
+    lock.release()
+
+
+def ExecQueryAndWriteOutput_multi(endpoint_url, query, offset, batch_size, batches_count, output_file_thread,
+                            RDFEngine=Config_RDFEngine.OpenlinkVirtuoso):
+    start_t = datetime.datetime.now()
+    r_query = query.replace("?offset", str(offset))
+    r_query = r_query.replace("?limit", str(batch_size))
+    body = {'query': r_query}
+    headers = {'Content-Type': 'application/x-www-form-urlencoded',
+               'Accept-Encoding': 'gzip',
+               'Accept': (
+                   'text/tab-separated-values; charset=UTF-8' if RDFEngine == Config_RDFEngine.OpenlinkVirtuoso else 'text/tsv')
+               }
+    r = requests.post(endpoint_url, data=body, headers=headers)
+    lock.acquire()
+    with open (output_file_thread,'w') as f:
+        f.write(r.text.replace(""""subject"	"predicate"	"object"\n""", ""))
     end_t = datetime.datetime.now()
     print("Query idx: ", (offset / batch_size), "/", batches_count, " records count=", len(r.text.split('\n')),
           " time=", end_t - start_t, " sec.")
@@ -85,6 +107,39 @@ def get_d1h1_TargetListquery(graph_uri,target_lst):
     query=query.replace("$VT_Values$"," ".join(target_lst))
     query_o_type = query_o_type.replace("$VT_Values$", " ".join(target_lst))
     return [query,query_o_type]
+
+def get_d2h1_TargetListquery(graph_uri,target_lst):
+    query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+           from <"""+graph_uri+""">
+           where
+           {
+             ?s ?p ?o.
+             values ?s {$VT_Values$}
+           }"""
+    query2="""select distinct (?o as ?subject) (?p as ?predicate) (?s as ?object)
+           from <"""+graph_uri+""">
+           where
+           {
+             ?o ?p ?s.
+             values ?s {$VT_Values$}
+           }"""
+    query_o_type = """
+    select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
+    from <""" + graph_uri + """>
+    where
+    {
+       select  (?o as ?s) ('http://www.w3.org/1999/02/22-rdf-syntax-ns#type' as ?p) (?otype as ?o)
+       where
+       {
+         ?s ?p ?o.
+         ?o a ?otype.
+         values ?s {$VT_Values$}
+       }
+    }"""
+    query=query.replace("$VT_Values$"," ".join(target_lst))
+    query2 = query2.replace("$VT_Values$", " ".join(target_lst))
+    query_o_type = query_o_type.replace("$VT_Values$", " ".join(target_lst))
+    return [query,query2,query_o_type]
 # def get_d1h1_query(graph_uri,target_rel_uri,stype=None,otype=None,tragetNode_filter_statments=None):
 #     query="""select distinct (?s as ?subject) (?p as ?predicate) (?o as ?object)
 #     query_o_type = query_o_type.replace("$VT_Values$", " ".join(target_lst))
@@ -224,7 +279,7 @@ def get_d2h2_query(graph_uri,target_rel_uri,tragetNode_filter_statments=None):
                 }
                 """
     return  [get_d1h1_query(graph_uri,target_rel_uri),get_d2h1_query(graph_uri,target_rel_uri),query1,query2]
-def execute_sparql_multithreads(start_offset,sparql_endpoint_url,batch_size,queries,out_file,threads_count,RDFEngine=RDFEngine.OpenlinkVirtuoso):
+def execute_sparql_multithreads(start_offset,sparql_endpoint_url,batch_size,queries,out_file,threads_count,RDFEngine=Config_RDFEngine.OpenlinkVirtuoso):
     q_start_t = datetime.datetime.now()
     rows_count_lst=[]
     for query  in queries:
@@ -260,6 +315,50 @@ def execute_sparql_multithreads(start_offset,sparql_endpoint_url,batch_size,quer
             for th in th_lst:
                 th.join()
             print(threads_count, " threads finish at ", datetime.datetime.now() - q_start_t, " sec.")
+    q_end_t = datetime.datetime.now()
+    print("total time ", q_end_t - q_start_t, " sec.")
+    return  q_end_t - q_start_t,sum(rows_count_lst)
+
+
+def execute_sparql_multithreads_multifile(start_offset,sparql_endpoint_url,batch_size,queries,out_file,threads_count,RDFEngine=Config_RDFEngine.OpenlinkVirtuoso):
+    q_start_t = datetime.datetime.now()
+    rows_count_lst=[]
+    for query  in queries:
+        # rows_count_query = query.replace("select distinct ?s as ?subject ?p as ?predicate ?o as ?object", "select count(*) as ?c")
+        rows_count_query = query.replace("select ?s as ?subject ?p as ?predicate ?o as ?object", "select count(*) as ?c")
+        rows_count_query=rows_count_query.replace("limit ?limit" ,"")
+        rows_count_query = rows_count_query.replace("offset ?offset", "")
+        rows_count=ExecQuery(sparql_endpoint_url,rows_count_query)
+        rows_count_lst.append(int(rows_count))
+    q_end_t = datetime.datetime.now()
+    print("triples_count=", sum(rows_count_lst), "Query Time=",q_end_t - q_start_t, " sec.")
+    #######################
+    q_start_t = datetime.datetime.now()
+
+    for q_idx,query  in enumerate(queries):
+        batches_count = int(rows_count_lst[q_idx] / batch_size) + 1
+        print("query idx=",q_idx,"batches_count=", batches_count)
+        th_idx = 1
+        th_lst = []
+        for idx, offset in enumerate(range(start_offset, rows_count_lst[q_idx], batch_size)):
+            try:
+                # with open(out_file.replace('.tsv',f'{str(idx)}_.tsv'), 'w') as f:
+                output_file_thread = out_file.replace('.tsv',f'{str(idx)}_.tsv')
+                t = Thread(target=ExecQueryAndWriteOutput_multi, args=(sparql_endpoint_url,query, offset, batch_size,batches_count, output_file_thread,RDFEngine))
+                th_lst.append(t)
+                t.start()
+                th_idx = th_idx + 1
+                if th_idx == threads_count:
+                    th_idx = 0
+                    for th in th_lst:
+                        th.join()
+                    th_lst = []
+                    print(threads_count, " threads finish at ", datetime.datetime.now() - q_start_t, " sec.")
+            except  Exception as e:
+                print("Exception", e)
+        for th in th_lst:
+            th.join()
+        print(threads_count, " threads finish at ", datetime.datetime.now() - q_start_t, " sec.")
     q_end_t = datetime.datetime.now()
     print("total time ", q_end_t - q_start_t, " sec.")
     return  q_end_t - q_start_t,sum(rows_count_lst)

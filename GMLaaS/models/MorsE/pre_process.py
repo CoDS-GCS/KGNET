@@ -86,7 +86,8 @@ def data2pkl(data_name,target_rel='rel',BGP='FG'):
     test_test_tri = reidx_withr_ande(ind_test_tri, fix_rel_reidx, ent_reidx_ind)
 
     save_data = {'train_graph': {'train': train_tri, 'valid': valid_tri, 'test': test_tri},
-                 'ind_test_graph': {'train': test_train_tri, 'valid': test_valid_tri, 'test': test_test_tri}}
+                 'ind_test_graph': {'train': test_train_tri, 'valid': test_valid_tri, 'test': test_test_tri}},
+                 #'fix_rel_'
 
     pickle.dump(save_data, open(f'./data/{data_name}.pkl', 'wb'))
 
@@ -176,6 +177,56 @@ def data2pkl_Trans_to_Ind_BGP(data_name,BGP='FG',datapath='data',fsep='\t',logge
                  }
 
     pickle.dump(save_data, open(datapath+'/'+data_name+'_'+BGP+'.pkl', 'wb'))
+
+def data2pkl_WISE_inf(data_name, BGP='FG', datapath='data', fsep='\t', logger=None):
+
+    inf_f_name = data_name+'.tsv'
+    inf_df = pd.read_csv(datapath + "/" + inf_f_name, sep=fsep, header=0, names=['s', 'p', 'o'])
+
+    inf_df = inf_df.map(lambda x: x.strip())
+    inf_df.drop_duplicates(inplace=True)
+
+    inf_triples = inf_df.values.tolist()
+    inf_tri, fix_rel_reidx, ent_reidx = reidx(inf_triples)
+
+    save_data = {'FG_tri': inf_tri,
+                 'fix_rel_reidx': fix_rel_reidx,
+                 'ent_reidx': ent_reidx
+                 }
+
+    # pickle.dump(save_data, open(datapath+"/"+data_name+'_inf.pkl', 'wb'))
+    pickle.dump(save_data, open(datapath+data_name + "/" + data_name + '_inf.pkl', 'wb'))
+
+
+
+def data2pkl_FG_inf(data_name, BGP='FG', datapath='data', fsep='\t', logger=None):
+    train_f_name = 'train.txt'
+    valid_f_name = 'valid.txt'
+    test_f_name = 'test.txt'
+    # train_df = pd.read_csv(datapath + "/" + data_name + "/" + train_f_name, sep=fsep, header=None,
+    #                        names=['s', 'p', 'o'])
+    test_df = pd.read_csv(datapath + "/" + data_name + "/" + test_f_name, sep=fsep, header=None, names=['s', 'p', 'o'])
+    valid_df = pd.read_csv(datapath + "/" + data_name + "/" + valid_f_name, sep=fsep, header=None,
+                           names=['s', 'p', 'o'])
+
+    # train_df = train_df.map(lambda x: x.strip())
+    valid_df = valid_df.map(lambda x: x.strip())
+    test_df = test_df.map(lambda x: x.strip())
+
+    # FG_df = pd.concat([train_df, valid_df, test_df]).drop_duplicates()
+    FG_df = pd.concat([test_df,valid_df]).drop_duplicates()
+    del  test_df, valid_df, # train_df
+
+    FG_triples = FG_df.values.tolist()
+    FG_tri, fix_rel_reidx, ent_reidx = reidx(FG_triples)
+
+    save_data = {'FG_tri': FG_tri,
+                 'fix_rel_reidx': fix_rel_reidx,
+                 'ent_reidx': ent_reidx
+                 }
+
+    pickle.dump(save_data, open(datapath+data_name+"/"+data_name+'_inf.pkl', 'wb'))
+
 
 def data2pkl_Trans_to_Ind(datapath='data',data_name=None,fsep='\t',logger=None):
     if data_name==None:

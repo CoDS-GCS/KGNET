@@ -54,6 +54,15 @@ def get_hr2t_rt2h_sup_que(sup_tris, que_tris):
 
     return que_hr2t, que_rt2h
 
+def get_inf_FG(args):
+    data = pickle.load(open(args.data_path.replace('.pkl','_inf.pkl'), 'rb'))['FG_tri']
+    num_ent = len(np.unique(np.array(data)[:, [0, 2]]))
+    hr2t, rt2h = get_hr2t_rt2h(data)
+    from datasets import KGEEvalDataset
+    test_dataset = KGEEvalDataset(args, data, num_ent, hr2t, rt2h) # data['test']
+    g = get_g_bidir(torch.LongTensor(data), args)
+    return test_dataset, g
+
 
 def get_indtest_test_dataset_and_train_g(args):
     data = pickle.load(open(args.data_path, 'rb'))['ind_test_graph']
