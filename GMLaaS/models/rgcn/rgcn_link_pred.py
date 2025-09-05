@@ -7,8 +7,12 @@ Caution: This script is executed in a full-batch fashion, and therefore needs
 to run on CPU (following the experimental setup in the official paper).
 """
 import sys
+import os
 GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/rgcn"
 sys.path.insert(0,GMLaaS_models_path)
+sys.path.insert(0,os.path.join(os.path.abspath(__file__).split("KGNET")[0],'KGNET'))
+sys.path.insert(0,os.path.abspath(__file__).replace(os.path.basename(__file__),''))
+
 from Constants import *
 #import argparse
 import torch
@@ -20,7 +24,6 @@ from rel_link_pred_dataset import RelLinkPredDataset
 from torch_geometric.nn import GAE, RGCNConv
 from resource import *
 import datetime
-import os
 import json
 import pandas as pd
 import os.path as osp
@@ -356,7 +359,7 @@ def rgcn_lp(dataset_name,
 
 
 if __name__ == '__main__':
-    dataset_name = r'Yago3-10_isConnectedTo' # mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965
+    dataset_name = r'YAGO_3-10_isConnectedTo_D2H1' # mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965 # Yago3-10_isConnectedTo
     root_path = os.path.join(KGNET_Config.datasets_output_path,)
     target_rel = r'isConnectedTo' #http://www.wikidata.org/entity/P101
     list_src_nodes = ['http://www.wikidata.org/entity/Q5484233',

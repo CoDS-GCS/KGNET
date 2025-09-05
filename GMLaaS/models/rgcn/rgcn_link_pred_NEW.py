@@ -7,8 +7,10 @@ Caution: This script is executed in a full-batch fashion, and therefore needs
 to run on CPU (following the experimental setup in the official paper).
 """
 import sys
+import os
 GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/rgcn"
 sys.path.insert(0,GMLaaS_models_path)
+sys.path.insert(0,os.getcwd())
 from Constants import *
 #import argparse
 import torch
@@ -195,7 +197,7 @@ def negative_sampling(edge_index, num_nodes):
     return neg_edge_index
 
 def train(train_triplets, model, use_cuda, batch_size, split_size, negative_sample, reg_ratio, num_entities, num_relations):
-
+    batch_size = len(train_triplets)
     train_data = generate_sampled_graph_and_labels(train_triplets, batch_size, split_size, num_entities, num_relations, negative_sample)
 
     if use_cuda:
@@ -234,7 +236,7 @@ def test(test_triplets, model, test_graph, all_triplets):
 def rgcn_lp(dataset_name,
             root_path=KGNET_Config.datasets_output_path,
             epochs=3,val_interval=2,
-            hidden_channels=10,batch_size=-1,runs=1,
+            hidden_channels=0,batch_size=-1,runs=1,
             emb_size=128,walk_length = 2, num_steps=2,
             loadTrainedModel=0,
             target_rel = '',
@@ -249,11 +251,12 @@ def rgcn_lp(dataset_name,
     n_bases = 4 #TODO
     dropout = 0.3 #TODO
     use_cuda = False #TODO
-    graph_batch_size = 30000
+    graph_batch_size = 20000#30000
     negative_sample = 1
     regularization = 1e-2
+    hidden_channels = 100
     grad_norm = 1.0
-    graph_split_size = 0.5
+    graph_split_size = 0.5#1.0
     best_mrr = 0
 
 
@@ -336,6 +339,7 @@ def rgcn_lp(dataset_name,
     for epoch in tqdm (range(1, epochs),desc='Training Epochs'):
         # print('Starting training .. ')
         model.train()
+        optimizer.zero_grad()
         loss = train(train_triplets, model, use_cuda, batch_size=graph_batch_size,
                      split_size=graph_split_size,
                      negative_sample=negative_sample, reg_ratio=regularization, num_entities=len(entity2id),
@@ -423,15 +427,15 @@ def rgcn_lp(dataset_name,
 
 
 if __name__ == '__main__':
-    dataset_name = r'Yago3-10_isConnectedTo' # mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965
+    dataset_name = r'YAGO_3-10_isConnectedTo_D2H1' # mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965
     root_path = os.path.join(KGNET_Config.datasets_output_path,)
-    target_rel = r'isConnectedTo' #http://www.wikidata.org/entity/P101
+    target_rel = r'http://www.yago3-10/isConnectedTo' #http://www.wikidata.org/entity/P101
     list_src_nodes = ['http://www.wikidata.org/entity/Q5484233',
                       'http://www.wikidata.org/entity/Q16853882',
                       'http://www.wikidata.org/entity/Q777117']
     K = 2
     modelID = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965.model'
-    result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=0,list_src_nodes=list_src_nodes,modelID=modelID,epochs=11,val_interval=5,hidden_channels=100,
+    result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=0,list_src_nodes=list_src_nodes,modelID=modelID,epochs=2001,val_interval=500,hidden_channels=100,
                      )
     print(result)
 # rgcn_lp(dataset_name='mid-0000100',

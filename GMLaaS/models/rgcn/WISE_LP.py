@@ -8,8 +8,14 @@ to run on CPU (following the experimental setup in the official paper).
 """
 import pickle
 import sys
+import os
+
 GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models/rgcn"
 sys.path.insert(0,GMLaaS_models_path)
+GMLaaS_models_path=sys.path[0].split("KGNET")[0]+"/KGNET/GMLaaS/models"
+sys.path.insert(0,GMLaaS_models_path)
+sys.path.append(os.path.join(os.path.abspath(__file__).split("KGNET")[0],'KGNET'))
+
 from Constants import *
 import torch
 import torch.nn.functional as F
@@ -19,15 +25,19 @@ from rel_link_pred_dataset import RelLinkPredDataset
 from torch_geometric.nn import GAE, RGCNConv
 from resource import *
 import datetime
-import os
 import json
 import pandas as pd
 import os.path as osp
 from concurrent.futures import ProcessPoolExecutor, as_completed,ThreadPoolExecutor
-from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_TargetListquery
+from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_TargetListquery,execute_sparql_multithreads_multifile
+
 import shutil
 from GMLaaS.DataTransform.Transform_LP_Dataset import transform_LP_train_valid_test_subsets
 import pickle
+import zarr
+from multiprocessing import Manager
+from GMLaaS.models.MorsE.main import get_default_args,morse
+
 def gen_model_name(dataset_name='',GNN_Method=''):
     return dataset_name
 def create_dir(list_paths):
@@ -36,18 +46,25 @@ def create_dir(list_paths):
             os.mkdir(path)
 
 class RGCNEncoder(torch.nn.Module):
-    def __init__(self, num_nodes, hidden_channels, num_relations):
+    def __init__(self, num_nodes, hidden_channels, num_relations, wise = 0):
         super().__init__()
+        self.wise = wise
+        # if self.wise==0:
+        #     self.node_emb = Parameter(torch.Tensor(num_nodes, hidden_channels))
+        # else:
+        #     self.node_emb = Parameter(torch.sparse_coo_tensor(size=(num_nodes, hidden_channels))) #Parameter(torch.Tensor(num_nodes, hidden_channels))
         self.node_emb = Parameter(torch.Tensor(num_nodes, hidden_channels))
+        print(f'HIDDEN CHANNEL = {hidden_channels}')
         self.conv1 = RGCNConv(hidden_channels, hidden_channels, num_relations,
-                              num_blocks=64,)
+                              num_blocks=5,) # 5 for dblp/wiki , 4 for yago
 
         self.conv2 = RGCNConv(hidden_channels, hidden_channels, num_relations,
-                              num_blocks=64,)
+                              num_blocks=5,) #
         self.reset_parameters()
 
     def reset_parameters(self):
-        torch.nn.init.xavier_uniform_(self.node_emb)
+        if self.wise == 0:
+            torch.nn.init.xavier_uniform_(self.node_emb)
         self.conv1.reset_parameters()
         self.conv2.reset_parameters()
 
@@ -69,9 +86,135 @@ class DistMultDecoder(torch.nn.Module):
         torch.nn.init.xavier_uniform_(self.rel_emb)
 
     def forward(self, z, edge_index, edge_type):
-        z_src, z_dst = z[edge_index[0]], z[edge_index[1]]
+        def sparse_values(sparse_tensor, select_indices):
+            """
+            Selects rows from a PyTorch 2D COO sparse tensor based on provided indices and returns a dense tensor.
+
+            Args:
+                sparse_tensor (torch.sparse_coo_tensor): The input sparse tensor.
+                select_indices (torch.Tensor): A 1D tensor containing integer indices of the rows to select.
+
+            Returns:
+                torch.Tensor: A dense tensor containing the selected rows.
+
+            Raises:
+                ValueError: If any index in select_indices is out of bounds for the sparse tensor.
+            """
+
+            # Ensure indices are within valid range (0 to num_rows - 1)
+            sparse_tensor = sparse_tensor.coalesce()
+            num_rows = sparse_tensor.size(0)
+            valid_indices = select_indices[select_indices >= 0]
+            valid_indices = valid_indices[valid_indices < num_rows]
+
+            if len(valid_indices) == 0:
+                raise ValueError("No valid indices provided for selection.")
+
+            # Extract relevant information from sparse tensor
+            indices = sparse_tensor.indices()
+            values = sparse_tensor.values()
+
+            # Create a dense tensor with zeros to hold the selected rows
+            selected_rows = torch.zeros((len(valid_indices), sparse_tensor.size(1)))
+
+            flag_return_first = False
+            if len(valid_indices.unique())==1:
+                row_mask = indices[0] == valid_indices[0]
+                row_indices = indices[:,row_mask][1:]
+                row_values = values[row_mask]
+                selected_rows[:, row_indices] = row_values
+                return selected_rows
+            # Efficiently populate the dense tensor using a loop
+            else:
+                for i, valid_index in enumerate(valid_indices):
+                    # Find indices corresponding to the valid row
+                    row_mask = indices[0] == valid_index
+                    row_indices = indices[:, row_mask][1:]  # Extract column indices within the row
+                    row_values = values[row_mask]
+
+                    # Scatter the row's values into the selected_rows tensor at corresponding column indices
+                    selected_rows[i, row_indices] = row_values
+
+            return selected_rows
+
+        if z.is_sparse:
+            z_src = sparse_values(z,edge_index[0])
+            z_dst = sparse_values(z,edge_index[1])
+        else:
+            z_src, z_dst = z[edge_index[0]], z[edge_index[1]]
+
+
         rel = self.rel_emb[edge_type]
         return torch.sum(z_src * rel * z_dst, dim=1)
+
+def save_emb(model,model_name,keys:list,root_path = os.path.join(KGNET_Config.trained_model_path,'emb_store')):
+    path = os.path.join(root_path, model_name)
+
+    if not os.path.exists(root_path):
+        os.mkdir(root_path)
+
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    os.mkdir(path)
+
+    emb_store = zarr.DirectoryStore(path)
+    root = zarr.group(store=emb_store)
+
+    for k in keys:
+        val_np = model.state_dict()[k].cpu().detach().numpy()
+        emb_array = root.create(k, shape=val_np.shape, dtype=val_np.dtype, chunks=(128, -1))
+        emb_array[:] = val_np
+
+    print('Embeddings saved!')
+
+
+def save_z(model,model_name,z,root_path = os.path.join(KGNET_Config.trained_model_path,'emb_store')):
+    path = os.path.join(root_path, model_name)
+
+    if not os.path.exists(root_path):
+        os.mkdir(root_path)
+
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    os.mkdir(path)
+
+    emb_store = zarr.DirectoryStore(path)
+    root = zarr.group(store=emb_store)
+
+
+    val_np = z.numpy()
+    emb_array = root.create('z', shape=val_np.shape, dtype=val_np.dtype, chunks=(128, -1))
+    emb_array[:] = val_np
+
+    print('Embeddings saved!')
+
+def load_emb (model_name,items:list,edge_index,emb_path=KGNET_Config.emb_store_path):
+    def create_indices(v, emb_size):
+        repeated_v = torch.tensor(v).repeat_interleave(emb_size)  # Repeat each element in v emb_size times
+        repeated_range = torch.arange(emb_size).repeat(
+            len(v))  # Create a tensor containing the range [0, 1, 2, ..., emb_size-1] repeated len(v) times
+        indices = torch.stack([repeated_v,
+                               repeated_range])  # Combine the repeated_v and repeated_range tensors to form the final 2D tensor
+        return indices
+
+
+
+    path = os.path.join(emb_path, model_name)
+    emb_store = zarr.DirectoryStore(path)
+    root = zarr.group(store=emb_store)
+    src,dst = edge_index.tolist()
+    nodes = list(set(src+dst))
+    loaded = {}
+    for k in items:
+        root_k_shape = root[k].shape
+        emb_array = torch.tensor(root[k][nodes].astype(float))
+        nodes_idx = create_indices(nodes,root_k_shape[1])
+        sparse_tensor = torch.sparse.FloatTensor(nodes_idx, emb_array.view(-1), torch.Size(root_k_shape)).to(torch.float32)
+        #model.encoder.node_emb = Parameter(sparse_tensor.to_dense())
+        loaded[k] = sparse_tensor
+
+    print('Embeddings loaded!')
+    return loaded
 
 
 
@@ -134,7 +277,7 @@ def compute_rank(ranks):
 @torch.no_grad()
 def compute_mrr(z, edge_index, edge_type):
     ranks = []
-    for i in tqdm(range(edge_type.numel())):
+    for i in tqdm(range(edge_type.numel()),position=0, leave=True):
         (src, dst), rel = edge_index[:, i], edge_type[i]
 
         # Try all nodes as tails, but delete true triplets:
@@ -155,6 +298,9 @@ def compute_mrr(z, edge_index, edge_type):
         out = model.decode(z, eval_edge_index, eval_edge_type)
         rank = compute_rank(out)
         ranks.append(rank)
+        ### For getting true positives ###
+        if out.max()==out[0]:
+            print(f"TRUE PRED FOUND FOR {src} -> {dst}")
 
         # Try all nodes as heads, but delete true triplets:
         head_mask = torch.ones(data.num_nodes, dtype=torch.bool)
@@ -184,19 +330,69 @@ def compute_mrr(z, edge_index, edge_type):
 
     return (1. / torch.tensor(ranks, dtype=torch.float)).mean(),hits_10
 
-def execute_query_v2(batch, inference_file,kg,):
+def execute_query_v3(batch, inference_file, kg, graph_uri, shared_list):
+    # try:
+    subgraph_df = kg.KG_sparqlEndpoint.executeSparqlquery(batch)
+    if len(subgraph_df.columns) != 3 or len(subgraph_df) == 0:
+        return
+        # raise Exception('Invalid extracted subgraph. Please check the query.')
 
+    subgraph_df = subgraph_df.map(lambda x: x.strip('"'))
+    shared_list.append(subgraph_df)
+    # except Exception as e:
+    #     # Handle the exception by logging it or handling it as required
+    #     print(f"Exception in thread: {e}")
+
+
+def batch_tosa_v3(targetNodesList, inference_file, graph_uri, kg, BATCH_SIZE=100):
+    def batch_generator():
+        ptr = 0
+        while ptr < len(targetNodesList):
+            yield targetNodesList[ptr:ptr + BATCH_SIZE]
+            ptr += BATCH_SIZE
+
+    queries = []
+    for q in batch_generator():
+        target_lst = ['<' + target.replace('"','') + '>' for target in q]
+        queries.extend(get_d1h1_TargetListquery(graph_uri=graph_uri, target_lst=target_lst))
+
+    manager = Manager()
+    shared_list = manager.list()
+    
+    if len(targetNodesList) > BATCH_SIZE:
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(execute_query_v3, batch, inference_file, kg, graph_uri, shared_list) for batch in
+                       queries]
+            for future in tqdm(futures, desc="Downloading Raw Graph", unit="subgraphs"):
+                try:
+                    future.result()  # This will raise any exception caught in the threads
+                except Exception as e:
+                    print(f"Exception occurred: {e}")
+                # pass
+    else:
+        [execute_query_v3(batch, inference_file, kg, graph_uri, shared_list) for batch in queries]
+
+    # Merge all dataframes in the shared list
+    if shared_list:
+        merged_df = pd.concat(shared_list, ignore_index=True)
+        if os.path.exists(inference_file):
+            merged_df.to_csv(inference_file, header=None, index=None, sep='\t', mode='a')
+        else:
+            merged_df.to_csv(inference_file, index=None, sep='\t', mode='a')
+
+def execute_query_v2(batch, inference_file,kg):
     subgraph_df = kg.KG_sparqlEndpoint.executeSparqlquery(batch)#kg.KG_sparqlEndpoint.execute_sparql_multithreads([query], inference_file)
     if len(subgraph_df.columns) != 3:
         print(subgraph_df)
         raise AssertionError
-    subgraph_df = subgraph_df.applymap(lambda x: x.strip('"'))
+    subgraph_df = subgraph_df.map(lambda x: x.strip('"'))
+
     if os.path.exists(inference_file):
         subgraph_df.to_csv(inference_file, header=None, index=None, sep='\t', mode='a')
     else:
         subgraph_df.to_csv(inference_file, index=None, sep='\t', mode='a')
 
-def batch_tosa_v2 (targetNodesList,inference_file,graph_uri,kg,BATCH_SIZE=2000):
+def batch_tosa_v2 (targetNodesList,inference_file,graph_uri,kg,BATCH_SIZE=10):
     def batch_generator():
         ptr = 0
         while ptr < len(targetNodesList):
@@ -208,14 +404,25 @@ def batch_tosa_v2 (targetNodesList,inference_file,graph_uri,kg,BATCH_SIZE=2000):
         target_lst = ['<' + target + '>' for target in q]
         queries.extend(get_d1h1_TargetListquery(graph_uri=graph_uri, target_lst=target_lst))
     if len(targetNodesList) > BATCH_SIZE:
-        with ProcessPoolExecutor() as executor:
-            futures = [executor.submit(execute_query_v2, batch, inference_file, kg, graph_uri) for batch in
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(execute_query_v2, batch, inference_file, kg,) for batch in
                        queries]
             for future in tqdm(futures, desc="Downloading Raw Graph", unit="subgraphs"):
-                # future.result()
-                pass
+                future.result()
+
+        # executor = ThreadPoolExecutor()
+        # futures = [executor.submit(execute_query_v2,batch,inference_file,kg) for batch in queries]
+        # executor.shutdown(wait=True)
+        # for future in tqdm(futures, desc="Downloading Raw Graph", unit="subgraphs"):
+        #     future.result()
+        # for batch in tqdm(queries):
+        #     print(f'RUNNING QUERY : \n\n\n{batch}')
+        #     execute_query_v2(batch,inference_file,kg)
+        #     print('QUERY COMPLETE \n\n\n')
+
     else:
         [execute_query_v2(batch,inference_file,kg) for batch in queries]
+
 def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [],labelNode = None,targetNodeType=None,
                                 target_rel_uri='https://dblp.org/rdf/schema#publishedIn',
                                 ds_types = '',
@@ -242,7 +449,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     from KGNET import KGNET
     kg = KGNET(sparqlEndpointURL, KG_Prefix='http://kgnet/') #TODO: Parameterize
 
-    batch_tosa_v2(targetNodesList,inference_file=inference_tsv,graph_uri=graph_uri,kg=kg)
+    batch_tosa_v3(targetNodesList,inference_file=inference_tsv,graph_uri=graph_uri,kg=kg)
     download_end_time = (datetime.datetime.now() - download_start_time).total_seconds()
 
     path_master_ds_root = os.path.join(KGNET_Config.datasets_output_path, master_ds_name)
@@ -269,7 +476,6 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     master_rel_df = pd.read_csv(path_master_relations,header=None,sep='\t',names=['ent_idx','ent_name'],dtype={'ent_idx':'int64'})
     inf_ent_df = pd.read_csv(path_inference_entities,header=None,sep='\t',names=['ent_idx','ent_name'],dtype={'ent_idx':'int64'})
     inf_rel_df = pd.read_csv(path_inference_relations,header=None,sep='\t',names=['ent_idx','ent_name'],dtype={'ent_idx':'int64'})
-    print('here')
     idx_cols = ['ent_idx_inf','ent_idx_orig']
     output_cols = ['ent_idx_orig','ent_name']
     mapping_ent = pd.merge(inf_ent_df,master_ent_df,on='ent_name',how='left',suffixes=('_inf','_orig'))
@@ -297,6 +503,10 @@ def rgcn_lp(dataset_name,
 
     init_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
     dict_results = {}
+    if os.path.exists(os.path.join(root_path,dataset_name,'data.pt')):
+        os.remove(os.path.join(root_path,dataset_name,'data.pt'))
+        os.remove(os.path.join(root_path,dataset_name,'pre_filter.pt'))
+        os.path.join(root_path, dataset_name, 'pre_transform.pt')
     print('loading dataset..')
     start_data_t = datetime.datetime.now()
     dataset = RelLinkPredDataset(root_path, dataset_name)
@@ -314,16 +524,22 @@ def rgcn_lp(dataset_name,
         path_model_param = os.path.join(KGNET_Config.trained_model_path, modelID.replace(".model",".param"))
         with open(path_model_param,'rb') as f:
             dict_model_param = pickle.load(f)
+        inference = 0
+        if '_wise' in modelID:
+            inference = 1
+        dict_model_param['hidden_channels'] = 100 # 100 For dblp / wiki # 128 for yago310 - 32 for dblp
+        """ REMOVE THIS """
 
         model = GAE(
             RGCNEncoder(dict_model_param['data.num_nodes'], hidden_channels=dict_model_param['hidden_channels'],
-                        num_relations=dict_model_param['dataset.num_relations']),
+                        num_relations=dict_model_param['dataset.num_relations'], wise=inference),
             DistMultDecoder(dict_model_param['dataset.num_relations'] // 2, hidden_channels=dict_model_param['hidden_channels']),
         )
+
         print('Model Initialized!')
 
         ###### LOAD ENTITIES AND REL DICT FROM "MASTER GRAPH" ##########
-        path_master =osp.join(KGNET_Config.datasets_output_path,modelID.replace('.model',''))
+        path_master =osp.join(KGNET_Config.datasets_output_path,modelID.replace('.model','').replace('_wise',''))
         entities_df = pd.read_csv(osp.join(path_master, 'entities.dict'), header=None, sep="\t")
         entities_dict = dict(zip(entities_df[1], entities_df[0]))
         rev_entities_dict = {v:k for k,v in entities_dict.items()}
@@ -333,35 +549,72 @@ def rgcn_lp(dataset_name,
         if target_rel not in relations_dict:
             return {'error':['Unseen relation']}
         target_rel_ID = relations_dict[target_rel]
-
+        edge_index = data.edge_index
+        edge_type = data.edge_type
         ####### LOAD MODEL STATE ##############
         trained_model_path = os.path.join(KGNET_Config.trained_model_path,modelID)
-        model.load_state_dict(torch.load(trained_model_path)); print(f'LOADED PRE-TRAINED MODEL {modelID}')
+        model.load_state_dict(torch.load(trained_model_path),strict=False); print(f'LOADED PRE-TRAINED MODEL {modelID}')
+        if WISE:
+            items = load_emb(modelID.replace('.model',''),['z'],edge_index)
+            z = items['z'].to_dense()
+            # model.encoder.node_emb = Parameter(items['encoder.node_emb'].to_dense())
+        else:
+            # z = load_emb(modelID.replace('.model','').replace('_wise',''),['z'],edge_index)['z'].to_dense()
+            z = model.encode(data.edge_index, data.edge_type)
+        """ For Saving Partial Model"""
+        # model.encoder = None
+        print(f' NUMBER OF PARAMETERS = {sum(p.numel() for p in model.parameters())}')
+        # model.encoder = None
+        torch.save([model.state_dict(),z], trained_model_path.replace('trained_models','trained_models/wbe').replace('.model', f'_INF_{len(list_src_nodes)}.model'))
+        # torch.save(model.state_dict(),
+        #            trained_model_path.replace('trained_models', 'trained_models/wbe'))
+        # sys.exit()
+        """ *********************"""
         model.eval()
         with torch.no_grad():
-            edge_index = data.edge_index
-            edge_type = data.edge_type
-            y_pred = {}
-            z = model.encode(data.edge_index, data.edge_type)
 
-            for _src in list_src_nodes:
+            y_pred = {}
+            pred_count = 0
+            true_pred_count = 0
+            # z = model.encode(data.edge_index, data.edge_type)
+
+            for _src in tqdm(list_src_nodes,position=0, leave=True):
                 if _src not in entities_dict:
                     y_pred[_src] = ['None']
                     continue
+                pred_count+=1
                 src = entities_dict[_src]
-                (_, dst), rel = edge_index[:, target_rel_ID], edge_type[target_rel_ID]
+                mask = torch.nonzero((edge_index[0]==src) & (edge_type == target_rel_ID))#torch.zeros_like(edge_type,dtype=torch.bool)
+                y_true = None
+                if len(mask) >=1:
+                    y_true = edge_index[1][mask].squeeze().tolist()
+                if len(mask) == 0:
+                    mask = torch.nonzero((edge_index[0]==src))
+                mask = mask[0]
+                (_, dst), rel = edge_index[:, mask], torch.tensor(target_rel_ID)#edge_type[mask]
 
                 # tail = torch.arange(data.num_nodes)
                 tail = torch.arange(dict_model_param['data.num_nodes'])
-                tail = torch.cat([torch.tensor([dst]), tail])
+                #tail = torch.cat([torch.tensor([dst]), tail])
                 head = torch.full_like(tail, fill_value=src)
                 eval_edge_index = torch.stack([head, tail], dim=0)
-                eval_edge_type = torch.full_like(tail, fill_value=rel)
+                eval_edge_type = torch.full_like(tail, fill_value=rel.item())
 
                 out = model.decode(z, eval_edge_index, eval_edge_type)
                 y_pred[_src] = [rev_entities_dict[i] for i in out.topk(K).indices.tolist() if i in rev_entities_dict]
+                # print(f'{_src} : {y_pred[_src]}')
+
+                if y_true is not None:
+                    if not isinstance(y_true,list):
+                        y_true = [y_true]
+                    # print(f'y_true : {y_true}')
+                    acc = [x for x in y_true if x in out.topk(K).indices.tolist()]
+                    if len(acc) > 0:
+                        true_pred_count+=1
                 # print(out)
-        return y_pred
+        hits_10 =  true_pred_count/pred_count
+        print(f'Total Predictions : {pred_count}\nCorrect Predictions : {true_pred_count}\nHits@10 : {hits_10}')
+        return y_pred,hits_10
 
 
     print('Initializing model...')
@@ -378,7 +631,7 @@ def rgcn_lp(dataset_name,
     best_valid_mrr = 0
     best_test_hits = 0
     best_valid_hits = 0
-    for epoch in tqdm (range(1, epochs),desc='Training Epochs'):
+    for epoch in tqdm (range(1, epochs),desc='Training Epochs',position=0, leave=True):
         # print('Starting training .. ')
         loss = train()
         print(f'Epoch: {epoch:05d}, Loss: {loss:.4f}')
@@ -437,11 +690,17 @@ def rgcn_lp(dataset_name,
     with open(os.path.join(logs_path, model_name + '_log.json'), "w") as outfile:
         json.dump(dict_results, outfile)
     torch.save(model.state_dict(), os.path.join(model_path, model_name) + ".model")
+    z = model.encode(data.edge_index, data.edge_type).detach()
+    save_z(model,model_name.replace('.model','_wise.model'),z)
+    model.enocder = None
+    torch.save(model.state_dict(), os.path.join(model_path, model_name) + "_wise.model")
     dict_model_param = {}
     dict_model_param['hidden_channels'] = 128
     dict_model_param['data.num_nodes'] = data.num_nodes
     dict_model_param['dataset.num_relations'] = dataset.num_relations
     with open(os.path.join(model_path, model_name+ ".param"),'wb') as f:
+        pickle.dump(dict_model_param,f)
+    with open(os.path.join(model_path, model_name+ "_wise.param"),'wb') as f:
         pickle.dump(dict_model_param,f)
 
     return dict_results
@@ -449,20 +708,98 @@ def rgcn_lp(dataset_name,
 
 
 if __name__ == '__main__':
-    dataset_name = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965'
+    global WISE
+    WISE = True
+    MorsE = True
     root_path = os.path.join(KGNET_Config.datasets_output_path,)
-    target_rel = r'http://www.wikidata.org/entity/P101'
-    list_src_nodes = ['http://www.wikidata.org/entity/Q5484233',
-                      'http://www.wikidata.org/entity/Q16853882',
-                      'http://www.wikidata.org/entity/Q777117']
-    K = 2
-    modelID = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965.model'
-    # dataset_name = generate_inference_subgraph(master_ds_name=dataset_name,
-    #                             graph_uri='http://wikikg-v2',
-    #                             targetNodesList=list_src_nodes,
-    #                             target_rel_uri=target_rel,
-    #                             )
-    # result = rgcn_lp(dataset_name,root_path=KGNET_Config.inference_path,target_rel=target_rel,loadTrainedModel=1,list_src_nodes=list_src_nodes,modelID=modelID,hidden_channels=128)
+    inference = True
 
-    result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=1,list_src_nodes=list_src_nodes,modelID=modelID,epochs=21,val_interval=10,hidden_channels=128)
-    print(result)
+    # FOR WIKI-KG
+    # dataset_name = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965'
+    # target_rel = r'http://www.wikidata.org/entity/P101'
+    # modelID = r'mid-ddc400fac86bd520148e574f86556ecd19a9fb9ce8c18ce3ce48d274ebab3965.model' #
+    # graph_uri = 'http://wikikg-v2'
+    # NUM_TARGETS = 100
+    # list_src_nodes = pd.read_csv(os.path.join(root_path,dataset_name,'test.txt'),header=None,sep='\t')[0].drop_duplicates().tolist()[:NUM_TARGETS]
+
+    # list_src_nodes = ["http://www.wikidata.org/entity/Q454671",
+    #                     "http://www.wikidata.org/entity/Q6775135",
+    #                     "http://www.wikidata.org/entity/Q3180903",
+    #                     "http://www.wikidata.org/entity/Q7863537",
+    #                     "http://www.wikidata.org/entity/Q5628085",
+    #                     "http://www.wikidata.org/entity/Q12357084",
+    #                     "http://www.wikidata.org/entity/Q3387994",
+    #                     "http://www.wikidata.org/entity/Q7387330",
+    #                     "http://www.wikidata.org/entity/Q25313",]
+
+    # FOR YAGO-310 D1H1 / FG
+    dataset_name = 'YAGO_3-10_isConnectedTo_FG' #r'YAGO3-10_LP_D1H1' # YAGO3-10_LP_D1H
+    target_rel = r'http://www.yago3-10/isConnectedTo' #http://www.yago3-10/isConnectedTo
+    modelID = r'YAGO3-10_LP_D1H1.model' #
+    graph_uri = 'http://www.yago3-10/'
+    NUM_TARGETS = 10
+    list_src_nodes = pd.read_csv(os.path.join(root_path,dataset_name,'test.txt'),header=None,sep='\t')[0].drop_duplicates().tolist()[:NUM_TARGETS]
+
+    # FOR DBLP
+    # dataset_name = r'dblp_LP'
+    # target_rel = r'https://dblp.org/rdf/schema#authoredBy'
+    # modelID = r'dblp_LP.model' #
+    # graph_uri = 'http://dblp.org'
+    # NUM_TARGETS = 100
+    # list_src_nodes = pd.read_csv(os.path.join(root_path,dataset_name,'test.txt'),header=None,sep='\t')[0].drop_duplicates().tolist()[:NUM_TARGETS]
+
+###########################################################
+    if inference:
+        print(f'num of queried nodes = {len(list_src_nodes)}')
+        K = 10
+        total_runs = 3
+        runs = []
+        hits_10 = []
+
+        for i in range(total_runs):
+            start = datetime.datetime.now()
+            if WISE:
+                modelID_inf = modelID.replace('.model', '_wise.model')
+                inf_dataset_name = generate_inference_subgraph(master_ds_name=dataset_name,
+                                                           graph_uri=graph_uri,
+                                                           targetNodesList=list_src_nodes,
+                                                           target_rel_uri=target_rel,
+                                                           )
+                root_path = KGNET_Config.inference_path
+            else:
+                inf_dataset_name = dataset_name
+                modelID_inf = modelID
+
+            if MorsE:
+                morse_args = get_default_args()
+                morse_args.dataset_name = inf_dataset_name
+                morse_args.loadTrainedModel = 1
+                morse_args.modelID = dataset_name+'.model' #modelID.replace('_wise','')
+                morse(dataset_name=dataset_name,inf_dataset_name = inf_dataset_name,inf_root_path=root_path,args=morse_args,)
+
+            result, hits = rgcn_lp(inf_dataset_name, root_path=root_path, target_rel=target_rel, loadTrainedModel=1,
+                                   list_src_nodes=list_src_nodes, modelID=modelID_inf, hidden_channels=64, K=K)
+            end = (datetime.datetime.now() - start).total_seconds()
+            runs.append(end)
+            hits_10.append(hits)
+            print(f'run: {i}\ttime: {end}')
+
+        avg_run = sum(runs) / len(runs)
+        avg_hits_10 = sum(hits_10) / len(hits_10)
+
+
+        print('*' * 18)
+        print(f'Average Hits @ 10 = {avg_hits_10}')
+        print(f'Average run time = {avg_run}')
+        print(f'MAX RAM USAGE = {getrusage(RUSAGE_SELF).ru_maxrss / (1024 * 1024)}')
+        print('*' * 18)
+
+    else:
+    # TRAINING LP
+        result = rgcn_lp(dataset_name,root_path,target_rel=target_rel,loadTrainedModel=0,list_src_nodes=[],modelID='',epochs=21,val_interval=5,hidden_channels=128)
+
+    # INFERENCE USING ORIGINAL GRAPH
+    # result = rgcn_lp(dataset_name, root_path, target_rel=target_rel, loadTrainedModel=1, list_src_nodes=list_src_nodes,
+    #                  epochs=21, val_interval=5, hidden_channels=128,modelID=modelID,)
+    # print(result)
+

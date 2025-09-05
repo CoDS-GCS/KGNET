@@ -2,6 +2,7 @@ from copy import copy
 import json
 import argparse
 import shutil
+from Constants import *
 import pandas as pd
 from tqdm import tqdm
 import datetime
@@ -27,10 +28,8 @@ from sklearn.model_selection import cross_val_score
 import traceback
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
-sys.path.append("/shared_mnt/github_repos/KGNET")
-from Constants import *
 # print("sys.path=",sys.path)
-from ogb.nodeproppred import PygNodePropPredDataset
+# from ogb.nodeproppred import PygNodePropPredDataset
 from evaluater import Evaluator
 from custome_pyg_dataset import PygNodePropPredDataset_hsh
 from resource import *
@@ -200,23 +199,18 @@ class RGCN(torch.nn.Module, Model):
                 out_dict[j] = conv.root_lins[j](x)
 
             for keys, adj_t in adj_t_dict.items():
-                src_key, target_key = keys[0], keys[-1]                
-                try:
-                    out = out_dict[key2int[target_key]]
-                    # print("keys=",keys)
-                    # print("adj_t=",adj_t)
-                    # print("key2int[src_key]=",key2int[src_key])
-                    # print("x_dict[key2int[src_key]]=",x_dict[key2int[src_key]].size())
-                    tmp = adj_t.matmul(x_dict[key2int[src_key]], reduce='mean')
-                    # print("out size=",out.size())
-                    # print("tmp size=",conv.rel_lins[key2int[keys]](tmp).size())
-                    ################## fill missed rows hsh############################
-                    tmp = conv.rel_lins[key2int[keys]](tmp).resize_([out.size()[0], out.size()[1]])
-                    out.add_(tmp)
-                except Exception as e:
-                    print("Excption at:", print(src_key, target_key))
-                    print(e)
-                    continue
+                src_key, target_key = keys[0], keys[-1]
+                out = out_dict[key2int[target_key]]
+                # print("keys=",keys)
+                # print("adj_t=",adj_t)
+                # print("key2int[src_key]=",key2int[src_key])
+                # print("x_dict[key2int[src_key]]=",x_dict[key2int[src_key]].size())
+                tmp = adj_t.matmul(x_dict[key2int[src_key]], reduce='mean')
+                # print("out size=",out.size())
+                # print("tmp size=",conv.rel_lins[key2int[keys]](tmp).size())
+                ################## fill missed rows hsh############################
+                tmp = conv.rel_lins[key2int[keys]](tmp).resize_([out.size()[0], out.size()[1]])
+                out.add_(tmp)
 
             if i != self.num_layers - 1:
                 for j in range(self.num_node_types):
@@ -865,13 +859,13 @@ if __name__ == '__main__':
     parser.add_argument('--walk_length', type=int, default=2)
     parser.add_argument('--num_steps', type=int, default=10)
     parser.add_argument('--loadTrainedModel', type=int, default=0)
-    parser.add_argument('--dataset_name', type=str, default="mid-32608254a03d030e5544e93c416d187bd33ee79c949c3c0904616ef8911dfd40")
+    parser.add_argument('--dataset_name', type=str, default="YAGO_PC_D1H1_v2")
     parser.add_argument('--root_path', type=str, default=KGNET_Config.datasets_output_path)
     parser.add_argument('--output_path', type=str, default="./")
     parser.add_argument('--include_reverse_edge', type=bool, default=True)
-    parser.add_argument('--n_classes', type=int, default=100)
-    parser.add_argument('--emb_size', type=int, default=128)
-    parser.add_argument('--modelID', type=str, default="github_repos/KGNET/Datasets/mid-32608254a03d030e5544e93c416d187bd33ee79c949c3c0904616ef8911dfd40.model")
+    parser.add_argument('--n_classes', type=int, default=146)
+    parser.add_argument('--emb_size', type=int, default=128)  # CHANGED
+    parser.add_argument('--modelID', type=str, default="DBLP15M_PV_d1h1_v2.model")
 
     args = parser.parse_args()
     print(args)
