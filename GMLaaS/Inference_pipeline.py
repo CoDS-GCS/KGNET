@@ -166,7 +166,8 @@ def filterTargetNodes(kg_endpoint,predictions = pd.DataFrame(), targetNodesQuery
 
 def perform_inference(model_id, named_graph_uri, dataQuery, sparqlEndpointURL, targetNodesQuery,topk,RDFEngine,demo = True,targetNodesList=None,TOSG_Pattern=TOSG_Patterns.d1h1):
     if RDFEngine:
-        kg_endpoint = sparqlEndpoint(sparqlEndpointURL,RDFEngine=RDFEngine)
+        kg_endpoint = sparqlEndpoint(sparqlEndpointURL, RDFEngine=RDFEngine)
+        KGMeta_endpoint = sparqlEndpoint(Constants.KGNET_Config.KGMeta_endpoint_url, RDFEngine=RDFEngine)
         KGMeta_endpoint = sparqlEndpoint(Constants.KGNET_Config.KGMeta_endpoint_url, RDFEngine=RDFEngine)
     else:
         kg_endpoint = sparqlEndpoint(sparqlEndpointURL)

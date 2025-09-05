@@ -18,6 +18,7 @@ import io
 import requests
 from datetime import datetime
 import json
+import itertools
 def set_syntax (var):
     """ The set_syntax () function takes redflib variable from the query and adjusts its syntax according
             to its position in the SPARQL query. This function is used in rebuilding the query according to the
@@ -135,9 +136,11 @@ class gmlQueryParser:
         -> construct_data_q ()
     """
 
-    def __init__(self,gmlquery):
+    def __init__(self,gmlquery=None):
        self.gmlquery=gmlquery
        self.query_statments ={}
+    def clearParsedQueryStatments(self):
+        self.query_statments={}
     def build_DAG(self):
         KGNET_LOOKUP = ['kgnet', '<kgnet']
         variables_DAG={}
@@ -167,14 +170,17 @@ class gmlQueryParser:
                                 variables_DAG[str(s)].add_children(onode)
                             variables_DAG[str(o)]=onode
                 elif triple['bgpType'] in ['filter']:
-                    variable,op,value,bgpType=triple.values()
-                    if variable['type'] =='variable':
-                        variables_DAG[str(variable['variable'])].filter = triple
-                    elif variable['type'] == 'function':
-                        for k,v in variable['args'].items():
-                            variables_DAG[str(v)].filter = triple
-
-
+                    filters=triple['filters']
+                    for filter_statement in filters:
+                        variable,op,value,bgp_type,prev_filter_op=filter_statement.values()
+                        if variable['type'] =='variable':
+                            variables_DAG[str(variable['variable'])].filter = triple
+                        elif variable['type'] == 'function':
+                            for k,v in variable['args'].items():
+                                try:
+                                    variables_DAG[str(v)].filter = triple
+                                except:
+                                    continue
         ############ Projections ###################
         if 'select' in self.query_statments.keys():
             for var in self.query_statments['select']:
@@ -226,17 +232,23 @@ class gmlQueryParser:
         new_nodes_labels ={}
         node_attrs = {}
         for k,v in g.nodes()._nodes.items():
-            filter_exp=DAG[str(k).split("?")[-1]].filter
-            if filter_exp is None:
+            filters=DAG[str(k).split("?")[-1]].filter
+            if filters is None:
                 new_nodes_labels[str(k).split("?")[-1]]=k
             else:
-                if type(filter_exp['value'])==rdflib.term.Literal:
-                    new_nodes_labels[k] = k+"\n?"+filter_exp['operator']+filter_exp['value']
-                elif type(filter_exp['value'])==rdflib.plugins.sparql.parserutils.CompValue:
-                    new_nodes_labels[k] = k+"\n?"+filter_exp['operator']+str(filter_exp['value'].string)
-                elif type(filter_exp['value'])==list:
-                    new_nodes_labels[k] = k + "\n?" + filter_exp['operator'] + str([str(elem) if type(elem)==rdflib.term.URIRef else str(elem.string)  for elem in filter_exp['value']])
-                node_attrs[k]={"filter":new_nodes_labels[k]}
+                for filter_exp in filters['filters']:
+                    if type(filter_exp['value'])==rdflib.term.Literal:
+                        new_nodes_labels[k] = k+"\n?"+filter_exp['operator']+filter_exp['value']
+                    elif type(filter_exp['value'])==rdflib.plugins.sparql.parserutils.CompValue:
+                        new_nodes_labels[k] = k+"\n?"+filter_exp['operator']+str(filter_exp['value'].string)
+                    elif type(filter_exp['value']) == dict :
+                        if 'type' in filter_exp['value'] and filter_exp['value']['type']=='function':
+                            new_nodes_labels[k] = k + "\n?" + filter_exp['operator'] + filter_exp['value']['name']+"("+str(filter_exp['value']['args'])+")"
+                        else:
+                            new_nodes_labels[k]=""
+                    elif type(filter_exp['value'])==list:
+                        new_nodes_labels[k] = k + "\n?" + filter_exp['operator'] + str([str(elem).split("/")[-1]+"\n" if type(elem)==rdflib.term.URIRef else str(elem.string).split("/")[-1]+"\n"  for elem in filter_exp['value']])
+                    node_attrs[k]={"filter":new_nodes_labels[k]}
         nx.set_node_attributes(g, node_attrs)
         g = nx.relabel_nodes(g, new_nodes_labels)
         ################################################################
@@ -252,11 +264,11 @@ class gmlQueryParser:
         write_dot(g, 'test.dot')
         plt.title('GML-Query-DAG')
         pos = graphviz_layout(g, prog='dot')
-        nx.draw(g, pos, with_labels=True, arrows=True, node_color=node_color_map, edge_color=colors, width=weights,node_size=3000, font_size=10,connectionstyle='arc3, rad = 0.2')
+        nx.draw(g, pos, with_labels=True, arrows=True, node_color=node_color_map[0:len(g)], edge_color=colors, width=weights,node_size=3000, font_size=10,connectionstyle='arc3, rad = 0.2')
         nx.draw_networkx_edge_labels(g, pos,edge_labels=labels,font_color='red')
         plt.tight_layout()
         plt.savefig('Query_DAG.png',dpi=250)
-        # plt.show()
+        plt.show()
     def DecomposeSubqueries(self,DAG):
         gml_vars=[var for var in DAG.keys() if var!='root' and DAG[var].is_gml==True ]
         dependent_gml_vars = [var for var in DAG.keys() if var != 'root' and (DAG[var].is_gml == False and DAG[var].gml_parent is not None)]
@@ -300,41 +312,63 @@ class gmlQueryParser:
                         SQ1_Stmt['triples'].append(triple.copy())
                         # triple['subquery']="SQ1"
                 elif triple['bgpType'] in ['filter']:
-                    var, op, val, bgpType = triple.values()
-                    if (var['type']=='variable' and (str(var['variable']) in gml_vars or str(var['variable']) in dependent_gml_vars))\
-                        or\
-                        (var['type']=='function' and ( any(x in gml_vars for x in [str(arg_elem) for arg_elem in list(var['args'].values())]) or any(x in dependent_gml_vars for x in [str(arg_elem) for arg_elem in list(var['args'].values())]))):
-                        SQ2_Stmt['triples'].append(triple.copy())
-                        # triple['subquery'] = "SQ2"
-                    else:
-                        SQ1_Stmt['triples'].append(triple.copy())
-                        # triple['subquery'] = "SQ1"
+                    filters = triple['filters']
+                    for filter_statement in filters:
+                        var, op, val, bgp_type, prev_filter_op = filter_statement.values()
+                        # var, op, val, bgpType = triple.values()
+                        if (var['type']=='variable' and (str(var['variable']) in gml_vars or str(var['variable']) in dependent_gml_vars))\
+                            or\
+                            (var['type']=='function' and ( any(x in gml_vars for x in [str(arg_elem) for arg_elem in list(var['args'].values())]) or any(x in dependent_gml_vars for x in [str(arg_elem) for arg_elem in list(var['args'].values())]))):
+                            SQ2_Stmt['triples'].append(triple.copy())
+                            # triple['subquery'] = "SQ2"
+                        else:
+                            SQ1_Stmt['triples'].append(triple.copy())
+                            # triple['subquery'] = "SQ1"
         # SQ3_Stmt['limit']=self.query_statments['limit']
         # SQ3_Stmt['offset'] = self.query_statments['offset']
         ######################## Decompose SQ2 ##############################
         sq2_lst={}
+        #decompose The GML tasks subqueries
         if 'triples' in SQ2_Stmt.keys():
             for gml_var in gml_vars:
                 gml_var_dependents=[]
                 for var in DAG:
                     if var!='root' and DAG[var].gml_parent is not None and gml_var in [str(elem.var) for elem in DAG[var].gml_parent]:
                         gml_var_dependents.append(var)
-                sq2_lst[gml_var]={}
+                if gml_var not in sq2_lst.keys():
+                    sq2_lst[gml_var]={}
                 sq2_lst[gml_var]['triples']=[]
                 for triple in SQ2_Stmt['triples']:
                     if triple['bgpType'] in ['Optional', 'NonOptional']:
                         s, p, o, bgpType = triple.values()
-                        if str(s) ==gml_var or str(p) ==gml_var or str(o) ==gml_var or str(s) in gml_var_dependents or str(p) in gml_var_dependents or str(o) in gml_var_dependents:
+                        dependent_MLVar=None
+                        if str(s) in gml_var_dependents and  str(p) in gml_var_dependents:  #dependent s,p as GML task
+                            dependent_MLVar=str(p)
+                        elif str(s) in gml_var_dependents: #dependent p as GML task
+                            dependent_MLVar = str(s)
+                        if dependent_MLVar:
+                            if dependent_MLVar not in sq2_lst.keys():
+                                sq2_lst[dependent_MLVar] = {}
+                            if 'DependentMlTask' not in sq2_lst[gml_var].keys():
+                                sq2_lst[gml_var]['DependentMlTask']=[]
+                            if sq2_lst[dependent_MLVar] not in sq2_lst[gml_var]['DependentMlTask']:
+                                sq2_lst[gml_var]['DependentMlTask'].append(sq2_lst[dependent_MLVar])
+                                sq2_lst[dependent_MLVar]['ParentMlTask']=sq2_lst[gml_var]
+                        elif str(s) ==gml_var or str(p) ==gml_var or str(o) ==gml_var or str(s) in gml_var_dependents or str(p) in gml_var_dependents or str(o) in gml_var_dependents:
                             sq2_lst[gml_var]['triples'].append(triple.copy())
                         if str(p)==gml_var:
                             sq2_lst[gml_var]['targetNode']=str(s)
+                            sq2_lst[gml_var]['labelNode'] = str(o)
                     elif triple['bgpType'] in ['filter']:
-                        var, op, val, bgpType = triple.values()
-                        if var['type']=='variable' and (str(var['variable']) ==gml_var  or str(var['variable']) in gml_var_dependents) :
-                            sq2_lst[gml_var]['triples'].append(triple.copy())
-                        elif var['type'] == 'function' and (any([True if str(elem) == gml_var else False for elem in var['args'].values()])  or
-                                                            any([True if str(elem) in gml_var_dependents else False for elem in var['args'].values()])):
+                        filters = triple['filters']
+                        for filter_statement in filters:
+                            var, op, val, bgpType, prev_filter_op = filter_statement.values()
+                            # var, op, val, bgpType = triple.values()
+                            if var['type']=='variable' and (str(var['variable']) ==gml_var  or str(var['variable']) in gml_var_dependents) :
                                 sq2_lst[gml_var]['triples'].append(triple.copy())
+                            elif var['type'] == 'function' and (any([True if str(elem) == gml_var else False for elem in var['args'].values()])  or
+                                                                any([True if str(elem) in gml_var_dependents else False for elem in var['args'].values()])):
+                                    sq2_lst[gml_var]['triples'].append(triple.copy())
                 sq2_lst[gml_var]['select']=[]
                 for var in SQ2_Stmt['select']:
                     if str(var) in gml_var_dependents or str(var) ==gml_var:
@@ -343,9 +377,10 @@ class gmlQueryParser:
             sq2_lst[key]['query_type']=SQ2_Stmt['query_type']
             sq2_lst[key]['prefixes'] = SQ2_Stmt['prefixes']
             sq2_lst[key]['is_gml'] = SQ2_Stmt['is_gml']
-        subqueries['SQ2']=list(sq2_lst.values())
+            sq2_lst[key]['gmlPredicate'] = key
+        subqueries['SQ2']=sq2_lst
         return subqueries
-    def ReWriteSubqueryToSPARQL(self,subquery,DAG):
+    def ReWriteSubqueryToSPARQL(self,subquery):
          SPARQL_Query=""
          if "prefixes" in subquery.keys():
              for prefix in subquery['prefixes']:
@@ -366,19 +401,24 @@ class gmlQueryParser:
                     else:
                         SPARQL_Query += f"{triple_str}\n"
                 elif triple['bgpType'] in ['filter']:
-                    var, op, val, bgpType = triple.values()
-                    if var['type']=='function':
-                        SPARQL_Query+=f"filter({var['name']}({str(','.join(['?'+str(v) for k,v in var['args'].items()]))})"
-                    elif var['type'] == 'variable':
-                        SPARQL_Query += f"filter({set_syntax(var['variable'])}"
-                    SPARQL_Query+=f" {set_syntax(op)} "
-                    if type(val)==rdflib.term.Literal:
-                        SPARQL_Query+=f"{set_syntax(val)}"
-                    elif type(val)==rdflib.plugins.sparql.parserutils.CompValue:
-                        SPARQL_Query+=f"{set_syntax(val)}{ '@'+val['lang'] if 'lang' in val.keys() else ''}"
-                    elif type(val) == list:
-                        SPARQL_Query += f"({','.join([set_syntax(elem) for elem in val])})"
-                    SPARQL_Query +=").\n"
+                    filters=triple['filters']
+                    for filter_statment in filters:
+                        var, op, val, bgpType,prev_filter_op = filter_statment.values()
+                        if var['type']=='function':
+                            SPARQL_Query+=f"filter({var['name']}({str(','.join(['?'+str(v) for k,v in var['args'].items()]))})"
+                        elif var['type'] == 'variable':
+                            SPARQL_Query += f"filter({set_syntax(var['variable'])}"
+                        SPARQL_Query+=f" {set_syntax(op)} "
+                        if type(val)==rdflib.term.Literal:
+                            SPARQL_Query+=f"{set_syntax(val)}"
+                        elif type(val)==rdflib.plugins.sparql.parserutils.CompValue:
+                            SPARQL_Query+=f"{set_syntax(val)}{ '@'+val['lang'] if 'lang' in val.keys() else ''}"
+                        elif type(val)==dict:
+                            if 'type' in val and val['type']=='function':
+                                SPARQL_Query+=f"{val['name']}("+str(','.join(["'"+set_syntax(v)+"'" for k,v in val['args'].items()]))+")"
+                        elif type(val) == list:
+                            SPARQL_Query += f"({','.join([set_syntax(elem) for elem in val])})"
+                        SPARQL_Query +=").\n"
 
                         # {'@' + val['variable']['lang'] if type(val['variable']) == dict and 'lang' in val['variable'].keys() else ''}).                      "
                         # {set_syntax(op)} {set_syntax(val['variable'])}{'@' + val['variable']['lang'] if type(val['variable']) == dict and 'lang' in val['variable'].keys() else ''}).\n"
@@ -485,7 +525,6 @@ class gmlQueryParser:
                         p_prefix = str(t[1]['part'][0]['part'][0]['part']['prefix'])
                         p_lName = str(t[1]['part'][0]['part'][0]['part']['localname'])
                         predicate = (p_prefix, p_lName)
-
                     object_ = t[2]
                     if not isinstance(object_, (
                             rdflib.term.Variable, rdflib.term.URIRef,
@@ -503,98 +542,243 @@ class gmlQueryParser:
                     triples['bgpType'] = 'Optional'
                     triples_list.append(triples)
             elif where_stmt.name == "Filter":  ## Optional triples
-                filter_expr = where_stmt['expr']
-                while len(filter_expr.keys()) != 3:
-                    filter_expr = filter_expr['expr']
-                filter_variable={}
-                if len(filter_expr.keys()) == 3:
-                    filter_variable['type']='variable'
-                    var_exp = filter_expr
-                    while ((type(var_exp) is rdflib.plugins.sparql.parserutils.Expr)
-                           and (var_exp.name.split('_')[-1] not in ['Builtin_', 'Function'])
-                           and 'expr' in var_exp.keys()):
-                        var_exp= var_exp['expr']
-                    if type(var_exp) is rdflib.term.Variable:
-                        filter_variable['variable'] = var_exp
-                    elif var_exp.name.startswith('Builtin_'):
-                        exp_func = var_exp.name.split("_")[1]
-                        filter_variable['type'] = 'function'
-                        filter_variable["name"] = exp_func
-                        filter_variable['args'] = {}
-                        for idx, key in enumerate(var_exp.keys()):
-                            expr_arg = var_exp[key]
-                            while (type(expr_arg) is rdflib.plugins.sparql.parserutils.Expr) and 'expr' in expr_arg:
-                                expr_arg = expr_arg['expr']
-                            if type(expr_arg) is rdflib.term.Variable:
-                                filter_variable['args']["arg" + str(idx)] = expr_arg
-                    elif var_exp.name == 'Function':
-                        filter_variable['type'] = 'function'
-                        filter_variable['name'] = var_exp['iri']['prefix']+":"+var_exp['iri']['localname']
-                        filter_variable['args'] = {}
-                        for idx, expr_arg in enumerate(var_exp['expr']):
-                            while (type(expr_arg) is rdflib.plugins.sparql.parserutils.Expr) and 'expr' in expr_arg:
-                                expr_arg = expr_arg['expr']
-                            if type(expr_arg) is rdflib.term.Variable:
-                                filter_variable['args']["arg" + str(idx)] = expr_arg
-                    ###################### parse operator and value #################
-                    filter_operator = filter_expr['op']
-                    if filter_operator in["=",">",">=","<","<="]:
-                        filter_value = filter_expr['other']['expr']['expr']
-                    elif filter_operator=="IN":
-                        filter_value=[]
-                        for elem in filter_expr['other']:
-                            filter_value.append(elem['expr']['expr']['expr']['expr']['expr'])
-                    elif filter_operator=="NOT IN":
-                        filter_value=[]
-                        for elem in filter_expr['other']:
-                            filter_value.append(elem['expr']['expr']['expr']['expr']['expr'])
-                    triples_list.append({'variable': filter_variable, 'operator': str(filter_operator),
-                                             'value':filter_value, 'bgpType':'filter'})
+                filter_exp_lst_stmt=where_stmt['expr']
+                prev_filter_op = 'or'
+                if 'other' in where_stmt['expr']['expr'].keys():
+                    filter_exp_lst_stmt = where_stmt['expr']['expr']
+                    prev_filter_op='and'
+                filters_count=len(list(filter_exp_lst_stmt.keys()))
+                composed_filters_parts=[]
+                for filter_key in list(filter_exp_lst_stmt.keys()):
+                    filter_expr = filter_exp_lst_stmt[filter_key]
+                    if filter_key=="other":
+                        filter_expr = filter_expr[0]
+                        # prev_filter_op="or"
+                        # if 'ConditionalAndExpression' in filter_expr[0].name:
+                        #     prev_filter_op="and"
+                    while len(filter_expr.keys()) != 3:
+                        filter_expr = filter_expr['expr']
+                    filter_variable={}
+                    if len(filter_expr.keys()) == 3:
+                        filter_variable['type']='variable'
+                        var_exp = filter_expr
+                        while ((type(var_exp) is rdflib.plugins.sparql.parserutils.Expr)
+                               and (var_exp.name.split('_')[-1] not in ['Builtin_', 'Function'])
+                               and 'expr' in var_exp.keys()):
+                            var_exp= var_exp['expr']
+                        if type(var_exp) is rdflib.term.Variable:
+                            filter_variable['variable'] = var_exp
+                        elif var_exp.name.startswith('Builtin_'):
+                            exp_func = var_exp.name.split("_")[1]
+                            filter_variable['type'] = 'function'
+                            filter_variable["name"] = exp_func
+                            filter_variable['args'] = {}
+                            for idx, key in enumerate(var_exp.keys()):
+                                expr_arg = var_exp[key]
+                                while (type(expr_arg) is rdflib.plugins.sparql.parserutils.Expr) and 'expr' in expr_arg:
+                                    expr_arg = expr_arg['expr']
+                                if type(expr_arg) is rdflib.term.Variable:
+                                    filter_variable['args']["arg" + str(idx)] = expr_arg
+                        elif var_exp.name == 'Function':
+                            filter_variable['type'] = 'function'
+                            filter_variable['name'] = var_exp['iri']['prefix']+":"+var_exp['iri']['localname']
+                            filter_variable['args'] = {}
+                            for idx, expr_arg in enumerate(var_exp['expr']):
+                                while (type(expr_arg) is rdflib.plugins.sparql.parserutils.Expr) and 'expr' in expr_arg:
+                                    expr_arg = expr_arg['expr']
+                                if type(expr_arg) is rdflib.term.Variable:
+                                    filter_variable['args']["arg" + str(idx)] = expr_arg
+                                elif type(expr_arg) is rdflib.plugins.sparql.parserutils.CompValue:
+                                    filter_variable['args']["arg" + str(idx)] = expr_arg.string
+                        ###################### parse operator and value #################
+                        filter_operator = filter_expr['op']
+                        if filter_operator in["=",">",">=","<","<="]:
+                            filter_value = filter_expr['other']['expr']['expr']
+                            filter_value_func_dict={}
+                            if type(filter_value)==rdflib.plugins.sparql.parserutils.Expr: ########## function
+                                var_exp=filter_value
+                                while ((type(var_exp) is rdflib.plugins.sparql.parserutils.Expr)
+                                       and (var_exp.name.split('_')[-1] not in ['Builtin_', 'Function'])
+                                       and 'expr' in var_exp.keys()):
+                                    var_exp = var_exp['expr']
+                                if type(var_exp) is rdflib.term.Variable:
+                                    filter_variable['variable'] = var_exp
+                                elif var_exp.name.startswith('Builtin_'):
+                                    exp_func = var_exp.name.split("_")[1]
+                                    filter_value_func_dict['type'] = 'function'
+                                    filter_value_func_dict["name"] = exp_func
+                                    filter_value_func_dict['args'] = {}
+                                    for idx, key in enumerate(var_exp.keys()):
+                                        expr_arg = var_exp[key]
+                                        while (
+                                                type(expr_arg) is rdflib.plugins.sparql.parserutils.Expr) and 'expr' in expr_arg:
+                                            expr_arg = expr_arg['expr']
+                                        if type(expr_arg) is rdflib.term.Variable:
+                                            filter_value_func_dict['args']["arg" + str(idx)] = expr_arg
+                                elif var_exp.name == 'Function':
+                                    filter_value_func_dict['type'] = 'function'
+                                    filter_value_func_dict['name'] = var_exp['iri']['prefix'] + ":" + var_exp['iri']['localname']
+                                    filter_value_func_dict['args'] = {}
+                                    for idx, expr_arg in enumerate(var_exp['expr']):
+                                        while (
+                                                type(expr_arg) is rdflib.plugins.sparql.parserutils.Expr) and 'expr' in expr_arg:
+                                            expr_arg = expr_arg['expr']
+                                        if type(expr_arg) is rdflib.term.Variable:
+                                            filter_value_func_dict['args']["arg" + str(idx)] = expr_arg
+                                        elif type(expr_arg) is rdflib.plugins.sparql.parserutils.CompValue:
+                                            filter_value_func_dict['args']["arg" + str(idx)] = expr_arg.string
+                                filter_value=filter_value_func_dict
+                        elif filter_operator=="IN":
+                            filter_value=[]
+                            for elem in filter_expr['other']:
+                                filter_value.append(elem['expr']['expr']['expr']['expr']['expr'])
+                        elif filter_operator=="NOT IN":
+                            filter_value=[]
+                            for elem in filter_expr['other']:
+                                filter_value.append(elem['expr']['expr']['expr']['expr']['expr'])
+                    composed_filters_parts.append({'variable': filter_variable, 'operator': str(filter_operator),
+                                                 'value':filter_value, 'bgpType':'filter','prev_filter_op':prev_filter_op})
+                triples_list.append({'bgpType':'filter','filters':composed_filters_parts})
             elif where_stmt.name == "GroupOrUnionGraphPattern":  ## Nested Select
                 if where_stmt['graph'][0].name=='SubSelect':
                     SubSelect=where_stmt['graph'][0]
         where_limit = where_part['limitoffset']['limit'] if 'limitoffset' in where_part.keys() and 'limit' in where_part['limitoffset'].keys() else None
         where_offset = where_part['limitoffset']['offset'] if 'limitoffset' in where_part.keys() and 'offset' in where_part['limitoffset'].keys() else None
         return  modifier,projection_variable_lst,from_graph,triples_list,SubSelect,where_limit,where_offset
-    def exec_query_plan(self,pipeline=0):
-        st=datetime.now()
+    def getGMLTasksDAGEdges(self,DAG):
+        edges_lst=[]
+        for node in DAG.keys():
+            if node!='root' and DAG[node].is_gml==True and DAG[node].gml_parent is not None:
+                edges_lst.append((str(DAG[node].gml_parent[0].var),(str(DAG[node].var))))
+            elif node != 'root' and DAG[node].is_gml == True and DAG[node].gml_parent is None:
+                edges_lst.append((0, (str(DAG[node].var)))) #add node 0 as parent for root GMLtask nodes
+        return edges_lst
+    def getExecQueryPlans(self):
         self.parse_select()
         DAG = self.build_DAG()
-        self.draw_DAG(DAG)
+        # self.draw_DAG(DAG)
         decomposedSubqueries = self.DecomposeSubqueries(DAG)
+        gmlEdgelst=self.getGMLTasksDAGEdges(DAG)
+        DAGExecPlans=Constants.utils.generateAllDAGTravesals(edges_list=gmlEdgelst,start_node=0,addStartNode=False,removeStartNode=True)
+        return DAGExecPlans,DAG,decomposedSubqueries
+    def getExecutionPlansCost(self,DAGExecPlans,DAG,decomposedSubqueries,CostModelParams):
+        KGMeta_endpoint = KGMeta_Governer(endpointUrl="http://206.12.98.118:8890/sparql",
+                                          KGMeta_URI=Constants.KGNET_Config.KGMeta_IRI,
+                                          RDFEngine=Constants.RDFEngine.OpenlinkVirtuoso)
+        KGData_endpoint = KGMeta_Governer(endpointUrl="http://206.12.97.2:8890/sparql",
+                                          KGMeta_URI=Constants.KGNET_Config.KGMeta_IRI,
+                                          RDFEngine=Constants.RDFEngine.OpenlinkVirtuoso)
+        #################### get target node list ##########################
+        gml_vars = [var for var in DAG.keys() if var != 'root' and DAG[var].is_gml == True]
+        ######################models Info ##########################
+        modelsInfo={}
+        for gmlTask in DAGExecPlans[0]:
+            # print(f"gmlTask={gmlTask}")
+            modelsInfo[gmlTask]={}
+            api_triples = []
+            GMLTaskQuery = decomposedSubqueries['SQ2'][gmlTask]
+            if 'triples' in GMLTaskQuery:
+                for triple in GMLTaskQuery['triples']:
+                    if triple['bgpType'] in ['Optional', 'NonOptional']:
+                        s, p, o, bgpType = triple.values()
+                        if str(s) in gml_vars or str(p) in gml_vars or str(o) in gml_vars:
+                            api_triples.append(triple)
+                    elif triple['bgpType'] in ['filter']:
+                        filters = triple['filters']
+                        for filter_statment in filters:
+                            var, op, val, bgpType, prev_filter_op = filter_statment.values()
+                            if var['type'] == 'variable' and str(var['variable']) in gml_vars:
+                                api_triples.append(triple)
+                            elif var['type'] == 'function' and (
+                            any([True if str(elem) == gml_vars else False for elem in var['args'].values()])):
+                                api_triples.append(triple)
+            ################## get task and model id #################
+            task_id_query, defined_predicate, predictetd_variable = getGMLOperatorTaskId(api_triples)
+            task_df = KGMeta_endpoint.executeSparqlquery(task_id_query)
+            if len(task_df) == 0:
+                raise Exception("there is no trained model exist for GML operator: " + gmlTask)
+            tid = task_df["tid"].values[0].replace('"', "")
+            best_mid, model_info_dict = KGMeta_endpoint.OptimizeForBestModel(tid)
+            modelsInfo[gmlTask]['info'] = model_info_dict
+
+        ######################Data query ##########################
+        dataQuery=self.ReWriteSubqueryToSPARQL(decomposedSubqueries['SQ1'])
+        res_df = KGData_endpoint.executeSparqlquery(dataQuery)
+        ######################Plans Cost Estimation ##########################
+        execPlansCostDict={}
+        execPlansCostLst=[]
+        for planId in range(0,len(DAGExecPlans)):
+            execPlansCostDict[planId] = {}
+            GMLTaskQuery = decomposedSubqueries['SQ2'][ DAGExecPlans[planId][0]]
+            inputTargetNode =GMLTaskQuery['targetNode']
+            inputTargetNodesCount = len(res_df[inputTargetNode].unique().tolist())
+            piplineEstimatedTime=0
+            piplineEstimatedAccuracy=100
+            for gmlTask in DAGExecPlans[planId]:
+                GMLTaskQuery = decomposedSubqueries['SQ2'][gmlTask]
+                modelInfo=modelsInfo[gmlTask]['info']
+                taskEstimatedAccuracy=modelInfo['testAccuracy']
+                taskEstimatedTime=0
+                if modelInfo['targetNodesCount']==0:
+                    taskEstimatedTime=modelInfo['InferenceTime']*inputTargetNodesCount
+                else:
+                    taskEstimatedTime = modelInfo['InferenceTime']/ modelInfo['targetNodesCount'] * inputTargetNodesCount
+                ## Estimate The filtered target nodes count
+                if DAG[GMLTaskQuery['labelNode']].filter is not None:
+                    labelFilters=DAG[GMLTaskQuery['labelNode']].filter['filters']
+                    InLabelsCount,NoInLabelsCount=0,0
+                    for filter in labelFilters:
+                        if filter['operator']=='IN':
+                            InLabelsCount+=1
+                        else:
+                            NoInLabelsCount+=1
+                    NumTargetsPerClass=inputTargetNodesCount / modelInfo['labelsCount']
+                    if NoInLabelsCount > 0:
+                        inputTargetNodesCount = NumTargetsPerClass * (modelInfo['labelsCount']-NoInLabelsCount)
+                    elif InLabelsCount>0:
+                        inputTargetNodesCount = NumTargetsPerClass*InLabelsCount
+
+                    inputTargetNodesCount=1 if inputTargetNodesCount<1 else inputTargetNodesCount
+
+                piplineEstimatedTime+=taskEstimatedTime
+                piplineEstimatedAccuracy*=(taskEstimatedAccuracy/100)
+            execPlansCostDict[planId]['EstimatedTime']=piplineEstimatedTime
+            execPlansCostDict[planId]['EstimatedAccuracy'] = piplineEstimatedAccuracy
+            execPlansCostLst.append([piplineEstimatedAccuracy,piplineEstimatedTime])
+        return execPlansCostDict,execPlansCostLst
+    def exec_query_plan(self,ExecPlanIdx=0,kgwise_full_batch=True):
+        st=datetime.now()
+        DAGExecPlans,DAG,decomposedSubqueries=self.getExecQueryPlans()
+        # self.draw_DAG(DAG)
         sparqlSubqueries = {}
         exectuted_Queries={}
         for subquery in decomposedSubqueries.keys():
             if subquery == "SQ1":
-                sparqlSubqueries[subquery] = self.ReWriteSubqueryToSPARQL(decomposedSubqueries[subquery], DAG)
+                sparqlSubqueries[subquery] = self.ReWriteSubqueryToSPARQL(decomposedSubqueries[subquery])
             else:
                 sparqlSubqueries[subquery] = None
         print(f"Parse and Rewrite Time:{(datetime.now()-st).total_seconds()} Sec.")
         ##################################################
         st=datetime.now()
-        KGMeta_Governer_ins = KGMeta_Governer(endpointUrl="http://206.12.98.118:8890/sparql", KGMeta_URI=Constants.KGNET_Config.KGMeta_IRI,RDFEngine=Constants.RDFEngine.OpenlinkVirtuoso)
+        KGMeta_endpoint = KGMeta_Governer(endpointUrl="http://206.12.98.118:8890/sparql", KGMeta_URI=Constants.KGNET_Config.KGMeta_IRI,RDFEngine=Constants.RDFEngine.OpenlinkVirtuoso)
+        KGData_endpoint= KGMeta_Governer(endpointUrl="http://206.12.97.2:8890/sparql",KGMeta_URI=Constants.KGNET_Config.KGMeta_IRI,RDFEngine=Constants.RDFEngine.OpenlinkVirtuoso)
         #################### get target node list ##########################
-        res_df=KGMeta_Governer_ins.executeSparqlquery(sparqlSubqueries['SQ1'])
+        res_df=KGData_endpoint.executeSparqlquery(sparqlSubqueries['SQ1'])
         exectuted_Queries["SQ1"]=sparqlSubqueries['SQ1']
         res_df=res_df.applymap(lambda x:str(x)[1:-1]) ## remove starting and ending qoutes from each cell
         # target_node_res_lst=[str(elem).replace("\"","").strip() for elem in target_node_res_lst] ## replace starting and ending qoutes
         gml_vars = [var for var in DAG.keys() if var != 'root' and DAG[var].is_gml == True]
         dependent_gml_vars = [var for var in DAG.keys() if var != 'root' and (DAG[var].is_gml == False and DAG[var].gml_parent is not None)]
         print(f"SQ1 Exec Time:{(datetime.now() - st).total_seconds()} Sec.")
-        ################### Loop on SQ2 infernce Queries #####################
-        import itertools
-        subqueries_order=list(itertools.permutations(range(0,len(decomposedSubqueries['SQ2']))))[pipeline]
-        plan_suqueries=[]
-        for elem in subqueries_order:
-            plan_suqueries.append(decomposedSubqueries['SQ2'][elem])
-        # decomposedSubqueries['SQ2'].reverse()
         ######################
-        for query in plan_suqueries:
+        for gmlTask in DAGExecPlans[ExecPlanIdx]:
+            print(f"gmlTask={gmlTask}")
             st=datetime.now()
             api_triples=[]
             non_api_triples=[]
-            if 'triples' in query:
-                for triple in query['triples']:
+            GMLTaskQuery=decomposedSubqueries['SQ2'][gmlTask]
+            if 'triples' in GMLTaskQuery:
+                for triple in GMLTaskQuery['triples']:
                     if triple['bgpType'] in ['Optional', 'NonOptional']:
                         s, p, o, bgpType = triple.values()
                         if str(s) in gml_vars or str(p) in gml_vars or str(o) in gml_vars:
@@ -602,38 +786,46 @@ class gmlQueryParser:
                         else:
                             non_api_triples.append(triple)
                     elif triple['bgpType'] in ['filter']:
-                        var, op, val, bgpType = triple.values()
-                        if var['type']=='variable' and str(var['variable']) in gml_vars:
-                            api_triples.append(triple)
-                        elif var['type']=='function' and (any([True if str(elem) == gml_vars else False for elem in var['args'].values()])):
-                            api_triples.append(triple)
-                        else:
-                            non_api_triples.append(triple)
+                        filters=triple['filters']
+                        for filter_statment in filters:
+                            var, op, val, bgpType,prev_filter_op = filter_statment.values()
+                            if var['type']=='variable' and str(var['variable']) in gml_vars:
+                                api_triples.append(triple)
+                            elif var['type']=='function' and (any([True if str(elem) == gml_vars else False for elem in var['args'].values()])):
+                                api_triples.append(triple)
+                            elif triple not in non_api_triples:
+                                non_api_triples.append(triple)
+
             ################## get task and model id #################
             task_id_query,defined_predicate,predictetd_variable=getGMLOperatorTaskId(api_triples)
-            task_df=KGMeta_Governer_ins.executeSparqlquery(task_id_query)
+            task_df=KGMeta_endpoint.executeSparqlquery(task_id_query)
             exectuted_Queries[predictetd_variable+"_task_id"] = task_id_query
             if len(task_df) == 0:
-                raise Exception("there is no trained model exist for GML operator: " + query)
+                raise Exception("there is no trained model exist for GML operator: " + gmlTask)
             tid = task_df["tid"].values[0].replace('"', "")
-            best_mid = KGMeta_Governer_ins.OptimizeForBestModel(tid)
+            best_mid,model_info_dict = KGMeta_endpoint.OptimizeForBestModel(tid)
+            print(f"best model info={model_info_dict}")
             print(f"Task best_mid={best_mid}")
             print(f"{predictetd_variable} Var Task/Model ID Fetch Time:{(datetime.now() - st).total_seconds()} Sec.")
             ######################### Target Node ####################
-            taskTargetNode=query['targetNode']
+            taskTargetNode=GMLTaskQuery['targetNode']
             #########################################################
             target_node_res_lst = res_df[taskTargetNode].unique().tolist()
             print(f"#{taskTargetNode} Target Nodes={len(target_node_res_lst)}")
             ################## peform model inference #################
             st=datetime.now()
             inference_res_dic={}
-            kgwise_full_batch=True
+            # kgwise_full_batch=False
+            inference_req_dic={}
             if kgwise_full_batch:
                 model_url = Constants.KGNET_Config.GML_API_URL + "fullbatch_wise/mid/" + str(best_mid).replace('"', "")
+                print(f"model_url={model_url} .")
                 params = {"model_id": best_mid,
                              # "named_graph_uri": "http://wikikg-v2",
-                             "named_graph_uri": "http://dblp.org",
-                             "sparqlEndpointURL": "http://206.12.98.118:8890/sparql",
+                             # "named_graph_uri": "http://dblp.org",
+                             "named_graph_uri": "https://yago-knowledge.org",
+                             # "sparqlEndpointURL": "http://206.12.98.118:8890/sparql",
+                             "sparqlEndpointURL":"http://206.12.97.2:8890/sparql",
                              "RDFEngine": Constants.RDFEngine.OpenlinkVirtuoso,
                              "targetNodesQuery":"",
                              "TOSG_Pattern": "d1h1",
@@ -642,25 +834,39 @@ class gmlQueryParser:
                 pd.DataFrame(target_node_res_lst).to_csv(target_file_name,index=None,header=None)
                 files = {'file': (target_file_name, open(target_file_name,'rb'),'text/csv')}
                 headers = {'accept': 'application/json'}
-                response = requests.post(model_url, params=params, files=files, headers=headers)
-                inference_req_dic=response.json()
+                try:
+                    response = requests.post(model_url, params=params, files=files, headers=headers)
+                    inference_req_dic=response.json()
+                except:
+                    print(f"KGWise API reponse Fault")
+                    exit(1)
                 inference_res_dic=inference_req_dic.copy()
                 # print(inference_req_dic.status_code)
                 # print(inference_req_dic.json())
             else:
                 max_target_nodes_per_req = 10000
                 model_url = Constants.KGNET_Config.GML_API_URL + "gml_inference/mid/" + str(best_mid).replace('"', "")
+                print(f"model_url={model_url} .")
                 # model_url = Constants.KGNET_Config.GML_API_URL + "wise_inference/mid/" + str(best_mid).replace('"', "")
                 for i in range(0,len(target_node_res_lst),max_target_nodes_per_req):
                     params = {"model_id": best_mid,
                              # "named_graph_uri": "http://wikikg-v2",
-                             "named_graph_uri": "http://dblp.org",
-                             "sparqlEndpointURL": "http://206.12.98.118:8890/sparql",
+                             # "named_graph_uri": "http://dblp.org",
+                             "named_graph_uri": "https://yago-knowledge.org",
+                             # "sparqlEndpointURL": "http://206.12.98.118:8890/sparql",
+                             "sparqlEndpointURL": "http://206.12.97.2:8890/sparql",
                              "RDFEngine": Constants.RDFEngine.OpenlinkVirtuoso,
                              "targetNodesList": target_node_res_lst[i:i+max_target_nodes_per_req],
                              "TOSG_Pattern": "d1h1",
                              "topk": 1}
-                    inference_req_dic = json.loads(dopost(model_url, params).decode("utf-8"))
+                    try:
+                        inference_req_dic = json.loads(dopost(model_url, params).decode("utf-8"))
+                    except:
+                        print(f"Default API reponse Fault")
+                        exit(1)
+                    if 'error' in inference_req_dic:
+                        print(f"error:{inference_req_dic}")
+                        exit(1)
                     if len(inference_res_dic)==0:
                         inference_res_dic = inference_req_dic.copy()
                     else:
@@ -673,7 +879,7 @@ class gmlQueryParser:
             print(f"{predictetd_variable} #Predicted Classes={len(pred_values)}")
             ################### filter target nodes based one Inferences results #################
             st=datetime.now()
-            descendent_query=query.copy()
+            descendent_query=GMLTaskQuery.copy()
             descendent_query['triples']=non_api_triples
             onlyfilter=all([True if triple['bgpType']=='filter' else False for triple in non_api_triples])
             descendent_query_res_df=None
@@ -681,7 +887,7 @@ class gmlQueryParser:
                 descendent_query['select'].append(predictetd_variable)
                 descendent_query_sparql=self.ReWriteSubqueryToSPARQL(descendent_query,DAG)
                 descendent_query_sparql=descendent_query_sparql.replace("}",f" values {set_syntax(predictetd_variable)}"+"{"+" ".join(list(pred_values))+"}\n}")
-                descendent_query_res_df = KGMeta_Governer_ins.executeSparqlquery(descendent_query_sparql)
+                descendent_query_res_df = KGData_endpoint.executeSparqlquery(descendent_query_sparql)
                 exectuted_Queries[predictetd_variable + "_descendent_query"] = descendent_query_sparql
                 descendent_query_res_df = descendent_query_res_df.applymap(lambda x: str(x)[1:-1])  ## remove starting and ending qoutes from each cell
                 descendent_query_filtered_pred_lst=descendent_query_res_df[str(predictetd_variable)].tolist()
@@ -689,18 +895,50 @@ class gmlQueryParser:
             else:
                 filtered_inference_res_dic={k:v for k,v in inference_res_dic.items() if k not in['Inference_Times']}
                 for triple in non_api_triples:
-                    var,op,val,bgpType=triple.values()
-                    if op=="IN":
-                        filter_vals=[str(elem.string) if type(elem)==rdflib.plugins.sparql.parserutils.CompValue else str(elem) for elem in val]
-                        filtered_inference_res_dic={k:v for k,v in filtered_inference_res_dic.items() if v in filter_vals}
-                    elif op=="NOT IN":
-                        filter_vals=[str(elem.string) if type(elem)==rdflib.plugins.sparql.parserutils.CompValue else str(elem) for elem in val]
-                        filtered_inference_res_dic={k:v for k,v in filtered_inference_res_dic.items() if v not in filter_vals}
-                target_node_res_lst=list(filtered_inference_res_dic.keys())
-            print(f"{predictetd_variable} predictions filter query Time:{(datetime.now() - st).total_seconds()} Sec.")
-            ################# filter traget nodes ###################################################
-            res_df = res_df[res_df[taskTargetNode].isin(target_node_res_lst)]
-            print(f"#{taskTargetNode} Target Nodes After Filter :{len(target_node_res_lst)}")
+                    filters= triple['filters']
+                    filters_ops=set([f['prev_filter_op'] for f in filters])
+                    if len(filters)>1 and 'or' in filters_ops: #### OR Filters
+                        filters_vars = set([str(f['variable']['variable']) for f in filters])
+                        all_vars_ready=len([var for var in filters_vars if str(var) not in [str(predictetd_variable)] and str(var) not in list(res_df.columns)])==0
+                        if all_vars_ready:
+                            or_target_nodes_dic={}
+                            for filter_statment in filters:
+                                var, op, val, bgpType, prev_filter_op = filter_statment.values()
+                                if str(var['variable']) == str(predictetd_variable):
+                                    filtered_inference_or_dic=filtered_inference_res_dic.copy()
+                                else:
+                                    filtered_inference_or_dic = dict(zip(res_df[str(taskTargetNode)], res_df[str(var['variable'])]))
+                                filter_vals = [str(elem.string) if type(elem) == rdflib.plugins.sparql.parserutils.CompValue else str(elem) for elem in val]
+                                if op == "IN":
+                                    filtered_inference_or_dic = {k: v for k, v in filtered_inference_or_dic.items() if v in filter_vals}
+                                elif op == "NOT IN":
+                                    filtered_inference_or_dic = {k: v for k, v in filtered_inference_or_dic.items() if v not in filter_vals}
+                                target_node_res_lst = list(filtered_inference_or_dic.keys())
+                                print(f"{str(var['variable'])} predictions filter query Time:{(datetime.now() - st).total_seconds()} Sec.")
+                                or_target_nodes_dic[str(var['variable'])]=target_node_res_lst.copy()
+                            ################# filter target nodes ###################################################
+                            indicies_set=set()
+                            for or_target_var,or_target_var_lst in or_target_nodes_dic.items(): ## union or matching indicies
+                                indicies_set=indicies_set.union(set(res_df[res_df[str(taskTargetNode)].isin(or_target_var_lst)].index.values.tolist()))
+                            res_df=res_df[res_df.index.isin(indicies_set)]
+                            print(f"len(res_df) after filter: {len(res_df)}")
+                            print(f"#{taskTargetNode} Target Nodes After Filter :{len(target_node_res_lst)}")
+                    else: #### AND Filters
+                        for filter_statment in filters:
+                            var,op,val,bgpType,prev_filter_op=filter_statment.values()
+                            if str(var['variable']) in predictetd_variable:
+                                if op=="IN":
+                                    filter_vals=[str(elem.string) if type(elem)==rdflib.plugins.sparql.parserutils.CompValue else str(elem) for elem in val]
+                                    filtered_inference_res_dic={k:v for k,v in filtered_inference_res_dic.items() if v in filter_vals}
+                                elif op=="NOT IN":
+                                    filter_vals=[str(elem.string) if type(elem)==rdflib.plugins.sparql.parserutils.CompValue else str(elem) for elem in val]
+                                    filtered_inference_res_dic={k:v for k,v in filtered_inference_res_dic.items() if v not in filter_vals}
+                            target_node_res_lst=list(filtered_inference_res_dic.keys())
+                            print(f"{predictetd_variable} predictions filter query Time:{(datetime.now() - st).total_seconds()} Sec.")
+                            ################# filter target nodes ###################################################
+                            res_df = res_df[res_df[taskTargetNode].isin(target_node_res_lst)]
+                            print(f"len(res_df) after filter: {len(res_df)}")
+                            print(f"#{taskTargetNode} Target Nodes After Filter :{len(target_node_res_lst)}")
             ################ Set Projection Columns Values #############################
             st=datetime.now()
             if descendent_query_res_df is not None and len(descendent_query_res_df)>0:
@@ -710,11 +948,13 @@ class gmlQueryParser:
                         col_dict=dict(zip(descendent_query_res_df[str(predictetd_variable)].tolist(),descendent_query_res_df[col].tolist())) ## join with the intermediate join var (predictetd_variable)
                         res_df[col] = res_df[col].apply(lambda x: col_dict[str(x)])
             else:
-                res_df[predictetd_variable]=res_df[taskTargetNode].apply(lambda x:inference_res_dic[str(x)]) ## join with the parent varariable
+                res_df[str(predictetd_variable)]=res_df[taskTargetNode].apply(lambda x:inference_res_dic[str(x)] if str(x) in inference_res_dic.keys() else None) ## join with the parent varariable
             print(f"Projection Columns Filling  Time:{(datetime.now() - st).total_seconds()} Sec.")
+        res_df.columns=[str(elem) for elem in res_df.columns.tolist()]
         return res_df,exectuted_Queries
     def parse_select(self):
         query = rdflibParseQuery(self.gmlquery)
+        self.clearParsedQueryStatments()
         # formatted_gml_query = gmlQueryFormatter.format_gml_query_tree(query)
         # formatted_gml_query=gmlQueryFormatter.format_gml_query_str(str(query))
         flag_prefix = False
@@ -793,4 +1033,3 @@ class gmlQueryParser:
             return  self.parse_delete()
         else:
             return self.parse_select()
-

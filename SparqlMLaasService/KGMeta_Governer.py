@@ -3,9 +3,7 @@ import datetime
 import rdflib
 import os
 import pandas as pd
-import re
-
-import Constants
+import sys
 from Constants import RDFEngine
 from Constants import  KGNET_Config, GML_Operator_Types,GNN_Methods
 from RDFEngineManager.sparqlEndpoint import sparqlEndpoint
@@ -273,11 +271,30 @@ class KGMeta_Governer(sparqlEndpoint):
             model_df=res_df[res_df["s"]==model_uri]
             basic_info["Model ID"] = model_df[model_df["p"] == "kgnet:GMLModel/id"]["o"].values[0]
             if "kgnet:GMLModel/test_Hits@10" in p_list:
-                basic_info["Test Hits@10 Score"] =  round(float(model_df[model_df["p"] == "kgnet:GMLModel/test_Hits@10"]["o"].values[0]),2)
+                basic_info["TestHits@10"] =  round(float(model_df[model_df["p"] == "kgnet:GMLModel/test_Hits@10"]["o"].values[0]),2)
+            else:
+                basic_info["TestHits@10"]=0
+
             if "kgnet:GMLModel/testAccuracy" in p_list:
-                basic_info["Test Acc Score"] =  round(float(model_df[model_df["p"] == "kgnet:GMLModel/testAccuracy"]["o"].values[0]))
+                basic_info["testAccuracy"] =  round(float(model_df[model_df["p"] == "kgnet:GMLModel/testAccuracy"]["o"].values[0]))
+            else:
+                basic_info["testAccuracy"]=0
+
             if "kgnet:GMLModel/inferenceTime" in p_list:
-                basic_info["Inference Time"] = round(float(model_df[model_df["p"] == "kgnet:GMLModel/inferenceTime"]["o"].values[0]))
+                basic_info["InferenceTime"] = round(float(model_df[model_df["p"] == "kgnet:GMLModel/inferenceTime"]["o"].values[0]))
+            else:
+                basic_info["InferenceTime"] = 0
+
+            if "kgnet:GMLModel/taskSubgraph/labelCount" in p_list:
+                basic_info["labelsCount"] = int(model_df[model_df["p"] == "kgnet:GMLModel/taskSubgraph/labelCount"]["o"].values[0])
+            else:
+                basic_info["labelsCount"] = 0
+
+            if "kgnet:GMLModel/taskSubgraph/targetNodeCount" in p_list:
+                basic_info["targetNodesCount"] = int(model_df[model_df["p"] == "kgnet:GMLModel/taskSubgraph/targetNodeCount"]["o"].values[0])
+            else:
+                basic_info["targetNodesCount"] = 0
+
             models_info_list.append(basic_info)
         models_res_lst=[]
         for idx,elem in enumerate(models_info_list):
@@ -289,12 +306,12 @@ class KGMeta_Governer(sparqlEndpoint):
         header=list(models_info_list[0].keys())
         header.insert(0,'Property')
         res_df=pd.DataFrame(models_res_lst, columns=header)
-        if "Test Acc Score" in res_df.columns:
-            Acc_InferTime_lst = res_df[["Test Acc Score", "Inference Time"]].values.tolist()
-        elif "Test Hits@10 Score" in res_df.columns:
-            Acc_InferTime_lst = res_df[["Test Hits@10 Score", "Inference Time"]].values.tolist()
+        if "testAccuracy" in res_df.columns:
+            Acc_InferTime_lst = res_df[["testAccuracy", "InferenceTime"]].values.tolist()
+        elif "TestHits@10" in res_df.columns:
+            Acc_InferTime_lst = res_df[["TestHits@10", "InferenceTime"]].values.tolist()
         model_idx = ModelSelector.getBestModelIdx(Acc_InferTime_lst)
-        return res_df.iloc[model_idx]["Model ID"]
+        return res_df.iloc[model_idx]["Model ID"],res_df.iloc[model_idx].to_dict()
     def getGraphUriByPrefix(self,prefix="MAG"):
         next_mid_query = """PREFIX kgnet: <https://www.kgnet.com/>  
                           select ?g 
@@ -309,18 +326,24 @@ class KGMeta_Governer(sparqlEndpoint):
         operator_type = query_dict["insertJSONObject"]["GMLTask"]["taskType"].split(":")[1]
         for pref in query_dict["prefixes"]:
             task_query += "PREFIX " + pref + ":<" + query_dict["prefixes"][pref] + "> \n"
+        task_query += "select ?tid  from <" + KGNET_Config.KGMeta_IRI + "> where {\n"
         if operator_type==GML_Operator_Types.NodeClassification:
-            task_query+= """select ?tid  from <""" + KGNET_Config.KGMeta_IRI + """> where {
-                              ?task	<kgnet:GMLTask/taskType>  <kgnet:type/nodeClassification> ."""
-            task_query+= ("?task	<kgnet:GMLTask/labelNode> <"""+ query_dict["insertJSONObject"]["GMLTask"]["labelNode"] + "> . \n" if "labelNode" in query_dict["insertJSONObject"]["GMLTask"].keys()  else "")
-            task_query += ("?task	<kgnet:GMLTask/targetEdge> <""" + query_dict["insertJSONObject"]["GMLTask"]["targetEdge"] + "> . \n" if "targetEdge" in query_dict["insertJSONObject"]["GMLTask"].keys() else "")
-            task_query += "?task <kgnet:GMLTask/targetNode>	<" + query_dict["insertJSONObject"]["GMLTask"]["targetNode"] + "> . \n"
-            task_query += "?task <kgnet:GMLTask/id>	?tid. \n} limit 1"
-        elif operator_type==GML_Operator_Types.LinkPrediction:
-            task_query += """select ?tid  from <""" + KGNET_Config.KGMeta_IRI + """> where {?task	<kgnet:GMLTask/taskType>	<kgnet:type/linkPrediction> . \n"""
+            task_query+="?task	<kgnet:GMLTask/taskType>  <kgnet:type/nodeClassification> .\n"
+            labelNode=query_dict["insertJSONObject"]["GMLTask"]["labelNode"] if "labelNode" in query_dict["insertJSONObject"]["GMLTask"].keys()  else None
+            if labelNode:
+                task_query+= "?task	<kgnet:GMLTask/labelNode> "+(("<" + labelNode + ">") if (labelNode.startswith("http") or ":" in labelNode) else "\"" + labelNode + "\"") + " . \n"
+            targetNode = query_dict["insertJSONObject"]["GMLTask"]["targetNode"] if "targetNode" in query_dict["insertJSONObject"]["GMLTask"].keys() else ""
+            task_query += "?task <kgnet:GMLTask/targetNode>	"+(("<" + targetNode + ">") if (targetNode.startswith("http") or ":" in targetNode) else "\"" + targetNode + "\"") + " . \n"
             task_query += "?task <kgnet:GMLTask/targetEdge>	\"" + query_dict["insertJSONObject"]["GMLTask"]["targetEdge"] + "\" . \n"
-            task_query += "?task <kgnet:GMLTask/id>	?tid. \n} limit 1"
+            # task_query += ("?task	<kgnet:GMLTask/targetEdge> <""" + query_dict["insertJSONObject"]["GMLTask"]["targetEdge"] + "> . \n" if "targetEdge" in query_dict["insertJSONObject"]["GMLTask"].keys() else "")
 
+        elif operator_type==GML_Operator_Types.LinkPrediction:
+            task_query += "?task	<kgnet:GMLTask/taskType>	<kgnet:type/linkPrediction> .\n"
+            task_query += "?task <kgnet:GMLTask/targetEdge>	\"" + query_dict["insertJSONObject"]["GMLTask"]["targetEdge"] + "\" . \n"
+
+        if "namedGraphPrefix" in query_dict["insertJSONObject"]["GMLTask"].keys():
+            task_query += "?task <kgnet:GMLTask/KGPrefix> \""+ str(query_dict["insertJSONObject"]["GMLTask"]["namedGraphPrefix"])+"\" .\n"
+        task_query += "?task <kgnet:GMLTask/id>	?tid. \n} limit 1"
         task_df = self.executeSparqlquery(task_query)
         if len(task_df) > 0:
             return task_df["tid"].values[0].replace("\"","")
@@ -534,9 +557,44 @@ if __name__ == '__main__':
     # print(res_df)
 
     kgmeta_govener.insertKGMetadata(sparqlendpoint='http://206.12.98.118:8890/sparql',
-                                           prefix='WikiKG2015_v2',
-                                           namedGraphURI='http://wikikg-v2',
-                                           name='WikiKG2015_v2',
-                                           description='Subgraph of Wikidata KG 2015 KG',
-                                           domain='academic')
-    #kgmeta_govener.getGMLTaskModelsBasicInfoByID(26)
+                                           prefix='lkmdb',
+                                           namedGraphURI='https://linkedmdb.org',
+                                           name='lkmdb',
+                                           description='Linked MDB KG',
+                                           domain='Movies')
+
+    # kgmeta_govener.insertKGMetadata(sparqlendpoint='http://206.12.98.118:8890/sparql',
+    #                                        prefix='WikiKG2015_v2',
+    #                                        namedGraphURI='http://wikikg-v2',
+    #                                        name='WikiKG2015_v2',
+    #                                        description='Subgraph of Wikidata KG 2015 KG',
+    #                                        domain='academic')
+    # #kgmeta_govener.getGMLTaskModelsBasicInfoByID(26)
+    # select_task_query="""select ?tid
+    #                     from <http://kgnet/>
+    #                     where 
+    #                     {
+    #                         ?task a <kgnet:type/GMLTask>.
+    #                         ?task	<kgnet:GMLTask/taskType>  <kgnet:type/nodeClassification> .
+    #                         ?task	<kgnet:GMLTask/targetEdge> "yago:parentOrganization" .
+    #                         ?task <kgnet:GMLTask/targetNode>	<yago:Organization>.
+    #                         ?task <kgnet:GMLTask/KGPrefix> "yago".
+    #                         ?task <kgnet:GMLTask/id>	?tid.
+    #                     }"""
+    # insert_task_triples="""with <http://kgnet/>
+    #                     insert data
+    #                     {
+    #                     <kgnet:GMLTask/tid-55fcf2eaafa861a7bf48ff8b9d04309f700fa6623a0ba0135734acb96d9de164>	<kgnet:GMLTask/modelID>	<kgnet:GMLModel/mid-f827e3009a7c260cf1c6620fac16f902187e450fd425033cd68b44bce9c494f7>	.
+    #                     }"""
+    # delete_task_triples=""" with <http://kgnet/>
+    #                     delete 
+    #                     {
+    #                     <kgnet:GMLTask/tid-17bad78bb1d04f0e05f1c3d9d717ed1cd1768b6c81685586fd7db505cd1453a3>	<kgnet:GMLTask/modelID>	<kgnet:GMLModel/mid-f827e3009a7c260cf1c6620fac16f902187e450fd425033cd68b44bce9c494f7>	.
+    #                     }
+    #                     """
+    # select_model_triples="""SELECT ?m ?p ?o
+    #                         from <http://kgnet/>
+    #                         WHERE {
+    #                         ?m <kgnet:GMLModel/id> ?mid .
+    #                         filter(STRENDS(str(?mid),"bce9c494f7")).
+    #                         ?m ?p ?o.}"""

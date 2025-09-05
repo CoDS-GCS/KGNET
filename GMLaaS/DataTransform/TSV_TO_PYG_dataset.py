@@ -44,8 +44,6 @@ def write_entity_mapping(item):
     val.to_csv(map_folder + "/" + key + "_entidx2name.csv.gz", index=None,compression='gzip')
     # compress_gz(map_folder + "/" + key + "_entidx2name.csv")
     return (key, val,dic_res )
-
-
 def remove_special_characters(string):
     # Define the pattern for special characters
     pattern = r'.*?([@:\/].*)'
@@ -166,7 +164,7 @@ def define_rel_types(g_tsv_df):
     g_tsv_df["p"]
 
 def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path
-                         ,MINIMUM_INSTANCE_THRESHOLD=21,test_size=0.1,valid_size=0.1,split_rel_train_value=None,split_rel_valid_value=None,Header_row=None,targetNodeType=None,labelNodetype=None,inference=False,nthreads=6):
+                         ,MINIMUM_INSTANCE_THRESHOLD=21,test_size=0.1,valid_size=0.1,split_rel_train_value=None,split_rel_valid_value=None,Header_row=None,targetNodeType=None,labelNodetype=None,inference=False,nthreads=6,split_rel_type=None):
     dic_results = {}  # args.dic_results #{}
     start_t = datetime.datetime.now()
     if dataset_types == "":
@@ -457,6 +455,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
             targetNodeType + "_dic"].keys() else -1)
     labels_rel_df = labels_rel_df[labels_rel_df["s_idx"] != -1]
     labels_rel_df["o_idx"] = labels_rel_df["o"]  # .apply(lambda x: str(x).split("/")[-1])
+    label_idx_dic={str(k):v for k,v in label_idx_dic.items()}
     labels_rel_df["o_idx"] = labels_rel_df["o_idx"].apply(
         lambda x: label_idx_dic[str(x)] if str(x) in label_idx_dic.keys() else -1)
     target_without_labels_set=target_without_labels_set.union(set(labels_rel_df[labels_rel_df["o_idx"]==-1]["s"].unique())) ## append target nodes those are not have reprsentiaive labels
@@ -484,17 +483,20 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         print("Split Dataset into Train/Valid/Test")
         if split_rel is None:
             split_rel = 'random'
-        split_rel = split_rel.split('/')[-1]
+        split_rel = split_rel.split('/')[-1].split("#")[-1] ## handel # in rel such as vocab#born_on 
         if split_rel.lower() == 'random':
             if labelNodetype is None:
-                split_df = g_tsv_df[(g_tsv_df["p"] == target_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"]))]
+                if g_tsv_df.dtypes[2] ==object:
+                    split_df = g_tsv_df[(g_tsv_df["p"] == target_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"].astype(str).tolist()))]
+                else:
+                    split_df = g_tsv_df[(g_tsv_df["p"] == target_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"].tolist()))]
             else:
                 split_df = g_tsv_df[g_tsv_df["p"] == target_rel]
         else:
-            if labelNodetype is None:
-                split_df = g_tsv_df[(g_tsv_df["p"] == split_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"]))]
-            else:
-                split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
+            # if labelNodetype is None:
+            #     split_df = g_tsv_df[(g_tsv_df["p"] == split_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"]))]
+            # else:
+            split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
         ####################### filter for traget node types only ###############
         split_df = split_df[split_df["s"].isin(entites_dic[targetNodeType+"_dic"])]
         split_df = split_df[~split_df["s"].isin(target_without_labels_set)] ## exclude dummy label target nodes
@@ -503,10 +505,19 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         target_nodes_to_keep_lst = list(k for k, v in target_label_dict.items() if v == 1)
         split_df = split_df[split_df["s"].isin(target_nodes_to_keep_lst)]
         ########## remove labels with less than MINIMUM_INSTANCE_THRESHOLD samples################
-        labels_dict = split_df["o"].value_counts().to_dict()
-        if not inference:
-            labels_to_keep_lst = list(k for k, v in labels_dict.items() if v >= MINIMUM_INSTANCE_THRESHOLD)
-            split_df = split_df[split_df["o"].isin(labels_to_keep_lst)]
+        if split_rel =="random":
+            labels_dict = split_df["o"].value_counts().to_dict()
+            if not inference:
+                labels_to_keep_lst = list(k for k, v in labels_dict.items() if v >= MINIMUM_INSTANCE_THRESHOLD)
+                split_df = split_df[split_df["o"].isin(labels_to_keep_lst)]
+        else:
+             target_rel_df=g_tsv_df[g_tsv_df["p"] == target_rel]
+             target_rel_df=target_rel_df[target_rel_df["s"].isin(split_df["s"].unique())]
+             labels_dict = target_rel_df["o"].value_counts().to_dict()
+             if not inference:
+                labels_to_keep_lst = list(k for k, v in labels_dict.items() if v >= MINIMUM_INSTANCE_THRESHOLD)
+                target_rel_df = target_rel_df[target_rel_df["o"].isin(labels_to_keep_lst)]
+                split_df=split_df[split_df["s"].isin(target_rel_df["s"].unique())]
         #############################################################
         split_df["s"] = split_df["s"].astype("str").apply(lambda x: entites_dic[targetNodeType + "_dic"][str(x)] if x in entites_dic[
             targetNodeType + "_dic"] else -1)
@@ -538,6 +549,13 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         else:
                 # print("SPLIT REL PROVIDED: ", split_rel)
                 dic_results["splitEdge"]=split_rel
+                if "date" in split_rel.lower() or (split_rel_type is not None and "date" in split_rel_type.lower()):
+                    def to_int(p_str):
+                        try:
+                            return int(p_str)
+                        except:
+                            return 0
+                    split_df["o"]=split_df["o"].apply(lambda x: to_int(str(x).split("-")[0].strip()))
                 train_df = split_df[split_df["o"].astype(int) <= split_rel_train_value]["s"]
                 valid_df = split_df[(split_df["o"].astype(int) > split_rel_train_value) & (
                             split_df["o"].astype(int) <= split_rel_valid_value)]["s"]

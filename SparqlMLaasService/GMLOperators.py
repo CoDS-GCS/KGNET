@@ -151,13 +151,13 @@ class gmlInferenceOperator(gmlOperator):
         self.KGMeta_Governer_obj = KGMeta_Governer_obj
         self.KG_sparqlEndpoint = KG_sparqlEndpoint
         self.GML_Query_Type = GML_Query_Types.Inference
-    def executeQuery(self, query,pipline=None):
+    def executeQuery(self, query,ExecPlanIdx=None,kgwise_full_batch=True):
         gmlqp = gmlQueryParser(query)
         start_time=datetime.now()
-        if pipline is not None:
-            res_df,exectuted_Queries,=gmlqp.exec_query_plan(pipeline =pipline)
+        if ExecPlanIdx is not None: ## Execute Query as a pipline of tasks
+            res_df,exectuted_Queries,=gmlqp.exec_query_plan(ExecPlanIdx=ExecPlanIdx,kgwise_full_batch=kgwise_full_batch)
             return res_df,exectuted_Queries,(datetime.now()-start_time).total_seconds()
-        else:
+        else: ## GML as a single SPARQL Query
             st = datetime.now()
             q_stmt=gmlqp.extractQueryStatmentsDict()
             formatted_gml_query = gmlQueryFormatter.format_gml_query_tree(gmlqp.query_statments)
@@ -172,6 +172,14 @@ class gmlInferenceOperator(gmlOperator):
             # print("SPARQLdata only Query=\n", dataQ)
             df_res=df_res.applymap(lambda x: str(x)[1:-1])
             return df_res,dataInferQ,dataQ,tragetNodesq,kgmeta_model_queries_dict,model_ids,(datetime.now()-start_time).total_seconds()
+    def getExecQueryPlans(self, query):
+        gmlqp = gmlQueryParser(query)
+        DAGExecPlans,DAG,decomposedSubqueries=gmlqp.getExecQueryPlans()
+        return DAGExecPlans,DAG,decomposedSubqueries
+    def getSPARQLMLQueryPlansCost(self,DAGExecPlans,DAG,decomposedSubqueries,CostModelParams):
+        gmlqp = gmlQueryParser()
+        SPARQLMLQueryPlansCost=gmlqp.getExecutionPlansCost(DAGExecPlans,DAG,decomposedSubqueries,CostModelParams)
+        return SPARQLMLQueryPlansCost
 
 # if __name__ == '__main__':
 #     ""

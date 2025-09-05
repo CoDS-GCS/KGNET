@@ -1,8 +1,11 @@
 import pandas as pd
 from Constants import *
 import Constants
+from Evaluation import Metrics
 from KGNET import KGNET
-from statistics import mean
+from statistics import mean, median
+from SparqlMLaasService.ModelSelector import ModelSelector
+
 if __name__ == '__main__':
     #################################### NC ############################
     # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de')
@@ -22,10 +25,24 @@ if __name__ == '__main__':
     # # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType="dblp:Publication",labelNodeType="dblp:venue", GNNMethod=GNN_Methods.Graph_SAINT)
     # print(model_info)
 
-    kgnet = KGNET(KG_endpointUrl='http://206.12.97.2:8890/sparql/', KG_NamedGraph_IRI='https://yago-knowledge.org',KG_Prefix='yago')
+
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql/', KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de',KG_Prefix='aifb')
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://wikikg-v2',KG_Prefix='WikiKG2015_v2')
-    # kgnet = KGNET(KG_endpointUrl='http://206.12.97.2:8890/sparql', KG_NamedGraph_IRI='https://yago-knowledge.org', KG_Prefix='yago')
-    # types_df = kgnet.getKGNodeEdgeTypes_V2(write_to_file=True, prefix='yago')
+    kgnet = KGNET(KG_endpointUrl='http://206.12.97.2:8890/sparql', KG_NamedGraph_IRI='https://yago-knowledge.org', KG_Prefix='yago')
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://linkedmdb.org', KG_Prefix='lkmdb')
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.97.2:8890/sparql/', KG_NamedGraph_IRI='http://crunchbase-dump-2015-10', KG_Prefix='crunchbase')
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.97.2:8890/sparql/', KG_NamedGraph_IRI='http://www.biokg.com', KG_Prefix='biokg')
+
+    # kgnet.KGMeta_Governer.insertKGMetadata(sparqlendpoint='http://206.12.98.118:8890/sparql',
+    #                                        prefix='lkmdb',
+    #                                        namedGraphURI='https://linkedmdb.org',
+    #                                        name='lkmdb',
+    #                                        description='Linked MDB KG',
+    #                                        domain='Movies')
+
+    # types_df = kgnet.getKGNodeEdgeTypes_V2(write_to_file=True, prefix='crunchbase')
+    # types_df.to_csv("Datasets/crunchbase_Types.csv")
+
     # types_df = types_df[(~types_df["object"].str.endswith("_Obj")) | (types_df["object"].str.endswith("publishedIn_Obj"))]
     # types_df
 
@@ -41,32 +58,150 @@ if __name__ == '__main__':
     # TargetEdge = "http://www.wikidata.org/entity/P106"  # profession
     # label_type = "occupation"
 
-    #TargetEdge = "http://www.wikidata.org/entity/P108" # Employeer
-    #"http://www.wikidata.org/entity/Q3571662" Yan Lucn
+    # TargetEdge = "http://www.wikidata.org/entity/P108" # Employeer
+    # "http://www.wikidata.org/entity/Q3571662" Yan Lucn
 
-    TargetEdge = "dblp:publishedIn"  # profession
-    targetNodeType = "dblp:Publication"
-    MinInstancesPerLabel = 2260
+    # TargetEdge = "dblp:publishedIn"  # profession
+    # targetNodeType = "dblp:Publication"
+    # MinInstancesPerLabel = 2260
 
-    TargetEdge = "dblp:bibtexType"  # profession
-    targetNodeType = "dblp:Publication"
-    MinInstancesPerLabel = 1000
+    # TargetEdge = "dblp:bibtexType"  # profession
+    # targetNodeType = "dblp:Publication"
+    # MinInstancesPerLabel = 1000
 
     # TargetEdge = "https://dblp.org/Affaliation_Country"
     # targetNodeType = "dblp:Person"
     # MinInstancesPerLabel = 115
 
-    TargetEdge = "yago:alumniOf"  # profession
-    targetNodeType = "yago:Person"
-    MinInstancesPerLabel = 100
+    # TargetEdge = "yago:alumniOf"  # profession
+    # targetNodeType = "yago:Person"
+    # MinInstancesPerLabel = 200
 
-    TargetEdge = "yago:nationality"  # profession
-    targetNodeType = "yago:Person"
-    MinInstancesPerLabel = 10
+    # TargetEdge = "yago:hasOccupation"  # profession
+    # targetNodeType = "yago:Person"
+    # MinInstancesPerLabel = 100
 
-    for epoch in range(5,31,5):
-        for e_size in range(64, 128, 32):
-            model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType=targetNodeType,labelNodeType=None,targetEdge=TargetEdge, GNNMethod=GNN_Methods.Graph_SAINT,TOSG_Pattern=TOSG_Patterns.d1h1,epochs=epoch,emb_size=e_size,MinInstancesPerLabel=MinInstancesPerLabel)
+    # TargetEdge = "yago:parentOrganization"  # profession
+    # targetNodeType = "yago:Organization"
+    # MinInstancesPerLabel = 15
+
+    # TargetEdge = "yago:nationality"  # profession
+    # targetNodeType = "yago:Person"
+    # MinInstancesPerLabel = 500
+
+    # TargetEdge = "yago:award"  # profession
+    # targetNodeType = "yago:Person"
+    # MinInstancesPerLabel = 50
+
+    # TargetEdge = "yago:memberOf" 
+    # targetNodeType = "yago:Person"
+    # MinInstancesPerLabel = 500
+
+    # TargetEdge = "yago:deathPlace" 
+    # targetNodeType = "yago:Person"
+    # MinInstancesPerLabel = 50
+
+    # TargetEdge = "yago:knowsLanguage" 
+    # targetNodeType = "yago:Person"
+    # MinInstancesPerLabel = 1000
+    ##### Creative Work #######
+    # TargetEdge = "yago:genre" 
+    # targetNodeType = "yago:CreativeWork"
+    # MinInstancesPerLabel = 1000
+
+    # TargetEdge = "yago:inLanguage" 
+    # targetNodeType = "yago:CreativeWork"
+    # MinInstancesPerLabel = 100
+
+    # TargetEdge = "yago:genre" 
+    # targetNodeType = "yago:CreativeWork"
+    # MinInstancesPerLabel = 1000
+
+    # TargetEdge = "yago:productionCompany" 
+    # targetNodeType = "yago:CreativeWork"
+    # MinInstancesPerLabel = 100
+
+    # TargetEdge = "yago:publisher" 
+    # targetNodeType = "yago:CreativeWork"
+    # MinInstancesPerLabel = 400
+    ########### Linked IMDB #########
+    Linked_IMDB_Dict={
+    # "lkmdb:genre":{
+    # "targetNodeType": "lkmdb:film",
+    # "MinInstancesPerLabel": 500},
+
+    # "lkmdb:country":{
+    # "targetNodeType" :"lkmdb:film",
+    # "MinInstancesPerLabel" : 100},
+
+    # "lkmdb:film_subject" :{
+    # "targetNodeType": "lkmdb:film",
+    # "MinInstancesPerLabel": 50},
+
+    # "lkmdb:producer":{
+    # "targetNodeType":"lkmdb:film",
+    # "MinInstancesPerLabel": 50},
+
+    # "lkmdb:language":{
+    # "targetNodeType":"lkmdb:film",
+    # "MinInstancesPerLabel":100},
+    "lkmdb:initial_release_date": {
+        "targetNodeType": "lkmdb:film",
+        "MinInstancesPerLabel": 200}
+    }
+################### crunchbase KG ################
+    Linked_crunchbase_Dict={
+    # "crunchbase:title":{
+    # "targetNodeType": "crunchbase:Person",
+    # "MinInstancesPerLabel": 500},
+    "crunchbase:organization_name":{
+    "targetNodeType": "crunchbase:Person",
+    "MinInstancesPerLabel": 20},
+    "crunchbase:region_name":{
+    "targetNodeType": "crunchbase:Person",
+    "MinInstancesPerLabel": 300},
+    "crunchbase:country_code":{
+    "targetNodeType": "crunchbase:Person",
+    "MinInstancesPerLabel": 400}
+    }
+################### biokg ################
+    biokg_Dict={
+    # "http://www.biokg.com/drug-property/SUPERCLASS":{
+    # "targetNodeType": "biokg:drug",
+    # "MinInstancesPerLabel": 50},
+    # "http://www.biokg.com/drug-property/CLASS":{
+    # "targetNodeType": "biokg:drug",
+    # "MinInstancesPerLabel": 50},
+    # "http://www.biokg.com/drug-property/KINGDOM":{
+    # "targetNodeType": "biokg:drug",
+    # # "MinInstancesPerLabel": 50},
+    # "http://www.biokg.com/drug-property/PRODUCT":{
+    # "targetNodeType": "biokg:drug",
+    # "MinInstancesPerLabel": 40},
+
+    # "http://www.biokg.com/protein-property/RELATED_KEYWORD":{
+    # "targetNodeType": "biokg:protein",
+    # "MinInstancesPerLabel": 15000},
+    "http://www.biokg.com/protein-property/ORGANISM_CLASS":{
+    "targetNodeType": "biokg:protein",
+    "MinInstancesPerLabel": 40000},
+    "http://www.biokg.com/FAMILY":{
+    "targetNodeType": "biokg:protein",
+    "MinInstancesPerLabel": 200},
+    "http://www.biokg.com/protein-property/SPECIES":{
+    "targetNodeType": "biokg:protein",
+    "MinInstancesPerLabel": 15},
+    }
+########################### Train Models ################
+    # for k,v in biokg_Dict.items():
+    # for k, v in Linked_IMDB_Dict.items():
+    #     TargetEdge=k
+    #     print("Linked_IMDB_Dict TargetEdge=",TargetEdge)
+    #     targetNodeType=v['targetNodeType']
+    #     MinInstancesPerLabel=v['MinInstancesPerLabel']
+    #     for epoch in range(15,31,5):
+    #         for e_size in range(64, 128, 32):
+    #             model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType=targetNodeType,labelNodeType=None,targetEdge=TargetEdge, GNNMethod=GNN_Methods.Graph_SAINT,TOSG_Pattern=TOSG_Patterns.d1h1,epochs=epoch,emb_size=e_size,MinInstancesPerLabel=MinInstancesPerLabel)
     #################################### LP ######
     # ######################
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de',KG_Prefix="aifb")
@@ -79,9 +214,10 @@ if __name__ == '__main__':
     # task_id='tid-0000025'
     # df = kgnet.KGMeta_Governer.getGMLTaskModelsBasicInfoByID(task_id)
     # print(model_info_dict)
-    #model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.LinkPrediction,targetEdge="http://swrc.ontoware.org/ontology#author",GNNMethod=GNN_Methods.MorsE)
-    #kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
-    kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://wikikg-v2',KG_Prefix='WikiKG2015_v2')
+    # model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.LinkPrediction,targetEdge="http://swrc.ontoware.org/ontology#author",GNNMethod=GNN_Methods.MorsE)
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://dblp2022.org',KG_Prefix='dblp2022')
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://wikikg-v2',
+    #               KG_Prefix='WikiKG2015_v2')
     # KGNET.inference_path = KGNET.KGNET_Config.datasets_output_path + 'Inference/'
     # KGNET.KGNET_Config.trained_model_path = KGNET.KGNET_Config.datasets_output_path + 'trained_models/'
     #
@@ -119,7 +255,7 @@ if __name__ == '__main__':
                 }
                 limit 100
             """
-    inference_query_NC2="""
+    inference_query_NC2 = """
             prefix dblp2022:<https://dblp.org/rdf/schema#>
             prefix kgnet:<http://kgnet/>
             select ?Publication ?Title ?Org_Venue ?Pred_Venue
@@ -206,6 +342,41 @@ if __name__ == '__main__':
                     """
     ################################## Multi-Task SPARQLML##########################
     ###################### Wikikdata Multi-Task SPARQLML##################
+    inference_query_wikidata_Citizenship_Profession_univ_NC_v2 = """
+                                           prefix wiki:<http://www.wikidata.org/entity/>
+                                           prefix kgnet:<http://kgnet/>
+                                           select distinct ?human  ?pred_nationality_label ?pred_profession_label 
+                                           from <http://wikikg-v2>
+                                           where
+                                           {                 
+                                               ?human a "human".                                         
+                                               ?human wiki:P27 ?nationality.
+                                               ?nationality a "country".
+                                               ?human wiki:P106 ?profession.
+                                               ?profession a "occupation".
+
+                                               ?human ?NodeClassifier ?pred_nationality.
+                                               ?NodeClassifier a <kgnet:types/NodeClassifier>.
+                                               ?NodeClassifier <kgnet:targetNode> "human".
+                                               ?NodeClassifier <kgnet:labelNode> "country".
+                                               ?NodeClassifier <kgnet:labelValue> "Nederland".
+                                               ?NodeClassifier <kgnet:targetEdge> "http://www.wikidata.org/entity/P27".
+
+                                               ?human ?NodeClassifier2 ?pred_profession.
+                                               ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
+                                               ?NodeClassifier2 <kgnet:targetNode> "human".
+                                               ?NodeClassifier2 <kgnet:labelNode> "occupation".
+                                               ?NodeClassifier2 <kgnet:labelValue> "baseball player".
+                                               ?NodeClassifier2 <kgnet:targetEdge> "http://www.wikidata.org/entity/P106".
+
+                                               ?pred_nationality  <http://www.w3.org/2004/02/skos/core#altLabel> ?pred_nationality_label.
+                                               #?pred_profession  <http://www.w3.org/2004/02/skos/core#altLabel> ?pred_profession_label.
+                                               ?pred_profession  <http://www.w3.org/2000/01/rdf-schema#label> ?pred_profession_label. 
+                                               filter(?pred_nationality_label='Nederland').
+                                               filter(?pred_profession_label='baseball player').                         
+                                          }
+                                        #limit 100                                    
+                                       """
     inference_query_wikidata_award_workField_NC = """
                             prefix wiki:<http://www.wikidata.org/entity/>
                             prefix kgnet:<http://kgnet/>
@@ -216,14 +387,14 @@ if __name__ == '__main__':
                             ?human wiki:P166 ?award.
                             ?human a "human".
                             ?human wiki:P69 ?univ .
-                            
+
                             ?award a "science_or_engineering_award".
                             ?human ?NodeClassifier ?pred_award.
                             ?NodeClassifier a <kgnet:types/NodeClassifier>.
                             ?NodeClassifier <kgnet:targetNode> "human".
                             ?NodeClassifier <kgnet:labelNode> "science_or_engineering_award".
                             ?NodeClassifier <kgnet:targetEdge> "http://www.wikidata.org/entity/P166".
-                            
+
                             ?human wiki:P101 ?work.
                             ?work a "area_of_mathematics".
                             ?human ?NodeClassifier2 ?pred_work.
@@ -254,14 +425,14 @@ if __name__ == '__main__':
                                            ?human wiki:P69 ?univ .
                                            ?univ <http://www.w3.org/2000/01/rdf-schema#label> ?univ_label.                                           
                                            #optional {?univ <http://www.w3.org/2000/01/rdf-schema#label> ?univ_label. }
-                                                       
+
                                            ?award a "science_or_engineering_award".
                                            ?human ?NodeClassifier ?pred_award.
                                            ?NodeClassifier a <kgnet:types/NodeClassifier>.
                                            ?NodeClassifier <kgnet:targetNode> "human".
                                            ?NodeClassifier <kgnet:labelNode> "science_or_engineering_award".
                                            ?NodeClassifier <kgnet:targetEdge> "http://www.wikidata.org/entity/P166".
-            
+
                                            ?human wiki:P101 ?work.
                                            ?work a "area_of_mathematics".
                                            ?human ?NodeClassifier2 ?pred_work.
@@ -288,19 +459,19 @@ if __name__ == '__main__':
                                        ?award a "science_or_engineering_award".
                                        ?human wiki:P101 ?work.
                                        ?work a "area_of_mathematics".
-                                       
+
                                        ?human ?NodeClassifier ?pred_award.
                                        ?NodeClassifier a <kgnet:types/NodeClassifier>.
                                        ?NodeClassifier <kgnet:targetNode> "human".
                                        ?NodeClassifier <kgnet:labelNode> "science_or_engineering_award".
                                        ?NodeClassifier <kgnet:targetEdge> "http://www.wikidata.org/entity/P166".
-                                       
+
                                        ?human ?NodeClassifier2 ?pred_work.
                                        ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
                                        ?NodeClassifier2 <kgnet:targetNode> "human".
                                        ?NodeClassifier2 <kgnet:labelNode> "area_of_mathematics".
                                        ?NodeClassifier2 <kgnet:targetEdge> "http://www.wikidata.org/entity/P101".
-                                       
+
                                        ?pred_award  <http://www.w3.org/2000/01/rdf-schema#label> ?pred_awardLabel.
                                        ?pred_work  <http://www.w3.org/2000/01/rdf-schema#label> ?pred_workFieldLabel. 
                                        filter(?pred_awardLabel='Royal Medal').
@@ -319,7 +490,7 @@ if __name__ == '__main__':
                                           ?human a "human".
                                           ?human wiki:P69 ?univ .
                                           ?univ <http://www.w3.org/2000/01/rdf-schema#label> ?univ_label.
-                                          
+
                                           ?human wiki:P166 ?award.
                                           ?award a "science_or_engineering_award".
                                           ?human ?NodeClassifier ?pred_award.
@@ -349,7 +520,7 @@ if __name__ == '__main__':
 
                                               ?human wiki:P166 ?award.
                                               ?award a "science_or_engineering_award".
-                                              
+
                                               ?human wiki:P101 ?work.
                                               ?work a "area_of_mathematics".
                                               ?human ?NodeClassifier2 ?pred_work.
@@ -414,7 +585,7 @@ if __name__ == '__main__':
                }
                limit 10
            """
-    inference_MQuery_dblp_NC_venue_aff=""" 
+    inference_MQuery_dblp_NC_venue_aff = """ 
         prefix dblp:<https://dblp.org/rdf/schema#>
         select distinct  ?Publication ?venue ?country
         from <http://dblp.org>
@@ -425,41 +596,41 @@ if __name__ == '__main__':
             ?Publication dblp:yearOfPublication ?year .
             ?Publication dblp:authoredBy ?Author.
             ?Publication dblp:bibtexType ?ptype.
-            
+
             ?Author a dblp:Person.
             ?Author <https://dblp.org/Affaliation_Country> ?country.
-             
+
             ?Publication ?NodeClassifier ?Pred_Venue .
             ?NodeClassifier a <kgnet:types/NodeClassifier>.
             ?NodeClassifier <kgnet:targetNode> dblp:Publication.
             ?NodeClassifier <kgnet:targetEdge> dblp:publishedIn.
-            
+
             ?Publication ?NodeClassifier2 ?pred_ptype .
             ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
             ?NodeClassifier2 <kgnet:targetNode> dblp:Publication.
             ?NodeClassifier2 <kgnet:targetEdge> dblp:bibtexType.
-            
+
             ?Author ?NodeClassifier3 ?Pred_aff_country .
             ?NodeClassifier3 a <kgnet:types/NodeClassifier>.
             ?NodeClassifier3 <kgnet:targetNode> dblp:Person.
             ?NodeClassifier3 <kgnet:targetEdge> "https://dblp.org/Affaliation_Country".
-                         
-            filter(xsd:integer(?year)>=2020).            
+
+            filter(xsd:integer(?year)=2021).            
             # filter(?country not in  ("germany","china",'usa')).
             # filter(?venue not in  ("AAAI","VLDB","ACM",'CoRR')).
             # filter(?venue in  ( "Proc. VLDB Endow.","Symmetry","Entropy","IEEE Trans. Knowl. Data Eng.","Autom.","Bioinform.")).
             # filter(?country not in  ("germany","china")).     
             # filter(?venue not in  ("AAAI","VLDB","ACM")).
             # filter (?ptype in (<http://purl.org/net/nknouf/ns/bibtex#Article>)).
-            
+
             filter(?country   in  ("germany","china","usa")).     
-            filter(?venue  in  ("IEEE Access","Remote. Sens.")).      
+            filter(?venue  in  ("AAAI","VLDB")).      
             #filter (?ptype in (<http://purl.org/net/nknouf/ns/bibtex#Inproceedings>)).
-            
+
             filter(str(?Pred_aff_country)    in  ("germany","china","usa")).     
-            filter(?Pred_Venue  in  ("IEEE Access","Remote. Sens.")).
-            filter (?pred_ptype not in (<http://purl.org/net/nknouf/ns/bibtex#Inproceedings>)).
-            
+            filter(?Pred_Venue  in  ("AAAI","VLDB")).
+            filter (?pred_ptype in (<http://purl.org/net/nknouf/ns/bibtex#Inproceedings>)).
+
             # filter(str(?country) in ("germany","china")).
             # filter(?venue in ("IEEE Trans. Ind. Informatics","Remote. Sens.")).
             # filter(str(?Pred_aff_country) in ("germany","china")).
@@ -496,42 +667,102 @@ if __name__ == '__main__':
             having (count(*)>1)
             order by DESC(count(*))        
             """
-    #############################
-    inference_query_wikidata_Citizenship_Profession_univ_NC_v2 = """
-                                       prefix wiki:<http://www.wikidata.org/entity/>
-                                       prefix kgnet:<http://kgnet/>
-                                       select distinct ?human  ?pred_nationality_label ?pred_profession_label 
-                                       from <http://wikikg-v2>
-                                       where
-                                       {                 
-                                           ?human a "human".                                         
-                                           ?human wiki:P27 ?nationality.
-                                           ?nationality a "country".
-                                           ?human wiki:P106 ?profession.
-                                           ?profession a "occupation".
+    ############################# YAGO Multitask SPARQLML #######################
+    inference_MQuery_yago_NC_nationality_alumniof_occupation = """ 
+            prefix yago:<http://schema.org/>
+            select distinct  ?Person ?country   ?org 
+            # ?org ?parentOrg ?Occupation
+            from <https://yago-knowledge.org>
+            where
+            {
+                ?Person a yago:Person .
+                ?Person yago:nationality ?country.
+                ?Person yago:alumniOf ?org.
+                # ?Person yago:hasOccupation ?Occupation .           
+                ?Person yago:birthDate ?bdate .
+                # ?org yago:parentOrganization ?parentOrg.
 
-                                           ?human ?NodeClassifier ?pred_nationality.
-                                           ?NodeClassifier a <kgnet:types/NodeClassifier>.
-                                           ?NodeClassifier <kgnet:targetNode> "human".
-                                           ?NodeClassifier <kgnet:labelNode> "country".
-                                           ?NodeClassifier <kgnet:labelValue> "Nederland".
-                                           ?NodeClassifier <kgnet:targetEdge> "http://www.wikidata.org/entity/P27".
+                ?Person ?NodeClassifier ?pred_country .
+                ?NodeClassifier a <kgnet:types/NodeClassifier>.
+                ?NodeClassifier <kgnet:targetNode> yago:Person.
+                ?NodeClassifier <kgnet:targetEdge> yago:nationality.
 
-                                           ?human ?NodeClassifier2 ?pred_profession.
-                                           ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
-                                           ?NodeClassifier2 <kgnet:targetNode> "human".
-                                           ?NodeClassifier2 <kgnet:labelNode> "occupation".
-                                           ?NodeClassifier2 <kgnet:labelValue> "baseball player".
-                                           ?NodeClassifier2 <kgnet:targetEdge> "http://www.wikidata.org/entity/P106".
+                ?Person ?NodeClassifier2 ?pred_org .
+                # ?org ?NodeClassifier2 ?pred_parentOrg .
+                ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
+                ?NodeClassifier2 <kgnet:targetNode> yago:Person.
+                ?NodeClassifier2 <kgnet:targetEdge> yago:alumniOf.
+                # ?NodeClassifier2 <kgnet:targetNode> yago:Organization.
+                # ?NodeClassifier2 <kgnet:targetEdge> yago:parentOrganization.
 
-                                           ?pred_nationality  <http://www.w3.org/2004/02/skos/core#altLabel> ?pred_nationality_label.
-                                           #?pred_profession  <http://www.w3.org/2004/02/skos/core#altLabel> ?pred_profession_label.
-                                           ?pred_profession  <http://www.w3.org/2000/01/rdf-schema#label> ?pred_profession_label. 
-                                           filter(?pred_nationality_label='Nederland').
-                                           filter(?pred_profession_label='baseball player').                         
-                                      }
-                                    #limit 100                                    
-                                   """
+                # ?Person ?NodeClassifier3 ?pred_Occupation .
+                # ?NodeClassifier3 a <kgnet:types/NodeClassifier>.
+                # ?NodeClassifier3 <kgnet:targetNode> yago:Person.
+                # ?NodeClassifier3 <kgnet:targetEdge> yago:hasOccupation.
+
+                #filter(xsd:date(?bdate)>=xsd:date('1990-01-01')).
+                filter(xsd:date(?bdate)>=xsd:date('1980-01-01')).
+                filter (?country in (<http://yago-knowledge.org/resource/United_States>,<http://yago-knowledge.org/resource/United_Kingdom>)).
+                filter (?org in (<http://yago-knowledge.org/resource/Harvard_University>,<http://yago-knowledge.org/resource/Ohio_State_University>))
+                # filter (?Occupation in (<http://yago-knowledge.org/resource/Writer>,<http://yago-knowledge.org/resource/Actor>,
+                #           <http://yago-knowledge.org/resource/Screenwriter>,<http://yago-knowledge.org/resource/Politician>)).
+                # filter(?parentOrg in(<http://yago-knowledge.org/resource/University_of_California>,<http://yago-knowledge.org/resource/New_York_University>)).
+
+                filter (?pred_country in (<http://yago-knowledge.org/resource/United_States>,<http://yago-knowledge.org/resource/United_Kingdom>)).
+                filter (?pred_org in (<http://yago-knowledge.org/resource/Harvard_University>,<http://yago-knowledge.org/resource/Ohio_State_University>))
+                # filter (?pred_Occupation in (<http://yago-knowledge.org/resource/Writer>,<http://yago-knowledge.org/resource/Actor>,
+                #           <http://yago-knowledge.org/resource/Screenwriter>,<http://yago-knowledge.org/resource/Politician>)).
+                # filter(?pred_parentOrg in(<http://yago-knowledge.org/resource/University_of_California>,<http://yago-knowledge.org/resource/New_York_University>)).
+            }       
+            """
+    inference_MQuery_yago_NC_nationality_organization_occupation = """ 
+               prefix yago:<http://schema.org/>
+               select distinct  ?Person ?country   ?org 
+               # ?org ?parentOrg ?Occupation
+               from <https://yago-knowledge.org>
+               where
+               {
+                   ?Person a yago:Person .
+                   ?Person yago:nationality ?country.
+                   ?Person yago:hasOccupation ?Occupation .  
+                   ?Occupation yago:parentOrganization ?parentOrg.         
+                   ?Person yago:birthDate ?bdate .
+
+                   ?Person ?NodeClassifier ?pred_country .
+                   ?NodeClassifier a <kgnet:types/NodeClassifier>.
+                   ?NodeClassifier <kgnet:targetNode> yago:Person.
+                   ?NodeClassifier <kgnet:targetEdge> yago:nationality.
+
+                   ?Person ?NodeClassifier2 ?pred_org .
+                   # ?org ?NodeClassifier2 ?pred_parentOrg .
+                   ?NodeClassifier2 a <kgnet:types/NodeClassifier>.
+                   ?NodeClassifier2 <kgnet:targetNode> yago:Person.
+                   ?NodeClassifier2 <kgnet:targetEdge> yago:alumniOf.
+                   # ?NodeClassifier2 <kgnet:targetNode> yago:Organization.
+                   # ?NodeClassifier2 <kgnet:targetEdge> yago:parentOrganization.
+
+                   # ?Person ?NodeClassifier3 ?pred_Occupation .
+                   # ?NodeClassifier3 a <kgnet:types/NodeClassifier>.
+                   # ?NodeClassifier3 <kgnet:targetNode> yago:Person.
+                   # ?NodeClassifier3 <kgnet:targetEdge> yago:hasOccupation.
+
+                   #filter(xsd:date(?bdate)>=xsd:date('1990-01-01')).
+                   filter(xsd:date(?bdate)>=xsd:date('1980-01-01')).
+                   filter (?country in (<http://yago-knowledge.org/resource/United_States>,<http://yago-knowledge.org/resource/United_Kingdom>)).
+                   filter (?org in (<http://yago-knowledge.org/resource/Harvard_University>,<http://yago-knowledge.org/resource/Ohio_State_University>))
+                   # filter (?Occupation in (<http://yago-knowledge.org/resource/Writer>,<http://yago-knowledge.org/resource/Actor>,
+                   #           <http://yago-knowledge.org/resource/Screenwriter>,<http://yago-knowledge.org/resource/Politician>)).
+                   # filter(?parentOrg in(<http://yago-knowledge.org/resource/University_of_California>,<http://yago-knowledge.org/resource/New_York_University>)).
+
+                   filter (?pred_country in (<http://yago-knowledge.org/resource/United_States>,<http://yago-knowledge.org/resource/United_Kingdom>)).
+                   filter (?pred_org in (<http://yago-knowledge.org/resource/Harvard_University>,<http://yago-knowledge.org/resource/Ohio_State_University>))
+                   # filter (?pred_Occupation in (<http://yago-knowledge.org/resource/Writer>,<http://yago-knowledge.org/resource/Actor>,
+                   #           <http://yago-knowledge.org/resource/Screenwriter>,<http://yago-knowledge.org/resource/Politician>)).
+                   # filter(?pred_parentOrg in(<http://yago-knowledge.org/resource/University_of_California>,<http://yago-knowledge.org/resource/New_York_University>)).
+               }       
+               """
+
+    #### Single SPARQL Query ####################
     # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org',KGMeta_endpointUrl="http://206.12.98.118:8890/sparql",RDFEngine=RDFEngine.OpenlinkVirtuoso)
     # kgnet = KGNET(KG_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query",KGMeta_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query", KG_NamedGraph_IRI='https://dblp2022.org',RDFEngine=RDFEngine.stardog)
     # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_workField_NC)
@@ -553,42 +784,121 @@ if __name__ == '__main__':
     # dblp_AAAI_VLDB_germany_china_usa_Inproccesding_gte2019 = pd.read_csv("SPARQLML_HardAnswerResults/dblp_AAAI_VLDB_germany_china_usa_Inproccesding_gte2019.csv", header=None, sep=",")[0].tolist()
     # dblp_CVPR_ICASSP_IGARSS_ICML_NeurIPS_germany_china_usa_Inproccesding_gte2020=pd.read_csv("SPARQLML_HardAnswerResults/dblp_CVPR_ICASSP_IGARSS_ICML_NeurIPS_germany_china_usa_Inproccesding_gte2020.csv", header=None, sep=",")[0].tolist()
     # dblp_in_VLDB_Symmetry_Entropy_IEEEData_Eng_Autom_Bioinform_notin_germany_in_Article_gte2020 = pd.read_csv("SPARQLML_HardAnswerResults/dblp_in_VLDB_Symmetry_Entropy_IEEEData-Eng_Autom_Bioinform_notin_germany_in_Article_gte2020.csv",header=None, sep=",")[0].tolist()
-    True_Targets_Path="dblp_in_IEEEAccess_RemoteSens_in_germany_china_usa_notin_Inproccesding_gte_2020.csv"
-    True_Targets_df = pd.read_csv(f"SPARQLML_HardAnswerResults/{True_Targets_Path}",header=None, sep=",")[0].tolist()
-    Real_target_node=list(set([str(x).replace("\"","").strip() for x in True_Targets_df]))
+    # True_Targets_Path = "yago_in_Us_UK_in_Harvard_Ohio_db1990.csv"
+    # True_Targets_Path="yago_in_Us_UK_in_Harvard_Ohio_in_writer_politician_db1980.csv"
+    # True_Targets_Path="yago_in_Us_UK_in_Writer_Actor_Screenwriter_Politician_db1980.csv"
+    # True_Targets_Path="yago_in_Us_UK_in_Writer_Actor_Screenwriter_Politician_in_univCalifornia_univNY_db1980.csv"
+    # True_Targets_df = pd.read_csv(f"SPARQLML_HardAnswerResults/{True_Targets_Path}", header=None, sep=",")[0].tolist()
+    # Real_target_node = list(set([str(x).replace("\"", "").strip() for x in True_Targets_df]))
     # Real_target_node = nethierland_baseball_Kg_humans
     # target_node="human"
-    target_node = "Publication"
-    import itertools
-    piplines=list(itertools.permutations(range(0,3)))
-    print(f"True_Targets_Path={True_Targets_Path}")
-    for pipline_no,pipline in enumerate(piplines):
-        print(f"################## Pipline({pipline})#######################")
-        exec_time = []
-        true_prad_lst, not_pred_lst, false_pred_lst = [], [], []
-        for run in range(0,3):
-            print(f"###### Run({run})#####")
-            # inference_query_wikidata_Citizenship_Profession_univ_NC_v2
-            resDF, MetaQueries,query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp_NC_venue_aff,pipline=pipline_no)
-            # resDF, MetaQueries, query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_Citizenship_Profession_univ_NC_v2,in_pipline=True)
-            exec_time.append(query_time_sec)
-            # resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp2022_NC_LP)
-            #resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_NC)
-            # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(nested_Query)
-            print("query_time_sec=",query_time_sec)
-            print(resDF)
-            pred_target_set=set([str(elem).replace("\"","").strip() for elem in set(resDF[target_node].tolist())])
-            true_prad_lst.append(len(pred_target_set.intersection(set(Real_target_node)))/len(Real_target_node))
-            print(f"True Predictions Ratio:{true_prad_lst[-1]}")
-            not_pred_lst.append(len(set(Real_target_node)-pred_target_set) / len(Real_target_node))
-            print(f"Not Predicted Ratio:{not_pred_lst[-1]}")
-            false_pred_lst.append(len(pred_target_set-set(Real_target_node)) / len(Real_target_node))
-            print(f"False Predictions Ratio:{false_pred_lst[-1]}")
-            print(MetaQueries)
-            # print("candidateSparqlQuery=",MetaQueries['candidateSparqlQuery'])
-        print(f"Pipline=({pipline})")
-        print(f"avg_time={mean(exec_time)} Sec.")
-        print(f"avg_true_prads={mean(true_prad_lst)*100}% .")
-        print(f"avg_not_preds={mean(not_pred_lst)*100}% .")
-        print(f"avg_false_preds={mean(false_pred_lst)*100}% .")
-    #############################################3
+    # target_node = "Publication"
+
+    #### Query Plans ####################
+    target_node = "Person"
+    # n_tasks = 2
+    n_runs = 3
+    patterns = ["1p", "2p", "3p", "2i", "ip", "pi", "3i", "2u", "up", "2in", "3in", "inp", "pni", "pin"]
+    pattern_inst_idx = 0
+    ############### use SPARQLML Benchmark ###############
+    ben_root_path = "/shared_mnt/github_repos/KGNET/SPARQLML-Ben/"
+    SPARQLML_Ben_df = pd.read_csv(f"{ben_root_path}SPARQLML-Ben-Yago4.tsv", sep="\t")
+    for pattern_idx in range(10, len(patterns)):
+        pattern = patterns[pattern_idx]
+        print(f">>>>>>>>>>>>>>>>>>>>>>>>> pattern={pattern} >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        SPARQLML_Ben_patten_df = SPARQLML_Ben_df[SPARQLML_Ben_df["pattern"] == pattern]
+        SPARQLML_Ben_patten_df = SPARQLML_Ben_patten_df.reset_index(drop=True)
+        patten_query = SPARQLML_Ben_patten_df["SPARQLML_query"][pattern_inst_idx]
+        pred_col = SPARQLML_Ben_patten_df["pred_col"][pattern_inst_idx]
+        real_col = SPARQLML_Ben_patten_df["real_col"][pattern_inst_idx]
+        target_col = SPARQLML_Ben_patten_df["target_col"][pattern_inst_idx]
+        n_tasks = SPARQLML_Ben_patten_df["n_tasks"][pattern_inst_idx]
+        query_select_both_cols = SPARQLML_Ben_patten_df["query_select_both_cols"][pattern_inst_idx] == 1
+        eval_metric = SPARQLML_Ben_patten_df["metric"][pattern_inst_idx]
+        try:
+            patten_query_results_df = pd.read_csv(
+                f"{ben_root_path}" + SPARQLML_Ben_patten_df["results_file"][pattern_inst_idx], sep="\t")
+        except:
+            print(f"file not exist:{ben_root_path + SPARQLML_Ben_patten_df['results_file'][pattern_inst_idx]}")
+        ######################################################
+        # piplines=list(itertools.permutations(range(0,n_tasks)))
+        # print(f"True_Targets_Path={True_Targets_Path}")
+        DAGExecPlans, DAG, decomposedSubqueries = kgnet.getSPARQLMLExecQueryPlans(patten_query)
+        CostModelParams = {'accuracyW': 0.7, 'inferTimeW': 0.3}
+        SPARQLMLQueryPlansCostDict, SPARQLMLQueryPlansCostLst = kgnet.getSPARQLMLQueryPlansCost(DAGExecPlans, DAG,
+                                                                                                decomposedSubqueries,
+                                                                                                CostModelParams)
+        bestPlanIdx = ModelSelector.getBestPlanIdx(SPARQLMLQueryPlansCostLst, w1=0.8, w2=0.2)
+        print(f"Best Execution Plan Idx:{bestPlanIdx}")
+        print(f"DAGExecPlans={['->'.join(elem) for elem in DAGExecPlans]}")
+        print(f"Possible DAG Execution Plans Count ={len(DAGExecPlans)}")
+        for ExecPlanIdx in range(0, len(DAGExecPlans)):
+            print(f"########## Execution Plan:({'->'.join(DAGExecPlans[ExecPlanIdx])})#################")
+            for infer_mode in range(0, 2):
+                exec_time = []
+                true_pred_lst, not_pred_lst, false_pred_lst, f1_pred_lst = [], [], [], []
+                kgwise_full_batch = infer_mode == 0
+                print(f"*********kgwise_full_batch={kgwise_full_batch}********")
+                for run in range(0, n_runs):
+                    print(f"###### Run({run})#####")
+                    # inference_query_wikidata_Citizenship_Profession_univ_NC_v2
+                    # resDF, MetaQueries,query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp_NC_venue_aff,pipline=pipline_no)
+                    # resDF, MetaQueries, query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_yago_NC_nationality_alumniof_occupation,pipline=pipline_no,kgwise_full_batch=kgwise_full_batch)
+                    resDF, MetaQueries, query_time_sec = kgnet.executeSPARQLMLInferenceQuery(patten_query,
+                                                                                             ExecPlanIdx=ExecPlanIdx,
+                                                                                             kgwise_full_batch=kgwise_full_batch)
+                    # resDF, MetaQueries, query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_Citizenship_Profession_univ_NC_v2,in_pipline=True)
+                    exec_time.append(query_time_sec)
+                    # resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp2022_NC_LP)
+                    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_NC)
+                    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(nested_Query)
+
+                    print("query_time_sec=", query_time_sec)
+                    # print(resDF)
+                    if eval_metric == "accuracy":
+                        resDF['match_pred'] = resDF[real_col] == resDF[pred_col]
+                        true_predicted_targets_set = set(resDF[resDF['match_pred'] == True][target_col].unique())
+                        false_predicted_targets_set = set(resDF[target_col].unique()) - true_predicted_targets_set
+                        # pred_target_set = [str(elem).replace("\"", "").strip().split("/")[-1] for elem in resDF[pred_col].tolist()]
+                        # if query_select_both_cols:
+                        #     Real_target_node = [str(x).replace("\"", "").strip().split("/")[-1] for x in resDF[real_col].tolist()]
+                        # else:
+                        #     Real_target_node = [str(x).replace("\"", "").strip().split("/")[-1] for x in patten_query_results_df[real_col].tolist()]
+                        # acc=Metrics.get_accuracy_score(Real_target_node,pred_target_set)
+                        acc = len(true_predicted_targets_set) / (
+                                    len(true_predicted_targets_set) + len(false_predicted_targets_set))
+                        true_pred_lst.append(acc)
+                        false_pred_lst.append(1 - acc)
+                        # f1_score = Metrics.get_f1_score(Real_target_node, pred_target_set)
+                        # f1_pred_lst.append(f1_score)
+                        print(f"accuracy={acc}")
+                    elif eval_metric == "precision":
+                        pred_target_set = set([str(elem).replace("\"", "").strip().split("/")[-1] for elem in
+                                               set(resDF[pred_col].tolist())])
+                        Real_target_node = list(set([str(x).replace("\"", "").strip().split("/")[-1] for x in
+                                                     patten_query_results_df[real_col].tolist()]))
+                        true_pred_lst.append(
+                            len(pred_target_set.intersection(set(Real_target_node))) / len(Real_target_node))
+                        print(f"True Predictions Ratio:{true_pred_lst[-1]}")
+                        not_pred_lst.append(len(set(Real_target_node) - pred_target_set) / len(Real_target_node))
+                        print(f"Not Predicted Ratio:{not_pred_lst[-1]}")
+                        false_pred_lst.append(len(pred_target_set - set(Real_target_node)))
+                        print(f"Inductive Predictions Count:{false_pred_lst[-1]}")
+                        print(MetaQueries)
+                        # print("candidateSparqlQuery=",MetaQueries['candidateSparqlQuery'])
+                print(f"Pipline=({ExecPlanIdx})")
+                print(
+                    f"avg_time={mean(exec_time)} | median_time={median(exec_time)} | min={min(exec_time)} | max={max(exec_time)}.")
+                if len(f1_pred_lst) > 0:
+                    print(
+                        f"avg_f1_preds={mean(f1_pred_lst)} | median_f1_preds={median(f1_pred_lst)} | min={min(f1_pred_lst)} | max={max(f1_pred_lst)}.")
+                if len(true_pred_lst) > 0:
+                    print(
+                        f"avg_true_preds={mean(true_pred_lst) * 100}% | median_true_preds={median(true_pred_lst) * 100}% | min={min(true_pred_lst) * 100}% | max={max(true_pred_lst) * 100}%.")
+                if len(not_pred_lst) > 0:
+                    print(
+                        f"avg_not_preds={mean(not_pred_lst) * 100}% | median_not_preds={median(not_pred_lst) * 100}% | min={min(not_pred_lst) * 100}% | max={max(not_pred_lst) * 100}%.")
+                if len(false_pred_lst) > 0:
+                    print(
+                        f"avg_Inductive_pred_counts={mean(false_pred_lst) * 100}% | median_Inductive_pred_counts={median(false_pred_lst) * 100}% | min={min(false_pred_lst) * 100}% | max={max(false_pred_lst) * 100}%.")
+        #############################################
