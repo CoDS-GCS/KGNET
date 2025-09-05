@@ -1,3 +1,10 @@
+import sys
+import os
+GMLaaS_models_path = sys.path[0].split("KGNET")[0] + "/KGNET/GMLaaS/models"
+sys.path.insert(0, GMLaaS_models_path)
+sys.path.insert(0, os.getcwd())
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+
 from copy import copy
 import json
 import argparse
@@ -16,7 +23,6 @@ from torch_sparse import SparseTensor
 from torch_geometric.data import Data
 from torch_geometric.utils.hetero import group_hetero_graph
 from torch_geometric.nn import MessagePassing
-import sys
 from resource import *
 from logger import Logger
 import logging
@@ -28,7 +34,6 @@ from custome_pyg_dataset import PygNodePropPredDataset_hsh
 from resource import *
 from logger import Logger
 import faulthandler
-import os
 faulthandler.enable()
 from model import Model
 # subject_node='Paper'
@@ -63,7 +68,6 @@ class RGCNConv(torch.nn.Module):
         # print("alloc Linear rel_lins")
         edge_types_dic = {}
         for key in edge_types:
-            # print("key=", key)
             edge_types_dic[f'{key[0].replace(".","_")}_{key[1].replace(".","_")}_{key[2].replace(".","_")}'] = Linear(in_channels, out_channels, bias=False)
         self.rel_lins = ModuleDict(edge_types_dic)
         # print_memory_usage()
@@ -195,6 +199,7 @@ def rgcn(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,
     init_ru_maxrss = getrusage(RUSAGE_SELF).ru_maxrss
 
     device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
+    device = 'cpu'
     dataset_name = dataset_name
     to_remove_pedicates = []
     to_remove_subject_object =[]
@@ -298,6 +303,7 @@ def rgcn(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,
                      dataset.num_classes, num_layers, dropout,
                      data.num_nodes_dict, x_types, edge_types)
         train_idx = split_idx['train'][subject_node].to(device)
+        print(model)
 
         evaluator = Evaluator(name='ogbn-mag')
         ####################
@@ -315,6 +321,20 @@ def rgcn(device=0,num_layers=2,hidden_channels=64,dropout=0.5,lr=0.005,epochs=2,
 
         print("model init time CPU=", end_t - start_t, " sec.")
         total_run_t = 0
+
+        if args.loadTrainedModel:
+            model.load_state_dict(torch.load(os.path.join(KGNET_Config.trained_model_path,args.model_id)))
+            list_infTime = []
+            for i in range(5):
+                time_infStart = datetime.datetime.now()
+                result = test(model, feat_dic, data.adj_t_dict,
+                              data.y_dict[subject_node], split_idx, evaluator)
+                time_infEnd = (datetime.datetime.now() - time_infStart).total_seconds()
+                print(result,'\n', f'Time taken = {time_infEnd}')
+                list_infTime.append(time_infEnd)
+            print(f'\naverage inf time {sum(list_infTime)/len(list_infTime)} seconds')
+            return
+
         for run in range(runs):
             start_t = datetime.datetime.now()
             model.reset_parameters()
@@ -408,19 +428,19 @@ if __name__ == "__main__":
     parser.add_argument('--hidden_channels', type=int, default=64)
     parser.add_argument('--dropout', type=float, default=0.5)
     parser.add_argument('--lr', type=float, default=0.01)
-    parser.add_argument('--epochs', type=int, default=30)
-    parser.add_argument('--runs', type=int, default=3)
+    parser.add_argument('--epochs', type=int, default=10)
+    parser.add_argument('--runs', type=int, default=1)
     parser.add_argument('--loadTrainedModel', type=int, default=0)
+    parser.add_argument('--model_id', type=str, default='ogbn_mag.model')
     parser.add_argument('--trainFM', type=int, default=1)
     parser.add_argument('--batch_size', type=int, default=2000)
     parser.add_argument('--walk_length', type=int, default=2)
     parser.add_argument('--num_steps', type=int, default=10)
-    parser.add_argument('--loadTrainedModel', type=int, default=0)
-    parser.add_argument('--dataset_name', type=str, default="DBLP-Springer-Papers")
-    parser.add_argument('--root_path', type=str, default="../../Datasets/")
+    parser.add_argument('--dataset_name', type=str, default="YAGO310_Person-Aff_50_FG") # ogbn_mag
+    parser.add_argument('--root_path', type=str, default=KGNET_Config.datasets_output_path)
     parser.add_argument('--output_path', type=str, default="./")
     parser.add_argument('--include_reverse_edge', type=bool, default=True)
-    parser.add_argument('--n_classes', type=int, default=440)
+    parser.add_argument('--n_classes', type=int, default=50) # 349-MAG
     parser.add_argument('--emb_size', type=int, default=128)
     args = parser.parse_args()
     print(args)

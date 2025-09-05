@@ -74,14 +74,14 @@ def write_relations_mapping(item):
         temp_relations_dic["s_idx"] = temp_relations_dic["s"]  # .apply(
         # lambda x: str(x).split("/")[-1])
         temp_relations_dic["s_idx"] = temp_relations_dic["s_idx"].apply(
-            lambda x: entites_dic[e1 + "_dic"][x] if x in entites_dic[
+            lambda x: entites_dic[e1 + "_dic"][str(x)] if str(x) in entites_dic[
                 e1 + "_dic"].keys() else -1)
         temp_relations_dic = temp_relations_dic[temp_relations_dic["s_idx"] != -1]
         ################
         # relations_dic[rel]["o_keys"]=relations_dic[rel]["o"].apply(lambda x:x.split("/")[3] if x.startswith("http") and len(x.split("/")) > 3 else x)
         temp_relations_dic["o_idx"] = temp_relations_dic["o"]
         temp_relations_dic["o_idx"] = temp_relations_dic["o_idx"].apply(
-            lambda x: entites_dic[e2 + "_dic"][x] if x in entites_dic[
+            lambda x: entites_dic[e2 + "_dic"][str(x)] if str(x) in entites_dic[
                 e2 + "_dic"].keys() else -1)
         temp_relations_dic = temp_relations_dic[temp_relations_dic["o_idx"] != -1]
 
@@ -116,6 +116,7 @@ def encode_entities(item):
     relations_entites_map = {}
     relations_dic = {}
     entites_dic = {}
+
     for rel in tqdm(relations_lst):
         rel_type = rel.split("/")[-1]
         # rel_type = rel812
@@ -123,8 +124,8 @@ def encode_entities(item):
         # print("rel_type ", rel)
         list_rel_types = []
         if len_entities_isa_df > 0:
-            rel_df["s_type"] = rel_df["s"].apply(lambda x:entities_isa_dict[x] if str(x) in entities_isa_dict.keys() else "Subject-"+rel_type)
-            rel_df["o_type"] = rel_df["o"].apply(lambda x: entities_isa_dict[x] if str(x) in entities_isa_dict.keys() else "Object-"+rel_type)
+            rel_df["s_type"] = rel_df["s"].apply(lambda x:entities_isa_dict[str(x)] if str(x) in entities_isa_dict.keys() else "Subject-"+rel_type)
+            rel_df["o_type"] = rel_df["o"].apply(lambda x: entities_isa_dict[str(x)] if str(x) in entities_isa_dict.keys() else "Object-"+rel_type)
         else:
             rel_types = g_tsv_types_df[g_tsv_types_df['ptype'].isin([rel_type])]
             s_type = rel_types['stype'].values[0]
@@ -173,7 +174,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         dataset_types = os.path.join(output_root_path , dataset_name_csv + "_types.csv")
 
     if Header_row is None:
-        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t",header=Header_row)
+        g_tsv_df = pd.read_csv(output_root_path + dataset_name_csv + ".tsv", encoding_errors='ignore', sep="\t",header=Header_row,dtype=str)
         g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=Header_row)
         g_tsv_df.columns=["s","p","o"]
         g_tsv_types_df.columns=['stype','ptype', 'otype']
@@ -183,7 +184,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
             repesentative_p_lst= [k for k, v in p_counts_dict.items() if v > 6]
             g_tsv_df=g_tsv_df[g_tsv_df["p"].isin(repesentative_p_lst)]
     else:
-        g_tsv_df = pd.read_csv(os.path.join(output_root_path , dataset_name_csv + ".tsv"), encoding_errors='ignore', sep="\t",header=Header_row,names=['s','p','o'])
+        g_tsv_df = pd.read_csv(os.path.join(output_root_path , dataset_name_csv + ".tsv"), encoding_errors='ignore', sep="\t",header=Header_row,names=['s','p','o'],dtype=str)
         g_tsv_types_df = pd.read_csv(dataset_types, encoding_errors='ignore',header=None,names=['stype','ptype','otype'])
     if len(g_tsv_df)<=1:
         dic_results["TransformationError"]=f"length of g_tsv_df={len(g_tsv_df)}"
@@ -197,7 +198,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     # target_rel = remove_special_characters(target_rel)
     ############### special case for DBLP PV Task ###############3
     if dataset_types .split("/")[-1] in ["dblp2022_Types.csv","dblp_Types.csv"] and target_rel == "publishedIn":
-        similar_target_rels.append("publishedInJournal")
+        #similar_target_rels.append("publishedInJournal")
         similar_target_rels.append("publishedInBook")
     print(f"similar_target_rels={similar_target_rels}")
     ##################Check if headers are present in _types file
@@ -243,14 +244,23 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     #################### Remove Split and Target Rel ############
     # if split_rel in relations_lst:
     #     relations_lst.remove(split_rel)
+
+    """ FOR TESTING 
     if target_rel in relations_lst:
         relations_lst.remove(target_rel)
+    """
+    if target_rel in relations_lst:
+        relations_lst.remove(target_rel)
+    """ REMOVING TARGET RELATIONS DURING INFERENCE EXPERIMENTS"""
+    # if inference and target_rel in relations_lst:
+    #     relations_lst.remove(target_rel) 
     for srel in ["type","label"]:
         if srel in relations_lst:
             relations_lst.remove(srel)
     for srel in similar_target_rels:
         if srel in relations_lst:
             relations_lst.remove(srel)
+
     ################################Start Encoding Nodes and edges ########################
     ################################write relations index ########################
     relations_df = pd.DataFrame(relations_lst, columns=["rel name"])
@@ -304,19 +314,23 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     chunksize=int(len(relations_lst)/nthreads)
     chunksize= 5 if chunksize<5 else chunksize
     chunks=[relations_lst[i:(i+chunksize)] for i in range(0,len(relations_lst),chunksize)]
-    with multiprocessing.Pool(nthreads) as pool:
-        items=[(chunk,g_tsv_df, g_tsv_types_df, len(entities_isa_df), entities_isa_dict) for chunk in chunks]
-        res=tqdm(pool.imap(encode_entities,items),total=len(items))
-        pool.close()
-        pool.join()
+    # with multiprocessing.Pool(nthreads) as pool:
+    #     items=[(chunk,g_tsv_df, g_tsv_types_df, len(entities_isa_df), entities_isa_dict) for chunk in chunks]
+    #     res=tqdm(pool.imap(encode_entities,items),total=len(items))
+    #     pool.close()
+    #     pool.join()
+    #############################
+    # For debugging (single threaded)
+    # res = encode_entities([relations_lst,g_tsv_df, g_tsv_types_df, len(entities_isa_df), entities_isa_dict])
+    #############################
+    items = [(chunk, g_tsv_df, g_tsv_types_df, len(entities_isa_df), entities_isa_dict) for chunk in chunks]
+    from concurrent.futures import ThreadPoolExecutor,as_completed,ProcessPoolExecutor
+    with ThreadPoolExecutor(max_workers = os.cpu_count()*2) as executor:
+        futures = [executor.submit(encode_entities, item) for item in items]
+        res = []
+        for future in tqdm(as_completed(futures), total=len(items)):
+            res.append(future.result())
 
-    # items = [(chunk, g_tsv_df, g_tsv_types_df, len(entities_isa_df), entities_isa_dict) for chunk in chunks]
-    # from concurrent.futures import ThreadPoolExecutor,as_completed,ProcessPoolExecutor
-    # with ThreadPoolExecutor(max_workers = os.cpu_count()*2) as executor:
-    #     futures = [executor.submit(encode_entities, item) for item in items]
-    #     res = []
-    #     for future in tqdm(as_completed(futures), total=len(items)):
-    #         res.append(future.result())
 
     ############ Union Mappings ##########
     for (ch_entites_dic,ch_relations_entites_map,ch_relations_dic) in res:
@@ -416,6 +430,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     if labelNodetype is None:
         label_idx_df = pd.DataFrame(target_labels_df["o"].apply(lambda x: str(x).strip()).unique().tolist(),
                                     columns=["label name"])
+        print(f'labelNodetype is NONE\nlabel_idx_df = {label_idx_df}')
     else:
         all_labels_df = g_tsv_df[g_tsv_df["s"].isin(target_labels_df["o"])]
         label_idx_df = pd.DataFrame(
@@ -436,7 +451,8 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     ############################### create label relation index  ######################
     label_idx_df["label idx"] = label_idx_df["label idx"].astype("int64")
     # label_idx_df["label name"] = label_idx_df["label name"].apply(lambda x: str(x).split("/")[-1])
-    label_idx_dic = pd.Series(label_idx_df["label idx"].values, index=label_idx_df["label name"]).to_dict()
+    # label_idx_dic = pd.Series(label_idx_df["label idx"].values, index=label_idx_df["label name"]).to_dict()
+    label_idx_dic = pd.Series(label_idx_df["label idx"].astype(str).values, index=label_idx_df["label name"].astype(str)).to_dict()
     ############ drop multiple targets per subject keep first#######################
     if labelNodetype is None:
         labels_rel_df = g_tsv_df[g_tsv_df["p"] == target_rel].reset_index(drop=True)
@@ -446,22 +462,31 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
     labels_rel_df = labels_rel_df.drop_duplicates(subset=["s"], keep='first')
     ###############################################################################
     target_without_labels_set = set(entites_dic[targetNodeType + "_dic"]) - set(labels_rel_df["s"].tolist())
-    traget_with_dummy_label_dic = {(entites_dic[targetNodeType + "_dic"][elem] if elem in entites_dic[
+    traget_with_dummy_label_dic = {(entites_dic[targetNodeType + "_dic"][str(elem)] if str(elem) in entites_dic[
             targetNodeType + "_dic"].keys() else -1): -1 for elem in target_without_labels_set}
     traget_with_dummy_label_df=pd.DataFrame({'s_idx':traget_with_dummy_label_dic.keys(),'o_idx':traget_with_dummy_label_dic.values()})
     label_type = targetNodeType
     labels_rel_df["s_idx"] = labels_rel_df["s"]
     labels_rel_df["s_idx"] = labels_rel_df["s_idx"].astype("str")
+
     labels_rel_df["s_idx"] = labels_rel_df["s_idx"].apply(
         lambda x: entites_dic[targetNodeType + "_dic"][x] if x in entites_dic[
-            targetNodeType + "_dic"].keys() else -1)
+            targetNodeType + "_dic"].keys() else -1)# """
+    # labels_rel_df["s_idx"] = labels_rel_df["s_idx"].apply(
+    #     lambda x: entites_dic[targetNodeType + "_dic"][x] if x in entites_dic[
+    #         targetNodeType + "_dic"].keys() else print(f'else x = {x}'))
     labels_rel_df = labels_rel_df[labels_rel_df["s_idx"] != -1]
     labels_rel_df["o_idx"] = labels_rel_df["o"]  # .apply(lambda x: str(x).split("/")[-1])
+
     labels_rel_df["o_idx"] = labels_rel_df["o_idx"].apply(
-        lambda x: label_idx_dic[str(x)] if str(x) in label_idx_dic.keys() else -1)
-    target_without_labels_set=target_without_labels_set.union(set(labels_rel_df[labels_rel_df["o_idx"]==-1]["s"].unique())) ## append target nodes those are not have reprsentiaive labels
+        lambda x: label_idx_dic[str(x)] if str(x) in label_idx_dic.keys() else -1)#"""
+    # labels_rel_df["o_idx"] = labels_rel_df["o_idx"].apply(
+    #     lambda x: label_idx_dic[str(x)] if str(x) in label_idx_dic.keys() else x)
+    # target_without_labels_set=target_without_labels_set.union(set(labels_rel_df[labels_rel_df["o_idx"]==-1]["s"].unique())) ## append target nodes those are not have reprsentiaive labels
     labels_rel_df=labels_rel_df[["s_idx","o_idx"]]
     labels_rel_df=pd.concat([labels_rel_df,traget_with_dummy_label_df]) ## append dummy target nodes
+    print(f'labels_rel_df = {labels_rel_df}')
+    print(f"no. of samples with unknown labels = {len(labels_rel_df[labels_rel_df['o_idx'].eq(-1)])}")
     labels_rel_df = labels_rel_df.sort_values(by=["s_idx"]).reset_index(drop=True)
 
     out_labels_df = labels_rel_df[["o_idx"]]
@@ -484,20 +509,22 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         print("Split Dataset into Train/Valid/Test")
         if split_rel is None:
             split_rel = 'random'
-        split_rel = split_rel.split('/')[-1]
+        split_rel = split_rel.split('#')[-1].split('/')[-1]
         if split_rel.lower() == 'random':
             if labelNodetype is None:
-                split_df = g_tsv_df[(g_tsv_df["p"] == target_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"]))]
+                split_df = g_tsv_df[(g_tsv_df["p"] == target_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"].astype(str)))]
             else:
                 split_df = g_tsv_df[g_tsv_df["p"] == target_rel]
         else:
-            if labelNodetype is None:
-                split_df = g_tsv_df[(g_tsv_df["p"] == split_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"]))]
-            else:
-                split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
+            # if labelNodetype is None:
+            #     split_df = g_tsv_df[(g_tsv_df["p"] == split_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"]))]
+            # else:
+            split_df = g_tsv_df[g_tsv_df["p"] == split_rel]
         ####################### filter for traget node types only ###############
         split_df = split_df[split_df["s"].isin(entites_dic[targetNodeType+"_dic"])]
+        #""" REMOVEED FOR MAG"""
         split_df = split_df[~split_df["s"].isin(target_without_labels_set)] ## exclude dummy label target nodes
+        # print(f'######### SPLIT DF c = {split_df}')
         ########## remove target node  with multi labels ################
         target_label_dict = split_df["s"].value_counts().to_dict()
         target_nodes_to_keep_lst = list(k for k, v in target_label_dict.items() if v == 1)
@@ -525,16 +552,28 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
             dic_results["testSize"] = test_size
             dic_results["validSize"] = valid_size
             dic_results["trainSize"] = 1 - (test_size+valid_size)
+            """ Potential Issue!"""
+            # X_train, X_test, y_train, y_test = train_test_split(split_df["s"].tolist(), split_df["o"].tolist(),
+            #                                                     test_size=test_size+valid_size, random_state=42,
+            #                                                     stratify=split_df["o"].tolist())
+            # try:
+            #     X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size/(test_size+valid_size), random_state=42,stratify=y_test)
+            # except:
+            #     X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size/(test_size+valid_size), random_state=42)
+            #
             X_train, X_test, y_train, y_test = train_test_split(split_df["s"].tolist(), split_df["o"].tolist(),
-                                                                test_size=test_size+valid_size, random_state=42,
+                                                                test_size=test_size, random_state=42,
                                                                 stratify=split_df["o"].tolist())
+
             try:
-                X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size/(test_size+valid_size), random_state=42,stratify=y_test)
+                X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42,stratify=y_test)
             except:
-                X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size/(test_size+valid_size), random_state=42)
+                X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=valid_size, random_state=42)
+                
             train_df = pd.DataFrame(X_train)
             valid_df = pd.DataFrame(X_valid)
             test_df = pd.DataFrame(X_test)
+            
         else:
                 # print("SPLIT REL PROVIDED: ", split_rel)
                 dic_results["splitEdge"]=split_rel
@@ -620,26 +659,28 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='TSV to PYG')
     #parser.add_argument('--csv_path', type=str, default="")
     # parser.add_argument('--target_rel', type=str, default="http://www.wikidata.org/entity/P27") # https://dblp.org/rdf/schema#publishedIn
-    parser.add_argument('--target_rel', type=str, default="http://www.wikidata.org/entity/P106")  # https://dblp.org/rdf/schema#publishedIn
     #split_data_type
     #size of train # if random then in % else specific value for train and valid split
     #size of valid
-    parser.add_argument('--dataset_name',type=str, default="WikiKG2015V2_22MT_FG_human_106_occupation_NC") # name of generated zip file
+    parser.add_argument('--dataset_name',type=str, default="ogbn_arxiv_rev") # name of generated zip file
+    parser.add_argument('--target_rel', type=str, default='http://subject') #http://www.yago3-10/isAffiliatedTo # https://dblp.org/rdf/schema#publishedIn  #http://www.wikidata.org/entity/P106  YAGO"http://schema.org/containedInPlace" http://kgnet/label/containedInCountry
+
     #parser.add_argument('--dataset_csv',type=str, default="")
-    parser.add_argument('--dataset_name_csv',type=str, default="WikiKG")  # csv/tsv , input dataset name
-    parser.add_argument('--dataset_types',type=str, default="/media/hussein/WindowsData/WikiKG_V2_2015/WikiKG2015_v2_Types.csv") # path to the 'types' file containing relatiolns
+    parser.add_argument('--dataset_name_csv',type=str, default="ogbn_arxiv_rev")  # csv/tsv , input dataset name
+    parser.add_argument('--dataset_types',type=str, default="/home/afandi/GitRepos/KGNET/Datasets/yago_Types.csv") # path to the 'types' file containing relatiolns
     #parser.add_argument('--split_by', type=dict, default={}) replaced by train and valid args
-    parser.add_argument('--split_rel', type=str, default="random") # https://dblp.org/rdf/schema#yearOfPublication #default = random # TODO could be null in some rows
-    parser.add_argument('--split_rel_train_value', type=int, default=0)
-    parser.add_argument('--split_rel_valid_value', type=int, default=0)
+    parser.add_argument('--split_rel', type=str, default=None) # https://dblp.org/rdf/schema#yearOfPublication DBLP #default = random # 'https://makg.org/publish_year' MAG #TODO could be null in some rows 
+    parser.add_argument('--split_rel_train_value', type=int, default=2019)
+    parser.add_argument('--split_rel_valid_value', type=int, default=2020)
     parser.add_argument('--test_size',type=float,default=0.2)
     parser.add_argument('--valid_size',type=float,default=0.5)
-    parser.add_argument('--similar_target_rels',type=list, default=[]) # 'https://dblp.org/rdf/schema#publishedInSeries' 
-    # parser.add_argument('--targetNodeType',type=str, default = "")
+    parser.add_argument('--similar_target_rels',type=list, default=['https://makg.org/property/appearsInJournal','https://dblp.org/rdf/schema#publishedInSeries',]) # 'https://dblp.org/rdf/schema#publishedInSeries DBLP' 'https://makg.org/property/appearsInJournal MAG' 
+    parser.add_argument('--targetNodeType',type=str, default = 'person') # YAGO http://schema.org/Place # DBLP'https://dblp.org/rdf/schema#Publication'
+    parser.add_argument('--labelNodetype',type=str,default=None) # YAGO http://schema.org/Country # DBLP None
     #parser.add_argument('--dic_results',type=dict, default = "")
     parser.add_argument('--Literals2Nodes',type=bool, default = False) # convert literal vals into nodes (eg name of paper )or ignore 
-    parser.add_argument('--output_root_path',type=str, default = "/media/hussein/WindowsData/WikiKG_V2_2015/")
-    parser.add_argument('--MINIMUM_INSTANCE_THRESHOLD',type=int, default = 21)
+    parser.add_argument('--output_root_path',type=str, default = "/home/afandi/GitRepos/KGNET/Datasets/")
+    parser.add_argument('--MINIMUM_INSTANCE_THRESHOLD',type=int, default = 3)
 
     args = parser.parse_args()
     dataset_name = args.dataset_name  # "biokg_Drug_Classification" # Name of the dataset
@@ -651,7 +692,9 @@ if __name__ == '__main__':
     similar_target_rels = args.similar_target_rels  # ["https://www.biokg.org/SUBCLASS", "https://www.biokg.org/SUPERCLASS"]
     Literals2Nodes = args.Literals2Nodes  # False
     output_root_path = args.output_root_path  # "/home/ubuntu/flora_tests/biokg/data/"
-    transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path,args.MINIMUM_INSTANCE_THRESHOLD,args.test_size,args.valid_size,args.split_rel_train_value,args.split_rel_valid_value,Header_row=None,targetNodeType="human",labelNodetype="occupation")
+    targetNodeType = args.targetNodeType
+    transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,target_rel,similar_target_rels,output_root_path,args.MINIMUM_INSTANCE_THRESHOLD,args.test_size,args.valid_size,args.split_rel_train_value,args.split_rel_valid_value,Header_row=None,targetNodeType=targetNodeType,
+                         labelNodetype=args.labelNodetype)
 
 
 

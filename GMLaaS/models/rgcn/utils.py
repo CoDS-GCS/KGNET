@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 from torch_scatter import scatter_add
 from torch_geometric.data import Data
+import traceback
 
 def uniform(size, tensor):
     bound = 1.0 / math.sqrt(size)
@@ -27,9 +28,12 @@ def load_data(file_path):
     with open(os.path.join(file_path, 'entities.dict')) as f:
         entity2id = dict()
 
-        for line in f:
-            eid, entity = line.strip().split('\t')
-            entity2id[entity] = int(eid)
+        try:
+            for line in f:
+                eid, entity = line.strip().split('\t')
+                entity2id[entity] = int(eid)
+        except Exception as e:
+            print(f' Error while processing file entities for line {line}\n{e}')
 
     with open(os.path.join(file_path, 'relations.dict')) as f:
         relation2id = dict()
@@ -64,6 +68,7 @@ def read_triplets(file_path, entity2id, relation2id):
             except Exception as e:
               #pass
               print(e)
+              traceback.print_exc()
 
     return np.array(triplets)
 

@@ -18,6 +18,60 @@ import zarr
 from concurrent.futures import ProcessPoolExecutor, as_completed,ThreadPoolExecutor
 from SparqlMLaasService.TaskSampler.TOSG_Extraction_NC import get_d1h1_TargetListquery
 import zipfile
+from multiprocessing import Manager,parent_process
+
+
+def execute_query_v3(batch, inference_file, kg, graph_uri, shared_list):
+    # batch = ['<' + target + '>' if '<' not in target or '>' not in target else target for target in batch]
+
+    # query = get_d1h1_TargetListquery(graph_uri=graph_uri, target_lst=batch)
+    try:
+        subgraph_df = kg.KG_sparqlEndpoint.executeSparqlquery(batch)  # kg.KG_sparqlEndpoint.execute_sparql_multithreads([query], inference_file)
+    except:
+        print('here')
+        kg.KG_sparqlEndpoint.executeSparqlquery(
+            batch)
+    if len(subgraph_df.columns) != 3 or len(subgraph_df) == 0:
+        print(subgraph_df)
+        pass
+        # raise Exception('Invalid extracted subgraph. Please check tosa query.')
+
+    subgraph_df = subgraph_df.map(lambda x: x.strip('"'))
+    shared_list.append(subgraph_df)
+
+
+def batch_tosa_v3(targetNodesList, inference_file, graph_uri, kg, BATCH_SIZE=2000): # 2000
+    def batch_generator():
+        ptr = 0
+        while ptr < len(targetNodesList):
+            yield targetNodesList[ptr:ptr + BATCH_SIZE]
+            ptr += BATCH_SIZE
+
+    queries = []
+    for q in batch_generator():
+        target_lst = ['<' + target.replace('"','') + '>' for target in q]
+        queries.extend(get_d1h1_TargetListquery(graph_uri=graph_uri, target_lst=target_lst))
+
+    manager = Manager()
+    shared_list = manager.list()
+    
+    if len(targetNodesList) > BATCH_SIZE:
+        with ThreadPoolExecutor(max_workers=16) as executor:
+            futures = [executor.submit(execute_query_v3, batch, inference_file, kg, graph_uri, shared_list) for batch in
+                       queries]
+            for future in tqdm(futures, desc="Downloading Raw Graph", unit="subgraphs"):
+                future.result()
+                # pass
+    else:
+        [execute_query_v3(batch, inference_file, kg, graph_uri, shared_list) for batch in queries]
+
+    # Merge all dataframes in the shared list
+    if shared_list:
+        merged_df = pd.concat(shared_list, ignore_index=True)
+        if os.path.exists(inference_file):
+            merged_df.to_csv(inference_file, header=None, index=None, sep='\t', mode='a')
+        else:
+            merged_df.to_csv(inference_file, index=None, sep='\t', mode='a')
 
 
 def execute_query_v2(batch, inference_file,kg, graph_uri='http://wikikg-v2',):
@@ -25,10 +79,10 @@ def execute_query_v2(batch, inference_file,kg, graph_uri='http://wikikg-v2',):
 
     # query = get_d1h1_TargetListquery(graph_uri=graph_uri,target_lst=batch)
     subgraph_df = kg.KG_sparqlEndpoint.executeSparqlquery(batch)#kg.KG_sparqlEndpoint.execute_sparql_multithreads([query], inference_file)
-    if len(subgraph_df.columns) != 3:
+    if len(subgraph_df.columns) != 3 or len(subgraph_df)==0:
         print(subgraph_df)
-        raise AssertionError
-    subgraph_df = subgraph_df.applymap(lambda x: x.strip('"'))
+        raise Exception ('Invalid extracted subgraph. Please check tosa query.')
+    subgraph_df = subgraph_df.apply(lambda x: x.strip('"'))
     if os.path.exists(inference_file):
         subgraph_df.to_csv(inference_file, header=None, index=None, sep='\t', mode='a')
     else:
@@ -45,12 +99,12 @@ def batch_tosa_v2 (targetNodesList,inference_file,graph_uri,kg,BATCH_SIZE=2000):
         target_lst = ['<' + target + '>' for target in q]
         queries.extend(get_d1h1_TargetListquery(graph_uri=graph_uri, target_lst=target_lst))
     if len(targetNodesList) > BATCH_SIZE:
-        with ProcessPoolExecutor() as executor:
+        with ThreadPoolExecutor() as executor:
             futures = [executor.submit(execute_query_v2, batch, inference_file, kg, graph_uri) for batch in
                        queries]
             for future in tqdm(futures, desc="Downloading Raw Graph", unit="subgraphs"):
-                # future.result()
-                pass
+                future.result()
+                # pass
     else:
         [execute_query_v2(batch,inference_file,kg,graph_uri) for batch in queries]
 def execute_query_v0(batch, inference_file, graph_uri,kg):
@@ -207,7 +261,7 @@ def fill_missing_rel (relation,dir):
                                     compression='gzip')
 
 
-def store_emb(model,model_name,root_path=os.path.join(KGNET_Config.trained_model_path,'emb_store'),chunk_size=128):
+def store_emb(model,model_name,root_path=os.path.join(KGNET_Config.trained_model_path,'emb_store'),chunk_size=128,zip=False):
     def zip_directory(directory_to_zip, output_zip_file):
         with zipfile.ZipFile(output_zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
             total_dirs = sum(len(dirs) for _, dirs, _ in os.walk(directory_to_zip))
@@ -225,11 +279,14 @@ def store_emb(model,model_name,root_path=os.path.join(KGNET_Config.trained_model
                                 zipf.write(file_path, arcname=arcname)
 
     path = os.path.join(root_path,model_name)
-    if not os.path.exists(root_path):
+    if os.path.exists(root_path):
         os.mkdir(root_path)
 
     if os.path.exists(path):
         shutil.rmtree(path)
+
+    if os.path.exists(path+'.zip'):
+        os.remove(path+'.zip')
     os.mkdir(path)
 
     emb_store = zarr.DirectoryStore(path)
@@ -255,7 +312,19 @@ def store_emb(model,model_name,root_path=os.path.join(KGNET_Config.trained_model
     with open(emb_mapping_path, 'wb') as f:
         pickle.dump(emb_mapping, f)
 
-    zip_directory(path,path+'.zip')
+    if zip:
+        zip_directory(path,path+'.zip')
+
+def check_if_multiprocessing():
+    parent = parent_process()
+    current_pid = os.getpid()
+
+    if parent is None:
+        # print(f"Running in the main process with PID: {current_pid}")
+        return None
+    else:
+        # print(f"Running in a child process with PID: {current_pid} (parent PID: {parent.pid})")
+        return current_pid
 
 
 def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [],labelNode = None,targetNodeType=None,
@@ -267,6 +336,8 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
 
     global download_end_time
     time_ALL_start = datetime.datetime.now()
+    process_id = check_if_multiprocessing()
+    output_file = output_file if process_id is None else output_file+f'_{process_id}'
 
     inference_file = os.path.join(KGNET_Config.inference_path, output_file + '.tsv')
 
@@ -279,8 +350,12 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     #            inference_file=inference_file,
     #            kg=kg)
 
-    batch_tosa_v2(targetNodesList,inference_file=inference_file,graph_uri=graph_uri,kg=kg)
+    # batch_tosa_v2(targetNodesList,inference_file=inference_file,graph_uri=graph_uri,kg=kg)
+    batch_tosa_v3(targetNodesList, inference_file=inference_file, graph_uri=graph_uri, kg=kg)
     download_end_time = (datetime.datetime.now() - download_start_time).total_seconds()
+    print('Download Complete!')
+    # import sys
+    # sys.exit()
     # print(f"******** DOWNLOAD_TIME : {download_end_time}")
 
     """ Non Batched Query execution """
@@ -475,7 +550,7 @@ def generate_inference_subgraph(master_ds_name, graph_uri='',targetNodesList = [
     if os.path.exists(processed_dir + '.zip'):
         os.remove(processed_dir + '.zip')
 
-    tmp_dir = os.path.join(KGNET_Config.inference_path, 'tmp')
+    tmp_dir = os.path.join(KGNET_Config.inference_path, f'{output_file}_tmp')
     if os.path.exists(tmp_dir):
         shutil.rmtree(tmp_dir)
 

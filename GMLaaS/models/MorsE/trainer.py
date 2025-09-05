@@ -1,7 +1,7 @@
 from torch.utils.tensorboard import SummaryWriter
 import os
 import json
-from morseUtils import Log
+from morseUtils import Log,get_g_bidir
 from torch.utils.data import DataLoader
 from ent_init_model import EntInit
 from rgcn_model import RGCN
@@ -9,9 +9,9 @@ from kge_model import KGEModel
 import torch
 import torch.nn.functional as F
 from collections import defaultdict as ddict
-from morseUtils import get_indtest_test_dataset_and_train_g
+from morseUtils import get_indtest_test_dataset_and_train_g,get_inf_FG
 from datasets import KGEEvalDataset
-
+import pickle
 
 class Trainer(object):
     def __init__(self, args,logger=None):
@@ -104,6 +104,85 @@ class Trainer(object):
 
         return ent_emb
 
+    def evaluate_inference(self, ent_emb, eval_dataloader, num_cand='all',k=1):
+        results = ddict(float)
+        count = 0
+        eval_dataloader.dataset.num_cand = num_cand
+        if num_cand == 'all':
+            for batch in eval_dataloader:
+                pos_triple, tail_label, head_label = [b.to(self.args.gpu) for b in batch]
+                head_idx, rel_idx, tail_idx = pos_triple[:, 0], pos_triple[:, 1], pos_triple[:, 2]
+                # pred = self.kge_model((pos_triple, None), ent_emb, mode='tail-batch')
+
+                # tail prediction
+                pred = self.kge_model((pos_triple, None), ent_emb, mode='tail-batch')
+
+                b_range = torch.arange(pred.size()[0], device=self.args.gpu)
+                target_pred = pred[b_range, tail_idx]
+                pred = torch.where(tail_label.byte(), -torch.ones_like(pred) * 10000000, pred)
+                pred[b_range, tail_idx] = target_pred
+
+                tail_ranks = 1 + torch.argsort(torch.argsort(pred, dim=1, descending=True),
+                                               dim=1, descending=False)[b_range, tail_idx]
+
+                # head prediction
+                # pred = self.kge_model((pos_triple, None), ent_emb, mode='head-batch')
+                #
+                # b_range = torch.arange(pred.size()[0], device=self.args.gpu)
+                # target_pred = pred[b_range, head_idx]
+                # pred = torch.where(head_label.byte(), -torch.ones_like(pred) * 10000000, pred)
+                # pred[b_range, head_idx] = target_pred
+                #
+                # head_ranks = 1 + torch.argsort(torch.argsort(pred, dim=1, descending=True),
+                #                                dim=1, descending=False)[b_range, head_idx]
+
+                ranks = tail_ranks#torch.cat([tail_ranks, head_ranks])
+                ranks = ranks.float()
+                count += torch.numel(ranks)
+                results['mr'] += torch.sum(ranks).item()
+                results['mrr'] += torch.sum(1.0 / ranks).item()
+
+                for k in [1, 5, 10]:
+                    results['hits@{}'.format(k)] += torch.numel(ranks[ranks <= k])
+
+            for k, v in results.items():
+                results[k] = v / count
+
+        else:
+            for i in range(self.args.num_sample_cand):
+                try:
+                    for batch in eval_dataloader:
+                        try:
+                            pos_triple, tail_cand, head_cand = [b.to(self.args.gpu) for b in batch]
+
+                            b_range = torch.arange(pos_triple.size()[0], device=self.args.gpu)
+                            target_idx = torch.zeros(pos_triple.size()[0], device=self.args.gpu, dtype=torch.int64)
+                            # tail prediction
+                            pred = self.kge_model((pos_triple, tail_cand), ent_emb, mode='tail-batch')
+                            tail_ranks = 1 + torch.argsort(torch.argsort(pred, dim=1, descending=True),
+                                                           dim=1, descending=False)[b_range, target_idx]
+                            # head prediction
+                            pred = self.kge_model((pos_triple, head_cand), ent_emb, mode='head-batch')
+                            head_ranks = 1 + torch.argsort(torch.argsort(pred, dim=1, descending=True),
+                                                           dim=1, descending=False)[b_range, target_idx]
+
+                            ranks = torch.cat([tail_ranks, head_ranks])
+                            ranks = ranks.float()
+                            count += torch.numel(ranks)
+                            results['mr'] += torch.sum(ranks).item()
+                            results['mrr'] += torch.sum(1.0 / ranks).item()
+
+                            for k in [1, 5, 10]:
+                                results['hits@{}'.format(k)] += torch.numel(ranks[ranks <= k])
+                        except:
+                            print("missed batch")
+                except:
+                    print("missed candidate",i)
+
+            for k, v in results.items():
+                results[k] = v / count
+
+        return results
     def evaluate(self, ent_emb, eval_dataloader, num_cand='all',inference=False,k=1):
         results = ddict(float)
         count = 0
@@ -123,7 +202,7 @@ class Trainer(object):
             for batch in eval_dataloader:
                 pos_triple, tail_label, head_label = [b.to(self.args.gpu) for b in batch]
                 head_idx, rel_idx, tail_idx = pos_triple[:, 0], pos_triple[:, 1], pos_triple[:, 2]
-                pred = self.kge_model((pos_triple, None), ent_emb, mode='tail-batch')
+                # pred = self.kge_model((pos_triple, None), ent_emb, mode='tail-batch')
 
                 # tail prediction
                 pred = self.kge_model((pos_triple, None), ent_emb, mode='tail-batch')
@@ -210,12 +289,59 @@ class Trainer(object):
 
         return results
 
-    def inference(self,triples,k=1):
+    def inf_FG(self,args,num_cand='all'):
+        indtest_test_dataset, indtest_train_g = get_inf_FG(args)
+        self.indtest_train_g = indtest_train_g.to(args.gpu)
+        self.indtest_test_dataloader = DataLoader(indtest_test_dataset, batch_size=args.indtest_eval_bs,
+                                                  shuffle=False, collate_fn=KGEEvalDataset.collate_fn)
         ent_emb = self.get_ent_emb(self.indtest_train_g)
+
+        results = self.evaluate_inference(ent_emb, self.indtest_test_dataloader, num_cand=num_cand)
+
+        self.logger.info(f'test on ind-test-graph, sample {num_cand}')
+        self.logger.info('mrr: {:.4f}, hits@1: {:.4f}, hits@5: {:.4f}, hits@10: {:.4f}'.format(
+            results['mrr'], results['hits@1'],
+            results['hits@5'], results['hits@10']))
+
+        return results
+
+
+    def get_inference_graph (self):
+        data_Full = pickle.load(open(self.args.data_path, 'rb'))#['ind_test_graph']
+        data_Full = [data_Full['train_graph'],data_Full['ind_test_graph']]
+        fg_triples = []
+        for data in data_Full:
+            for split in [data['train'],data['test'],data['valid']]:
+                for triple in split:
+                    if triple not in fg_triples:
+                        fg_triples.append(triple)
+
+        seen = set()
+        final_list = []
+        for sublist in fg_triples:
+            # Convert the sublist to a tuple (because lists can't be added to a set directly)
+            tuple_sublist = tuple(sublist)
+            if tuple_sublist not in seen:
+                final_list.append(sublist)
+                seen.add(tuple_sublist)
+        #fg_triples = list(set(fg_triples))
+
+        g = get_g_bidir(torch.LongTensor(fg_triples), self.args)
+        return g
+
+    def inference(self,triples,args,k=1,):
+        g = self.get_inference_graph()
+        # ent_emb = self.get_ent_emb(g)
+        import pickle
+        with open ('/home/afandi/GitRepos/KGNET/morse_g.pkl','rb') as f:
+            ent_emb = pickle.load(f)
+        # ent_emb = self.get_ent_emb(self.indtest_train_g)
         # results = self.evaluate(ent_emb, self.indtest_test_dataloader,inference=True,k=k)
         preds = self.kge_model((triples, None), ent_emb, mode='tail-batch')
-        _, topk_indices = torch.topk(preds, k, dim=1)
-        return topk_indices
+        # _, topk_indices = torch.topk(preds, k, dim=1)
+        # return topk_indices
+
+        return preds
 
 
     def evaluate_indtest_test_triples(self, num_cand='all'):

@@ -29,7 +29,7 @@ import traceback
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 # print("sys.path=",sys.path)
-from ogb.nodeproppred import PygNodePropPredDataset
+# from ogb.nodeproppred import PygNodePropPredDataset
 from evaluater import Evaluator
 from custome_pyg_dataset import PygNodePropPredDataset_hsh
 from resource import *
@@ -858,14 +858,14 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=2000)
     parser.add_argument('--walk_length', type=int, default=2)
     parser.add_argument('--num_steps', type=int, default=10)
-    parser.add_argument('--loadTrainedModel', type=int, default=2)
-    parser.add_argument('--dataset_name', type=str, default="mid-a86666e7d7ca88057e0f18ad8215feb81adadda70c3e9649e7cee523c1f07956")
+    parser.add_argument('--loadTrainedModel', type=int, default=0)
+    parser.add_argument('--dataset_name', type=str, default="YAGO_PC_D1H1_v2")
     parser.add_argument('--root_path', type=str, default=KGNET_Config.datasets_output_path)
     parser.add_argument('--output_path', type=str, default="./")
     parser.add_argument('--include_reverse_edge', type=bool, default=True)
-    parser.add_argument('--n_classes', type=int, default=1000)
-    parser.add_argument('--emb_size', type=int, default=128)
-    parser.add_argument('--modelID', type=str, default="mid-a86666e7d7ca88057e0f18ad8215feb81adadda70c3e9649e7cee523c1f07956.model")
+    parser.add_argument('--n_classes', type=int, default=146)
+    parser.add_argument('--emb_size', type=int, default=128)  # CHANGED
+    parser.add_argument('--modelID', type=str, default="DBLP15M_PV_d1h1_v2.model")
 
     args = parser.parse_args()
     print(args)

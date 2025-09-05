@@ -414,8 +414,6 @@ def graphShadowSaint(device=0,num_layers=2,hidden_channels=64,dropout=0.5,
             # print("homo_data.train_mask=",len(homo_data.train_mask==False))
             train_loader = ShaDowKHopSampler(homo_data, depth=2, num_neighbors=3,
                                              node_idx=homo_data.train_mask,
-                                             # node_idx = None,
-                                             # node_idx=local2global[subject_node]
                                               **kwargs)
         end_t = datetime.datetime.now()
         # print("Sampling time=", end_t - start_t, " sec.")
