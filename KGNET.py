@@ -270,8 +270,8 @@ class KGNET():
             sparql_ml_insert_query += """,\n "targetNodeFilters":{"filter1":["yago:datePublished", "?pdate","filter(xsd:date(?pdate)>=xsd:date('1970-01-01'))"] \n}\n"""
         elif operatorType == Constants.GML_Operator_Types.NodeClassification and self.kg_Prefix == "crunchbase": 
             sparql_ml_insert_query += """,\n "targetNodeFilters":{"filter1":["crunchbase:born_on", "?born_date","filter(xsd:date(?born_date)>=xsd:date('1900-01-01'))"] \n}\n"""
-        # elif operatorType == Constants.GML_Operator_Types.NodeClassification and self.kg_Prefix == "lkmdb" and targetNodeType == "lkmdb:film":
-        #     sparql_ml_insert_query += """,\n "targetNodeFilters":{"filter1":["<http://purl.org/dc/terms/date>", "?pdate","filter(strlen(?pdate)>=4).  filter (xsd:int(substr(?pdate,0,4)) <= 2005 )"] \n}\n"""
+        elif operatorType == Constants.GML_Operator_Types.NodeClassification and self.kg_Prefix == "lkmdb" and targetNodeType == "lkmdb:film":
+            sparql_ml_insert_query += """,\n "targetNodeFilters":{"filter1":["<http://purl.org/dc/terms/date>", "?pdate","filter(strlen(?pdate)>=4).  filter (xsd:int(substr(?pdate,0,4)) <= 2005 )"] \n}\n"""
         sparql_ml_insert_query += "}\n})}"
         print("sparql_ml_insert_query=", sparql_ml_insert_query)
         ######################### write sparqlML query #########################

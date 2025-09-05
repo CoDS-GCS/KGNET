@@ -455,6 +455,7 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
             targetNodeType + "_dic"].keys() else -1)
     labels_rel_df = labels_rel_df[labels_rel_df["s_idx"] != -1]
     labels_rel_df["o_idx"] = labels_rel_df["o"]  # .apply(lambda x: str(x).split("/")[-1])
+    label_idx_dic={str(k):v for k,v in label_idx_dic.items()}
     labels_rel_df["o_idx"] = labels_rel_df["o_idx"].apply(
         lambda x: label_idx_dic[str(x)] if str(x) in label_idx_dic.keys() else -1)
     target_without_labels_set=target_without_labels_set.union(set(labels_rel_df[labels_rel_df["o_idx"]==-1]["s"].unique())) ## append target nodes those are not have reprsentiaive labels
@@ -485,7 +486,10 @@ def transform_tsv_to_PYG(dataset_name,dataset_name_csv,dataset_types,split_rel,t
         split_rel = split_rel.split('/')[-1].split("#")[-1] ## handel # in rel such as vocab#born_on 
         if split_rel.lower() == 'random':
             if labelNodetype is None:
-                split_df = g_tsv_df[(g_tsv_df["p"] == target_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"]))]
+                if g_tsv_df.dtypes[2] ==object:
+                    split_df = g_tsv_df[(g_tsv_df["p"] == target_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"].astype(str).tolist()))]
+                else:
+                    split_df = g_tsv_df[(g_tsv_df["p"] == target_rel) & (g_tsv_df["o"].isin(label_idx_df["label name"].tolist()))]
             else:
                 split_df = g_tsv_df[g_tsv_df["p"] == target_rel]
         else:

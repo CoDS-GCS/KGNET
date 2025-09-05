@@ -93,7 +93,8 @@ class KGNET_Config:
     # KGMeta_endpoint_url = "http://206.12.98.118:8890/sparql/"
 
     # datasets_output_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),'Datasets')#"/media/hussein/UbuntuData/GithubRepos/KGNET/Datasets/"
-    datasets_output_path = r'/shared_mnt/github_repos/KGNET/Datasets/'
+    # datasets_output_path = r'/shared_mnt/github_repos/KGNET/Datasets/'
+    datasets_output_path = r'/media/hussein/74c609e2-11c7-4345-9782-e0dffa447088/Github_Rpos/KGNET/Datasets/'
     inference_path = datasets_output_path + 'Inference/'
     # inference_path = os.path.join(datasets_output_path,'Inference')
     trained_model_path = datasets_output_path + 'trained_models/'

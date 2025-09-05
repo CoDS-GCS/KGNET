@@ -28,10 +28,10 @@ if __name__ == '__main__':
 
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql/', KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de',KG_Prefix='aifb')
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://wikikg-v2',KG_Prefix='WikiKG2015_v2')
-    # kgnet = KGNET(KG_endpointUrl='http://206.12.97.2:8890/sparql', KG_NamedGraph_IRI='https://yago-knowledge.org', KG_Prefix='yago')
+    kgnet = KGNET(KG_endpointUrl='http://206.12.97.2:8890/sparql', KG_NamedGraph_IRI='https://yago-knowledge.org', KG_Prefix='yago')
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='https://linkedmdb.org', KG_Prefix='lkmdb')
     # kgnet = KGNET(KG_endpointUrl='http://206.12.97.2:8890/sparql/', KG_NamedGraph_IRI='http://crunchbase-dump-2015-10', KG_Prefix='crunchbase')
-    kgnet = KGNET(KG_endpointUrl='http://206.12.97.2:8890/sparql/', KG_NamedGraph_IRI='http://www.biokg.com', KG_Prefix='biokg')
+    # kgnet = KGNET(KG_endpointUrl='http://206.12.97.2:8890/sparql/', KG_NamedGraph_IRI='http://www.biokg.com', KG_Prefix='biokg')
 
     # kgnet.KGMeta_Governer.insertKGMetadata(sparqlendpoint='http://206.12.98.118:8890/sparql',
     #                                        prefix='lkmdb',
@@ -142,9 +142,12 @@ if __name__ == '__main__':
     # "targetNodeType":"lkmdb:film",
     # "MinInstancesPerLabel": 50},
 
-    "lkmdb:language":{
-    "targetNodeType":"lkmdb:film",
-    "MinInstancesPerLabel":100}
+    # "lkmdb:language":{
+    # "targetNodeType":"lkmdb:film",
+    # "MinInstancesPerLabel":100},
+    "lkmdb:initial_release_date": {
+        "targetNodeType": "lkmdb:film",
+        "MinInstancesPerLabel": 200}
     }
 ################### crunchbase KG ################
     Linked_crunchbase_Dict={
@@ -189,22 +192,16 @@ if __name__ == '__main__':
     "targetNodeType": "biokg:protein",
     "MinInstancesPerLabel": 15},
     }
-########################### YAGO ################    
-    # TargetEdge = "yago:memberOf"  # profession
-    # targetNodeType = "yago:Country"
-    # MinInstancesPerLabel = 6
-    
-    # TargetEdge = "yago:award"  # profession
-    # targetNodeType = "yago:Organization"
-    # MinInstancesPerLabel = 6
-    for k,v in biokg_Dict.items():
-        TargetEdge=k
-        print("biokg TargetEdge=",TargetEdge)
-        targetNodeType=v['targetNodeType']
-        MinInstancesPerLabel=v['MinInstancesPerLabel']        
-        for epoch in range(15,31,5):
-            for e_size in range(64, 128, 32):
-                model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType=targetNodeType,labelNodeType=None,targetEdge=TargetEdge, GNNMethod=GNN_Methods.Graph_SAINT,TOSG_Pattern=TOSG_Patterns.d1h1,epochs=epoch,emb_size=e_size,MinInstancesPerLabel=MinInstancesPerLabel)
+########################### Train Models ################
+    # for k,v in biokg_Dict.items():
+    # for k, v in Linked_IMDB_Dict.items():
+    #     TargetEdge=k
+    #     print("Linked_IMDB_Dict TargetEdge=",TargetEdge)
+    #     targetNodeType=v['targetNodeType']
+    #     MinInstancesPerLabel=v['MinInstancesPerLabel']
+    #     for epoch in range(15,31,5):
+    #         for e_size in range(64, 128, 32):
+    #             model_info, transform_info, train_info = kgnet.train_GML(operatorType=Constants.GML_Operator_Types.NodeClassification, targetNodeType=targetNodeType,labelNodeType=None,targetEdge=TargetEdge, GNNMethod=GNN_Methods.Graph_SAINT,TOSG_Pattern=TOSG_Patterns.d1h1,epochs=epoch,emb_size=e_size,MinInstancesPerLabel=MinInstancesPerLabel)
     #################################### LP ######
     # ######################
     # kgnet = KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql', KG_NamedGraph_IRI='http://www.aifb.uni-karlsruhe.de',KG_Prefix="aifb")
@@ -764,6 +761,8 @@ if __name__ == '__main__':
                    # filter(?pred_parentOrg in(<http://yago-knowledge.org/resource/University_of_California>,<http://yago-knowledge.org/resource/New_York_University>)).
                }       
                """
+
+    #### Single SPARQL Query ####################
     # kgnet=KGNET(KG_endpointUrl='http://206.12.98.118:8890/sparql',KG_NamedGraph_IRI='https://dblp2022.org',KGMeta_endpointUrl="http://206.12.98.118:8890/sparql",RDFEngine=RDFEngine.OpenlinkVirtuoso)
     # kgnet = KGNET(KG_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query",KGMeta_endpointUrl="http://206.12.100.35:5820/kgnet_kgs/query", KG_NamedGraph_IRI='https://dblp2022.org',RDFEngine=RDFEngine.stardog)
     # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_workField_NC)
@@ -794,112 +793,112 @@ if __name__ == '__main__':
     # Real_target_node = nethierland_baseball_Kg_humans
     # target_node="human"
     # target_node = "Publication"
+
+    #### Query Plans ####################
     target_node = "Person"
-    import itertools
+    # n_tasks = 2
+    n_runs = 3
+    patterns = ["1p", "2p", "3p", "2i", "ip", "pi", "3i", "2u", "up", "2in", "3in", "inp", "pni", "pin"]
+    pattern_inst_idx = 0
+    ############### use SPARQLML Benchmark ###############
+    ben_root_path = "/shared_mnt/github_repos/KGNET/SPARQLML-Ben/"
+    SPARQLML_Ben_df = pd.read_csv(f"{ben_root_path}SPARQLML-Ben-Yago4.tsv", sep="\t")
+    for pattern_idx in range(10, len(patterns)):
+        pattern = patterns[pattern_idx]
+        print(f">>>>>>>>>>>>>>>>>>>>>>>>> pattern={pattern} >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        SPARQLML_Ben_patten_df = SPARQLML_Ben_df[SPARQLML_Ben_df["pattern"] == pattern]
+        SPARQLML_Ben_patten_df = SPARQLML_Ben_patten_df.reset_index(drop=True)
+        patten_query = SPARQLML_Ben_patten_df["SPARQLML_query"][pattern_inst_idx]
+        pred_col = SPARQLML_Ben_patten_df["pred_col"][pattern_inst_idx]
+        real_col = SPARQLML_Ben_patten_df["real_col"][pattern_inst_idx]
+        target_col = SPARQLML_Ben_patten_df["target_col"][pattern_inst_idx]
+        n_tasks = SPARQLML_Ben_patten_df["n_tasks"][pattern_inst_idx]
+        query_select_both_cols = SPARQLML_Ben_patten_df["query_select_both_cols"][pattern_inst_idx] == 1
+        eval_metric = SPARQLML_Ben_patten_df["metric"][pattern_inst_idx]
+        try:
+            patten_query_results_df = pd.read_csv(
+                f"{ben_root_path}" + SPARQLML_Ben_patten_df["results_file"][pattern_inst_idx], sep="\t")
+        except:
+            print(f"file not exist:{ben_root_path + SPARQLML_Ben_patten_df['results_file'][pattern_inst_idx]}")
+        ######################################################
+        # piplines=list(itertools.permutations(range(0,n_tasks)))
+        # print(f"True_Targets_Path={True_Targets_Path}")
+        DAGExecPlans, DAG, decomposedSubqueries = kgnet.getSPARQLMLExecQueryPlans(patten_query)
+        CostModelParams = {'accuracyW': 0.7, 'inferTimeW': 0.3}
+        SPARQLMLQueryPlansCostDict, SPARQLMLQueryPlansCostLst = kgnet.getSPARQLMLQueryPlansCost(DAGExecPlans, DAG,
+                                                                                                decomposedSubqueries,
+                                                                                                CostModelParams)
+        bestPlanIdx = ModelSelector.getBestPlanIdx(SPARQLMLQueryPlansCostLst, w1=0.8, w2=0.2)
+        print(f"Best Execution Plan Idx:{bestPlanIdx}")
+        print(f"DAGExecPlans={['->'.join(elem) for elem in DAGExecPlans]}")
+        print(f"Possible DAG Execution Plans Count ={len(DAGExecPlans)}")
+        for ExecPlanIdx in range(0, len(DAGExecPlans)):
+            print(f"########## Execution Plan:({'->'.join(DAGExecPlans[ExecPlanIdx])})#################")
+            for infer_mode in range(0, 2):
+                exec_time = []
+                true_pred_lst, not_pred_lst, false_pred_lst, f1_pred_lst = [], [], [], []
+                kgwise_full_batch = infer_mode == 0
+                print(f"*********kgwise_full_batch={kgwise_full_batch}********")
+                for run in range(0, n_runs):
+                    print(f"###### Run({run})#####")
+                    # inference_query_wikidata_Citizenship_Profession_univ_NC_v2
+                    # resDF, MetaQueries,query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp_NC_venue_aff,pipline=pipline_no)
+                    # resDF, MetaQueries, query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_yago_NC_nationality_alumniof_occupation,pipline=pipline_no,kgwise_full_batch=kgwise_full_batch)
+                    resDF, MetaQueries, query_time_sec = kgnet.executeSPARQLMLInferenceQuery(patten_query,
+                                                                                             ExecPlanIdx=ExecPlanIdx,
+                                                                                             kgwise_full_batch=kgwise_full_batch)
+                    # resDF, MetaQueries, query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_Citizenship_Profession_univ_NC_v2,in_pipline=True)
+                    exec_time.append(query_time_sec)
+                    # resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp2022_NC_LP)
+                    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_NC)
+                    # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(nested_Query)
 
-    # # n_tasks = 2
-    # n_runs = 3
-    # patterns = ["1p", "2p", "3p", "2i", "ip", "pi", "3i", "2u", "up", "2in", "3in", "inp", "pni", "pin"]
-    # pattern_inst_idx = 0
-    # ############### use SPARQLML Benchmark ###############
-    # ben_root_path = "/shared_mnt/github_repos/KGNET/SPARQLML-Ben/"
-    # SPARQLML_Ben_df = pd.read_csv(f"{ben_root_path}SPARQLML-Ben-Yago4.tsv", sep="\t")
-    # for pattern_idx in range(10, len(patterns)):
-    #     pattern = patterns[pattern_idx]
-    #     print(f">>>>>>>>>>>>>>>>>>>>>>>>> pattern={pattern} >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    #     SPARQLML_Ben_patten_df = SPARQLML_Ben_df[SPARQLML_Ben_df["pattern"] == pattern]
-    #     SPARQLML_Ben_patten_df = SPARQLML_Ben_patten_df.reset_index(drop=True)
-    #     patten_query = SPARQLML_Ben_patten_df["SPARQLML_query"][pattern_inst_idx]
-    #     pred_col = SPARQLML_Ben_patten_df["pred_col"][pattern_inst_idx]
-    #     real_col = SPARQLML_Ben_patten_df["real_col"][pattern_inst_idx]
-    #     target_col = SPARQLML_Ben_patten_df["target_col"][pattern_inst_idx]
-    #     n_tasks = SPARQLML_Ben_patten_df["n_tasks"][pattern_inst_idx]
-    #     query_select_both_cols = SPARQLML_Ben_patten_df["query_select_both_cols"][pattern_inst_idx] == 1
-    #     eval_metric = SPARQLML_Ben_patten_df["metric"][pattern_inst_idx]
-    #     try:
-    #         patten_query_results_df = pd.read_csv(
-    #             f"{ben_root_path}" + SPARQLML_Ben_patten_df["results_file"][pattern_inst_idx], sep="\t")
-    #     except:
-    #         print(f"file not exist:{ben_root_path + SPARQLML_Ben_patten_df['results_file'][pattern_inst_idx]}")
-    #     ######################################################
-    #     # piplines=list(itertools.permutations(range(0,n_tasks)))
-    #     # print(f"True_Targets_Path={True_Targets_Path}")
-    #     DAGExecPlans, DAG, decomposedSubqueries = kgnet.getSPARQLMLExecQueryPlans(patten_query)
-    #     CostModelParams = {'accuracyW': 0.7, 'inferTimeW': 0.3}
-    #     SPARQLMLQueryPlansCostDict, SPARQLMLQueryPlansCostLst = kgnet.getSPARQLMLQueryPlansCost(DAGExecPlans, DAG,
-    #                                                                                             decomposedSubqueries,
-    #                                                                                             CostModelParams)
-    #     bestPlanIdx = ModelSelector.getBestPlanIdx(SPARQLMLQueryPlansCostLst, w1=0.8, w2=0.2)
-    #     print(f"Best Execution Plan Idx:{bestPlanIdx}")
-    #     print(f"DAGExecPlans={['->'.join(elem) for elem in DAGExecPlans]}")
-    #     print(f"Possible DAG Execution Plans Count ={len(DAGExecPlans)}")
-    #     for ExecPlanIdx in range(0, len(DAGExecPlans)):
-    #         print(f"########## Execution Plan:({'->'.join(DAGExecPlans[ExecPlanIdx])})#################")
-    #         for infer_mode in range(0, 2):
-    #             exec_time = []
-    #             true_pred_lst, not_pred_lst, false_pred_lst, f1_pred_lst = [], [], [], []
-    #             kgwise_full_batch = infer_mode == 0
-    #             print(f"*********kgwise_full_batch={kgwise_full_batch}********")
-    #             for run in range(0, n_runs):
-    #                 print(f"###### Run({run})#####")
-    #                 # inference_query_wikidata_Citizenship_Profession_univ_NC_v2
-    #                 # resDF, MetaQueries,query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp_NC_venue_aff,pipline=pipline_no)
-    #                 # resDF, MetaQueries, query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_yago_NC_nationality_alumniof_occupation,pipline=pipline_no,kgwise_full_batch=kgwise_full_batch)
-    #                 resDF, MetaQueries, query_time_sec = kgnet.executeSPARQLMLInferenceQuery(patten_query,
-    #                                                                                          ExecPlanIdx=ExecPlanIdx,
-    #                                                                                          kgwise_full_batch=kgwise_full_batch)
-    #                 # resDF, MetaQueries, query_time_sec = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_Citizenship_Profession_univ_NC_v2,in_pipline=True)
-    #                 exec_time.append(query_time_sec)
-    #                 # resDF,MetaQueries=kgnet.executeSPARQLMLInferenceQuery(inference_MQuery_dblp2022_NC_LP)
-    #                 # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(inference_query_wikidata_award_workField_NC)
-    #                 # resDF, MetaQueries = kgnet.executeSPARQLMLInferenceQuery(nested_Query)
-
-    #                 print("query_time_sec=", query_time_sec)
-    #                 # print(resDF)
-    #                 if eval_metric == "accuracy":
-    #                     resDF['match_pred'] = resDF[real_col] == resDF[pred_col]
-    #                     true_predicted_targets_set = set(resDF[resDF['match_pred'] == True][target_col].unique())
-    #                     false_predicted_targets_set = set(resDF[target_col].unique()) - true_predicted_targets_set
-    #                     # pred_target_set = [str(elem).replace("\"", "").strip().split("/")[-1] for elem in resDF[pred_col].tolist()]
-    #                     # if query_select_both_cols:
-    #                     #     Real_target_node = [str(x).replace("\"", "").strip().split("/")[-1] for x in resDF[real_col].tolist()]
-    #                     # else:
-    #                     #     Real_target_node = [str(x).replace("\"", "").strip().split("/")[-1] for x in patten_query_results_df[real_col].tolist()]
-    #                     # acc=Metrics.get_accuracy_score(Real_target_node,pred_target_set)
-    #                     acc = len(true_predicted_targets_set) / (
-    #                                 len(true_predicted_targets_set) + len(false_predicted_targets_set))
-    #                     true_pred_lst.append(acc)
-    #                     false_pred_lst.append(1 - acc)
-    #                     # f1_score = Metrics.get_f1_score(Real_target_node, pred_target_set)
-    #                     # f1_pred_lst.append(f1_score)
-    #                     print(f"accuracy={acc}")
-    #                 elif eval_metric == "precision":
-    #                     pred_target_set = set([str(elem).replace("\"", "").strip().split("/")[-1] for elem in
-    #                                            set(resDF[pred_col].tolist())])
-    #                     Real_target_node = list(set([str(x).replace("\"", "").strip().split("/")[-1] for x in
-    #                                                  patten_query_results_df[real_col].tolist()]))
-    #                     true_pred_lst.append(
-    #                         len(pred_target_set.intersection(set(Real_target_node))) / len(Real_target_node))
-    #                     print(f"True Predictions Ratio:{true_pred_lst[-1]}")
-    #                     not_pred_lst.append(len(set(Real_target_node) - pred_target_set) / len(Real_target_node))
-    #                     print(f"Not Predicted Ratio:{not_pred_lst[-1]}")
-    #                     false_pred_lst.append(len(pred_target_set - set(Real_target_node)))
-    #                     print(f"Inductive Predictions Count:{false_pred_lst[-1]}")
-    #                     print(MetaQueries)
-    #                     # print("candidateSparqlQuery=",MetaQueries['candidateSparqlQuery'])
-    #             print(f"Pipline=({ExecPlanIdx})")
-    #             print(
-    #                 f"avg_time={mean(exec_time)} | median_time={median(exec_time)} | min={min(exec_time)} | max={max(exec_time)}.")
-    #             if len(f1_pred_lst) > 0:
-    #                 print(
-    #                     f"avg_f1_preds={mean(f1_pred_lst)} | median_f1_preds={median(f1_pred_lst)} | min={min(f1_pred_lst)} | max={max(f1_pred_lst)}.")
-    #             if len(true_pred_lst) > 0:
-    #                 print(
-    #                     f"avg_true_preds={mean(true_pred_lst) * 100}% | median_true_preds={median(true_pred_lst) * 100}% | min={min(true_pred_lst) * 100}% | max={max(true_pred_lst) * 100}%.")
-    #             if len(not_pred_lst) > 0:
-    #                 print(
-    #                     f"avg_not_preds={mean(not_pred_lst) * 100}% | median_not_preds={median(not_pred_lst) * 100}% | min={min(not_pred_lst) * 100}% | max={max(not_pred_lst) * 100}%.")
-    #             if len(false_pred_lst) > 0:
-    #                 print(
-    #                     f"avg_Inductive_pred_counts={mean(false_pred_lst) * 100}% | median_Inductive_pred_counts={median(false_pred_lst) * 100}% | min={min(false_pred_lst) * 100}% | max={max(false_pred_lst) * 100}%.")
-    #     #############################################
+                    print("query_time_sec=", query_time_sec)
+                    # print(resDF)
+                    if eval_metric == "accuracy":
+                        resDF['match_pred'] = resDF[real_col] == resDF[pred_col]
+                        true_predicted_targets_set = set(resDF[resDF['match_pred'] == True][target_col].unique())
+                        false_predicted_targets_set = set(resDF[target_col].unique()) - true_predicted_targets_set
+                        # pred_target_set = [str(elem).replace("\"", "").strip().split("/")[-1] for elem in resDF[pred_col].tolist()]
+                        # if query_select_both_cols:
+                        #     Real_target_node = [str(x).replace("\"", "").strip().split("/")[-1] for x in resDF[real_col].tolist()]
+                        # else:
+                        #     Real_target_node = [str(x).replace("\"", "").strip().split("/")[-1] for x in patten_query_results_df[real_col].tolist()]
+                        # acc=Metrics.get_accuracy_score(Real_target_node,pred_target_set)
+                        acc = len(true_predicted_targets_set) / (
+                                    len(true_predicted_targets_set) + len(false_predicted_targets_set))
+                        true_pred_lst.append(acc)
+                        false_pred_lst.append(1 - acc)
+                        # f1_score = Metrics.get_f1_score(Real_target_node, pred_target_set)
+                        # f1_pred_lst.append(f1_score)
+                        print(f"accuracy={acc}")
+                    elif eval_metric == "precision":
+                        pred_target_set = set([str(elem).replace("\"", "").strip().split("/")[-1] for elem in
+                                               set(resDF[pred_col].tolist())])
+                        Real_target_node = list(set([str(x).replace("\"", "").strip().split("/")[-1] for x in
+                                                     patten_query_results_df[real_col].tolist()]))
+                        true_pred_lst.append(
+                            len(pred_target_set.intersection(set(Real_target_node))) / len(Real_target_node))
+                        print(f"True Predictions Ratio:{true_pred_lst[-1]}")
+                        not_pred_lst.append(len(set(Real_target_node) - pred_target_set) / len(Real_target_node))
+                        print(f"Not Predicted Ratio:{not_pred_lst[-1]}")
+                        false_pred_lst.append(len(pred_target_set - set(Real_target_node)))
+                        print(f"Inductive Predictions Count:{false_pred_lst[-1]}")
+                        print(MetaQueries)
+                        # print("candidateSparqlQuery=",MetaQueries['candidateSparqlQuery'])
+                print(f"Pipline=({ExecPlanIdx})")
+                print(
+                    f"avg_time={mean(exec_time)} | median_time={median(exec_time)} | min={min(exec_time)} | max={max(exec_time)}.")
+                if len(f1_pred_lst) > 0:
+                    print(
+                        f"avg_f1_preds={mean(f1_pred_lst)} | median_f1_preds={median(f1_pred_lst)} | min={min(f1_pred_lst)} | max={max(f1_pred_lst)}.")
+                if len(true_pred_lst) > 0:
+                    print(
+                        f"avg_true_preds={mean(true_pred_lst) * 100}% | median_true_preds={median(true_pred_lst) * 100}% | min={min(true_pred_lst) * 100}% | max={max(true_pred_lst) * 100}%.")
+                if len(not_pred_lst) > 0:
+                    print(
+                        f"avg_not_preds={mean(not_pred_lst) * 100}% | median_not_preds={median(not_pred_lst) * 100}% | min={min(not_pred_lst) * 100}% | max={max(not_pred_lst) * 100}%.")
+                if len(false_pred_lst) > 0:
+                    print(
+                        f"avg_Inductive_pred_counts={mean(false_pred_lst) * 100}% | median_Inductive_pred_counts={median(false_pred_lst) * 100}% | min={min(false_pred_lst) * 100}% | max={max(false_pred_lst) * 100}%.")
+        #############################################
