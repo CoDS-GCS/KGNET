@@ -1,13 +1,16 @@
 ### KGNET is to be published at <a href="https://ieeexplore.ieee.org/document/10184515">ICDE-2023</a>
 # KGNET - A GML-Enabled RDF Engine
-<!--<p><b>Note: We are working on a full release of KGNET with all working functionalities by the end of August </b></p>-->
-<img alt="kgnet_architecture" src="docs/imgs/kgnet.png" width="500"/>
-
+<div style="align: center; width=100%;">
+<center><img alt="kgnet_architecture" src="docs/imgs/kgnet.jpg" width="500"/></center>
+</div>
 
 <div style="text-align: justify">
-<p>This vision paper proposes KGNet, an on-demand graph machine learning (GML) as a service on top of RDF engines to support GML-enabled SPARQL queries. KGNet automates the training of GML models on a KG by identifying a task-specific subgraph. This helps reduce the task-irrelevant KG structure and properties for better scalability and accuracy. While training a GML model on KG, KGNet collects metadata of trained models in the form of an RDF graph called KGMeta, which is interlinked with the relevant subgraphs in KG. Finally, all trained models are accessible via a SPARQL-like query. We call it a GML-enabled query and refer to it as SPARQLML. KGNet supports SPARQLML on top of existing RDF engines as an interface for querying and inferencing over KGs using GML models. The development of KGNet poses research opportunities in several areas, including meta-sampling for identifying task-specific subgraphs, GML pipeline automation with computational constraints, such as limited time and memory budget, and SPARQLML query optimization. KGNet supports different GML tasks, such as node classification, link prediction, and semantic entity matching. We evaluated KGNet using two real KGs of different application domains. Compared to training on the entire KG, KGNet significantly reduced training time and memory usage while maintaining comparable or improved accuracy. The KGNet source-code1 is available for further study</p></div>
+<p>This vision paper proposes KGNet, an on-demand graph machine learning (GML) as a service on top of RDF engines to support GML-enabled SPARQL queries. KGNet automates the training of GML models on a KG by identifying a task-specific subgraph. This helps reduce the task-irrelevant KG structure and properties for better scalability and accuracy. While training a GML model on KG, KGNet collects metadata of trained models in the form of an RDF graph called KGMeta, which is interlinked with the relevant subgraphs in KG. Finally, all trained models are accessible via a SPARQL-like query. We call it a GML-enabled query and refer to it as SPARQLML. KGNet supports SPARQLML on top of existing RDF engines as an interface for querying and inferencing over KGs using GML models. The development of KGNet poses research opportunities in several areas, including meta-sampling for identifying task-specific subgraphs, GML pipeline automation with computational constraints, such as limited time and memory budget, and SPARQLML query optimization. KGNet supports different GML tasks, such as node classification, link prediction, and semantic entity matching. We evaluated KGNet using two real KGs of different application domains. Compared to training on the entire KG, KGNet significantly reduced training time and memory usage while maintaining comparable or improved accuracy.</p></div>
 
-## SPARQL-ML Demo Vedio
+* <a href ="https://github.com/CoDS-GCS/KGTOSA" target="_blank">KGTOSA</a>: The task-oriented training manager for HGNN is published at ICDE 2024.
+* <a href="https://github.com/CoDS-GCS/KG-WISE" target="_blank">KGWISE</a>: The query-aware inference manager for HGNN is under review.
+
+## SPARQL-ML Demo Video
 <a href="https://youtu.be/fUeY4Cj_R5I" target="_blank"><img alt="SPARQL-ML Demo" src="docs/imgs/SPARQLML-Demo.png" width="300"/></a>
 <br/>
 <a href="https://colab.research.google.com/drive/1mBVNdAGYi7V6giMYCrYhz7oCvZpTvDyI?usp=sharing" target="_blank"> 
